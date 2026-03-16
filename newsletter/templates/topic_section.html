@@ -1,0 +1,36 @@
+<!-- Topic: {{ topic.topic }} -->
+<div class="topic-section" style="border-top-color: {{ topic.color }};">
+  <div class="topic-header">
+    <span class="topic-badge" style="background-color: {{ topic.color }};">{{ topic.topic }}</span>
+    <span class="topic-title">{{ topic.label }}</span>
+  </div>
+  <div class="topic-body">
+
+    {% if topic.developments %}
+      {% for dev in topic.developments %}
+      <div class="development-item" style="border-left-color: {{ topic.color }};">
+        <div class="dev-headline">
+          <a href="{{ dev.url }}" target="_blank">{{ dev.headline }}</a>
+        </div>
+        <div class="dev-meta">
+          {{ dev.source }}{% if dev.date %} &nbsp;·&nbsp; {{ dev.date }}{% endif %}
+        </div>
+        <div class="dev-summary">{{ dev.summary }}</div>
+        <span class="urgency-badge urgency-{{ dev.urgency }}">{{ dev.urgency }}</span>
+        {% if dev.deadline %}
+        <span class="deadline-note">⚑ Deadline: {{ dev.deadline }}</span>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      {% set impact = topic.andersen_impact %}
+      {% if impact and (impact.direct_materials or impact.supply_chain or impact.action_items) %}
+      {% include 'impact_callout.html' %}
+      {% endif %}
+
+    {% else %}
+      <div class="no-news">No new developments in the last 48 hours.</div>
+    {% endif %}
+
+  </div>
+</div>

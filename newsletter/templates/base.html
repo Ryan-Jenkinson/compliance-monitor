@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Andersen Compliance Intelligence — {{ date_display }}</title>
+  <style>
+    /* Reset */
+    body, table, td, p, a, li, blockquote {
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    table, td { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
+    * { box-sizing: border-box; }
+
+    /* Base */
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #F4F5F7;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      color: #2D3748;
+    }
+
+    .email-wrapper {
+      max-width: 680px;
+      margin: 0 auto;
+      background-color: #F4F5F7;
+    }
+
+    /* Header */
+    .email-header {
+      background: linear-gradient(135deg, #0D1B2E 0%, #1A3050 100%);
+      padding: 32px 40px 28px;
+      text-align: center;
+    }
+    .email-header .brand {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #C4A55A;
+      margin-bottom: 8px;
+    }
+    .email-header h1 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin: 0 0 6px;
+      letter-spacing: -0.3px;
+    }
+    .email-header .edition {
+      font-size: 13px;
+      color: #8BAAC8;
+      margin: 0;
+    }
+
+    /* Body wrapper */
+    .email-body {
+      background-color: #FFFFFF;
+      padding: 0;
+    }
+
+    /* Greeting */
+    .greeting-section {
+      padding: 28px 40px 8px;
+      border-bottom: 1px solid #EDF2F7;
+    }
+    .greeting-text {
+      font-size: 17px;
+      color: #1A2B3C;
+      margin: 0 0 4px;
+      font-weight: 600;
+    }
+    .greeting-sub {
+      font-size: 13px;
+      color: #718096;
+      margin: 0;
+    }
+
+    /* Executive Summary */
+    .exec-summary-section {
+      margin: 24px 40px;
+      border: 1px solid #C4A55A;
+      border-radius: 6px;
+      background-color: #FFFDF4;
+      overflow: hidden;
+    }
+    .exec-summary-header {
+      background-color: #C4A55A;
+      padding: 8px 16px;
+    }
+    .exec-summary-header span {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #0D1B2E;
+    }
+    .exec-summary-body {
+      padding: 16px 20px;
+    }
+    .exec-summary-body p {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #2D3748;
+      margin: 0;
+    }
+
+    /* Topic section */
+    .topic-section {
+      margin: 0 0 2px;
+      border-top: 4px solid #E2E8F0;
+    }
+    .topic-header {
+      padding: 20px 40px 16px;
+      display: flex;
+      align-items: center;
+    }
+    .topic-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #FFFFFF;
+      margin-right: 12px;
+      vertical-align: middle;
+    }
+    .topic-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1A2B3C;
+      vertical-align: middle;
+    }
+    .topic-body {
+      padding: 0 40px 24px;
+    }
+
+    /* Development item */
+    .development-item {
+      border-left: 3px solid #E2E8F0;
+      padding: 12px 0 12px 16px;
+      margin-bottom: 16px;
+    }
+    .dev-headline {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1A2B3C;
+      margin: 0 0 4px;
+      line-height: 1.4;
+    }
+    .dev-headline a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .dev-headline a:hover {
+      text-decoration: underline;
+    }
+    .dev-meta {
+      font-size: 11px;
+      color: #A0AEC0;
+      margin: 0 0 6px;
+    }
+    .dev-summary {
+      font-size: 13px;
+      color: #4A5568;
+      margin: 0 0 8px;
+      line-height: 1.6;
+    }
+    .urgency-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .urgency-HIGH { background-color: #FED7D7; color: #C53030; }
+    .urgency-MEDIUM { background-color: #FEFCBF; color: #975A16; }
+    .urgency-LOW { background-color: #E9F5E9; color: #276749; }
+    .deadline-note {
+      display: inline-block;
+      margin-left: 8px;
+      font-size: 11px;
+      color: #E53E3E;
+      font-weight: 600;
+    }
+
+    /* No-news state */
+    .no-news {
+      padding: 12px 16px;
+      background-color: #F7FAFC;
+      border-radius: 4px;
+      font-size: 13px;
+      color: #A0AEC0;
+      font-style: italic;
+    }
+
+    /* Andersen Impact callout */
+    .impact-callout {
+      background-color: #FFFBEB;
+      border-left: 4px solid #D69E2E;
+      border-radius: 0 4px 4px 0;
+      padding: 14px 16px;
+      margin-top: 16px;
+    }
+    .impact-callout-header {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #975A16;
+      margin-bottom: 8px;
+    }
+    .impact-row {
+      margin-bottom: 6px;
+    }
+    .impact-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #744210;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .impact-text {
+      font-size: 13px;
+      color: #4A3416;
+      margin: 2px 0 0;
+      line-height: 1.5;
+    }
+    .action-items {
+      margin: 8px 0 0;
+      padding-left: 18px;
+    }
+    .action-items li {
+      font-size: 13px;
+      color: #4A3416;
+      margin-bottom: 3px;
+      line-height: 1.5;
+    }
+
+    /* Divider */
+    .section-divider {
+      height: 1px;
+      background-color: #EDF2F7;
+      margin: 0 40px;
+    }
+
+    /* Footer */
+    .email-footer {
+      background-color: #F7FAFC;
+      padding: 20px 40px;
+      border-top: 1px solid #E2E8F0;
+    }
+    .footer-meta {
+      font-size: 11px;
+      color: #A0AEC0;
+      margin: 0 0 4px;
+    }
+    .footer-meta strong {
+      color: #718096;
+    }
+
+    /* Mobile */
+    @media screen and (max-width: 600px) {
+      .email-header { padding: 24px 20px 20px; }
+      .greeting-section { padding: 20px 20px 8px; }
+      .exec-summary-section { margin: 16px 20px; }
+      .topic-header { padding: 16px 20px 12px; }
+      .topic-body { padding: 0 20px 20px; }
+      .section-divider { margin: 0 20px; }
+      .email-footer { padding: 16px 20px; }
+    }
+  </style>
+</head>
+<body>
+<table class="email-wrapper" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+  <tr><td>
+
+    <!-- Header -->
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+      <tr>
+        <td class="email-header">
+          <div class="brand">Andersen Windows &amp; Doors</div>
+          <h1>Compliance Intelligence</h1>
+          <p class="edition">{{ date_display }} &nbsp;·&nbsp; Daily Briefing</p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Body -->
+    <table class="email-body" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+      <tr>
+        <td>
+
+          <!-- Greeting -->
+          <div class="greeting-section">
+            <p class="greeting-text">Good morning, {{ subscriber_name }} —</p>
+            <p class="greeting-sub">Here is your compliance briefing for {{ date_long }}.</p>
+          </div>
+
+          <!-- Executive Summary -->
+          <div class="exec-summary-section">
+            <div class="exec-summary-header">
+              <span>Executive Summary</span>
+            </div>
+            <div class="exec-summary-body">
+              <p>{{ exec_summary }}</p>
+            </div>
+          </div>
+
+          <!-- Topic Sections -->
+          {% for topic in topics %}
+          {% include 'topic_section.html' %}
+          {% if not loop.last %}<div class="section-divider"></div>{% endif %}
+          {% endfor %}
+
+        </td>
+      </tr>
+    </table>
+
+    <!-- Footer -->
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+      <tr>
+        <td class="email-footer">
+          <p class="footer-meta">
+            <strong>Generated:</strong> {{ run_timestamp }} &nbsp;·&nbsp;
+            <strong>Sources monitored:</strong> {{ total_sources }} &nbsp;·&nbsp;
+            <strong>Articles analyzed:</strong> {{ total_articles }}
+          </p>
+          <p class="footer-meta">
+            Andersen Compliance Intelligence &nbsp;·&nbsp;
+            <a href="#" style="color: #A0AEC0;">Manage preferences</a> &nbsp;·&nbsp;
+            <a href="#" style="color: #A0AEC0;">Unsubscribe</a>
+          </p>
+        </td>
+      </tr>
+    </table>
+
+  </td></tr>
+</table>
+</body>
+</html>

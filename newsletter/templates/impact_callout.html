@@ -1,0 +1,29 @@
+<!-- Andersen Impact callout -->
+<div class="impact-callout">
+  <div class="impact-callout-header">Andersen Impact Analysis</div>
+
+  {% if impact.direct_materials %}
+  <div class="impact-row">
+    <div class="impact-label">Direct Materials</div>
+    <div class="impact-text">{{ impact.direct_materials }}</div>
+  </div>
+  {% endif %}
+
+  {% if impact.supply_chain %}
+  <div class="impact-row">
+    <div class="impact-label">Supply Chain</div>
+    <div class="impact-text">{{ impact.supply_chain }}</div>
+  </div>
+  {% endif %}
+
+  {% if impact.action_items %}
+  <div class="impact-row">
+    <div class="impact-label">Action Items</div>
+    <ul class="action-items">
+      {% for item in impact.action_items %}
+      <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</div>

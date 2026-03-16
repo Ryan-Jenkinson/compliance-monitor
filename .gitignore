@@ -1,0 +1,22 @@
+# Secrets
+.env
+
+# Data and cache
+data/compliance.db
+data/cache/
+data/preview_*.html
+logs/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+*.egg
+
+# macOS
+.DS_Store

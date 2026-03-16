@@ -1,0 +1,109 @@
+topics:
+  - name: PFAS
+    label: "PFAS & Per/Polyfluoroalkyl Substances"
+    color: "#C0392B"        # Red
+    badge_color: "#E74C3C"
+    description: >
+      Per- and polyfluoroalkyl substance regulations, bans, and reporting requirements
+      including MN Amara's Law, EPA PFAS Action Plan, state-level bans, 3M exit fallout,
+      and Canadian PFAS registration.
+    keywords:
+      - PFAS
+      - PFOA
+      - PFOS
+      - perfluoro
+      - polyfluoro
+      - fluoropolymer
+      - "Amara's Law"
+      - PRISM
+      - "3M PFAS"
+      - "PFAS ban"
+      - "PFAS reporting"
+      - "PFAS registration"
+    federal_register_terms:
+      - "per- and polyfluoroalkyl substances"
+      - "PFAS"
+      - "perfluoroalkyl"
+    epa_search: "PFAS"
+    andersen_relevance: >
+      Andersen uses fluoropolymer coatings on weatherstripping and seals. Key suppliers
+      (notably 3M) have exited the PFAS market, creating supply chain risk. MN operations
+      face specific state-law obligations under Amara's Law. Canadian PFAS registration
+      affects international product lines.
+
+  - name: EPR
+    label: "Extended Producer Responsibility"
+    color: "#27AE60"        # Green
+    badge_color: "#2ECC71"
+    description: >
+      State packaging EPR laws requiring producers to fund recycling infrastructure,
+      including CA SB 54, ME, OR, CO, and emerging state programs.
+    keywords:
+      - EPR
+      - "extended producer responsibility"
+      - "producer responsibility"
+      - "packaging EPR"
+      - "SB 54"
+      - "recycled content"
+      - "packaging waste"
+      - "plastic packaging"
+      - PRO
+      - stewardship
+    federal_register_terms:
+      - "extended producer responsibility"
+      - "packaging stewardship"
+    andersen_relevance: >
+      Andersen ships products with packaging in EPR states. CA SB 54 and similar laws
+      may require registration with producer responsibility organizations (PROs) and
+      payment of fees. Packaging redesign may be required to meet recycled content targets.
+
+  - name: REACH
+    label: "REACH & Chemical Regulation (EU/International)"
+    color: "#2980B9"        # Blue
+    badge_color: "#3498DB"
+    description: >
+      EU REACH regulation updates including SVHC (Substances of Very High Concern)
+      candidate list additions, ECHA authorizations, and restrictions relevant to
+      building materials and coatings suppliers.
+    keywords:
+      - REACH
+      - SVHC
+      - ECHA
+      - "candidate list"
+      - authorization
+      - restriction
+      - "substances of very high concern"
+      - "EU chemicals"
+    federal_register_terms: []   # REACH is EU; use ECHA RSS instead
+    echa_feed: true
+    andersen_relevance: >
+      International product lines and EU-based suppliers must comply with REACH.
+      SVHC additions affect supplier declarations of conformity and product data sheets.
+      Relevant to Andersen's European distribution and global supply chain transparency.
+
+  - name: TSCA
+    label: "TSCA & US Chemical Regulation"
+    color: "#8E44AD"        # Purple
+    badge_color: "#9B59B6"
+    description: >
+      EPA Toxic Substances Control Act actions including Section 6 risk evaluation rules,
+      Section 8(a) and 8(e) reporting requirements, and new chemical notices.
+    keywords:
+      - TSCA
+      - "toxic substances"
+      - "Section 6"
+      - "Section 8"
+      - "risk evaluation"
+      - "chemical risk"
+      - "new chemical"
+      - CDR
+      - "chemical data reporting"
+    federal_register_terms:
+      - "toxic substances control act"
+      - "TSCA"
+      - "chemical risk evaluation"
+    epa_search: "TSCA"
+    andersen_relevance: >
+      TSCA Section 6 rules can restrict or require substitution of chemicals used in
+      Andersen's manufacturing processes and coatings. Section 8 reporting obligations
+      apply if Andersen manufactures or imports covered chemicals above threshold quantities.
