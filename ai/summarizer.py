@@ -128,9 +128,11 @@ class Summarizer:
                 "topic": topic_name,
                 "developments": [],
                 "andersen_impact": {
-                    "direct_materials": None,
+                    "direct_products": None,
                     "supply_chain": None,
-                    "action_items": [],
+                    "supplier_campaign": None,
+                    "direct_actions": [],
+                    "supplier_actions": [],
                 },
                 "has_news": False,
             }

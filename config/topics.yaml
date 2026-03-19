@@ -26,10 +26,21 @@ topics:
       - "perfluoroalkyl"
     epa_search: "PFAS"
     andersen_relevance: >
-      Andersen uses fluoropolymer coatings on weatherstripping and seals. Key suppliers
-      (notably 3M) have exited the PFAS market, creating supply chain risk. MN operations
-      face specific state-law obligations under Amara's Law. Canadian PFAS registration
-      affects international product lines.
+      DIRECT: Andersen uses fluoropolymer coatings on weatherstripping and seals —
+      these must be registered in MN PRISM portal by July 1, 2026 under Amara's Law.
+      3M has exited the PFAS market, requiring alternative supplier qualification.
+      Andersen is using Assent to collect PFAS declarations and identify reformulation
+      opportunities to reduce the total number of products requiring PRISM registration.
+
+      INDIRECT / SUPPLY CHAIN: Andersen buys thousands of PFAS-containing components
+      from distributors — electronics and automation parts, cylinder O-rings, gaskets,
+      seals, PPE, lubricants, adhesives, and more. If the upstream MANUFACTURERS of
+      these items do not register in MN PRISM by July 1, 2026, their distributors
+      cannot legally sell those products in Minnesota. Andersen is running email
+      campaigns to educate their entire supply base — including distributors of
+      industrial components and PPE — on the need to coordinate with their
+      manufacturers (domestic and foreign) to ensure PRISM registration.
+      This is an active procurement risk that could impact production lines.
 
   - name: EPR
     label: "Extended Producer Responsibility"

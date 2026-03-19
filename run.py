@@ -38,6 +38,8 @@ from scrapers.state_agency_playwright import (
     OregonDEQPlaywrightScraper,
     ConnecticutDEEPPlaywrightScraper,
 )
+from scrapers.assent import AssentScraper
+from scrapers.product_stewardship import ProductStewardshipScraper
 from processors.deduplicator import deduplicate
 from processors.relevance_filter import keyword_filter
 from ai.summarizer import Summarizer
@@ -146,6 +148,8 @@ def scrape_all() -> list:
         VermontDECScraper(),
         OregonDEQPlaywrightScraper(),
         ConnecticutDEEPPlaywrightScraper(),
+        AssentScraper(),
+        ProductStewardshipScraper(),
     ]
 
     all_articles = []
