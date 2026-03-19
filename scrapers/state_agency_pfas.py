@@ -229,32 +229,6 @@ class ColoradoCDPHEScraper(BaseScraper):
 
 
 # ---------------------------------------------------------------------------
-# Oregon DEQ
-# ---------------------------------------------------------------------------
-
-class OregonDEQScraper(BaseScraper):
-    name = "oregon_deq"
-
-    def __init__(self):
-        super().__init__(lookback_hours=168)
-
-    def fetch(self) -> List[RawArticle]:
-        seen: set[str] = set()
-        # Oregon DEQ reorganized their site; check multiple potential PFAS pages
-        for url in [
-            "https://www.oregon.gov/deq/Pages/index.aspx",
-            "https://www.oregon.gov/deq/Hazards-and-Cleanup/cu/Pages/default.aspx",
-            "https://www.oregon.gov/deq/wq/pages/index.aspx",
-        ]:
-            articles = _scrape_page(
-                url, "Oregon DEQ", "https://www.oregon.gov", "oregon.gov", seen,
-            )
-            if articles:
-                return articles
-        return []
-
-
-# ---------------------------------------------------------------------------
 # Vermont DEC
 # ---------------------------------------------------------------------------
 
@@ -276,25 +250,3 @@ class VermontDECScraper(BaseScraper):
         )
         return articles
 
-
-# ---------------------------------------------------------------------------
-# Connecticut DEEP
-# ---------------------------------------------------------------------------
-
-class ConnecticutDEEPScraper(BaseScraper):
-    name = "connecticut_deep"
-
-    def __init__(self):
-        super().__init__(lookback_hours=168)
-
-    def fetch(self) -> List[RawArticle]:
-        seen: set[str] = set()
-        articles = _scrape_page(
-            "https://portal.ct.gov/DEEP/Remediation--Site-Clean-Up/PFAS/PFAS",
-            "Connecticut DEEP", "https://portal.ct.gov", "ct.gov", seen,
-        )
-        articles += _scrape_page(
-            "https://portal.ct.gov/DEEP/Remediation--Site-Clean-Up/PFAS-in-Connecticut",
-            "Connecticut DEEP", "https://portal.ct.gov", "ct.gov", seen,
-        )
-        return articles

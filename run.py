@@ -32,9 +32,11 @@ from scrapers.state_agency_pfas import (
     NewYorkDECScraper,
     WashingtonEcologyScraper,
     ColoradoCDPHEScraper,
-    OregonDEQScraper,
     VermontDECScraper,
-    ConnecticutDEEPScraper,
+)
+from scrapers.state_agency_playwright import (
+    OregonDEQPlaywrightScraper,
+    ConnecticutDEEPPlaywrightScraper,
 )
 from processors.deduplicator import deduplicate
 from processors.relevance_filter import keyword_filter
@@ -141,9 +143,9 @@ def scrape_all() -> list:
         NewYorkDECScraper(),
         WashingtonEcologyScraper(),
         ColoradoCDPHEScraper(),
-        OregonDEQScraper(),
         VermontDECScraper(),
-        ConnecticutDEEPScraper(),
+        OregonDEQPlaywrightScraper(),
+        ConnecticutDEEPPlaywrightScraper(),
     ]
 
     all_articles = []
