@@ -74,7 +74,11 @@ def stage2_summarize_prompt(articles: List[RawArticle], topic_config: dict) -> s
     """Stage 2: Ask Sonnet to produce structured topic summary with Andersen impact."""
     articles_text = []
     for a in articles:
+        is_new = a.extra.get("is_new", True)
+        days = a.extra.get("days_in_newsletter", 0)
+        status = "NEW" if is_new else f"CARRIED OVER (day {days} of 5)"
         articles_text.append(
+            f"STATUS: {status}\n"
             f"SOURCE: {a.source}\n"
             f"TITLE: {a.title}\n"
             f"URL: {a.url}\n"
@@ -106,7 +110,8 @@ Produce a JSON object with this exact structure:
       "source": "source name",
       "date": "YYYY-MM-DD or null",
       "deadline": "Key compliance deadline if present, else null",
-      "urgency": "HIGH | MEDIUM | LOW"
+      "urgency": "HIGH | MEDIUM | LOW",
+      "is_new": true
     }}
   ],
   "andersen_impact": {{
@@ -135,6 +140,8 @@ If there are no articles or none are relevant, return:
 
 Return JSON only. Urgency guide: HIGH = active deadline <90 days or enforcement imminent;
 MEDIUM = proposed rule or deadline 90-365 days; LOW = long-range or informational.
+Set "is_new": true only for articles with STATUS: NEW. Set false for CARRIED OVER articles.
+Prioritize NEW articles in your analysis but include CARRIED OVER items as context.
 """
 
 

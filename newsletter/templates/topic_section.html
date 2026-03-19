@@ -10,6 +10,7 @@
       {% for dev in topic.developments %}
       <div class="development-item" style="border-left-color: {{ topic.color }};">
         <div class="dev-headline">
+          {% if dev.is_new %}<span class="new-badge">NEW</span>{% endif %}
           <a href="{{ dev.url }}" target="_blank">{{ dev.headline }}</a>
         </div>
         <div class="dev-meta">
@@ -24,7 +25,7 @@
       {% endfor %}
 
       {% set impact = topic.andersen_impact %}
-      {% if impact and (impact.direct_materials or impact.supply_chain or impact.action_items) %}
+      {% if impact and (impact.direct_products or impact.direct_materials or impact.supply_chain or impact.direct_actions or impact.action_items) %}
       {% include 'impact_callout.html' %}
       {% endif %}
 

@@ -13,7 +13,7 @@ import json
 import logging
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 # Ensure project root is on sys.path when run as script
@@ -75,16 +75,57 @@ def parse_args() -> argparse.Namespace:
 
 
 _SENT_ARTICLES_PATH = Path(__file__).parent / "data" / "sent_articles.json"
+_ROLLING_WINDOW_DAYS = 5
 
 
-def _load_sent_ids() -> set:
-    if _SENT_ARTICLES_PATH.exists():
-        return set(json.loads(_SENT_ARTICLES_PATH.read_text()))
-    return set()
+def _load_sent_history() -> dict:
+    """Returns {article_id: first_sent_iso} dict. Migrates old list format automatically."""
+    if not _SENT_ARTICLES_PATH.exists():
+        return {}
+    data = json.loads(_SENT_ARTICLES_PATH.read_text())
+    if isinstance(data, list):
+        # Migrate: old format was a plain list of IDs — treat all as sent today
+        now = datetime.now(timezone.utc).isoformat()
+        return {id_: now for id_ in data}
+    return data
 
 
-def _save_sent_ids(ids: set) -> None:
-    _SENT_ARTICLES_PATH.write_text(json.dumps(sorted(ids), indent=2))
+def _save_sent_history(history: dict) -> None:
+    _SENT_ARTICLES_PATH.write_text(json.dumps(history, indent=2, sort_keys=True))
+
+
+def _apply_rolling_window(articles: list, history: dict) -> tuple:
+    """
+    Filter articles to the rolling window and mark each as new or carried-over.
+
+    - New articles (not in history): marked is_new=True, added to history.
+    - Carried-over articles (in history, within window): marked is_new=False with age.
+    - Expired articles (older than ROLLING_WINDOW_DAYS): dropped.
+
+    Returns (filtered_articles, updated_history).
+    """
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=_ROLLING_WINDOW_DAYS)
+    result = []
+
+    for article in articles:
+        if article.id in history:
+            first_sent = datetime.fromisoformat(history[article.id])
+            if first_sent.tzinfo is None:
+                first_sent = first_sent.replace(tzinfo=timezone.utc)
+            if first_sent < cutoff:
+                continue  # Expired — drop it
+            days_ago = (now - first_sent).days
+            article.extra["is_new"] = False
+            article.extra["days_in_newsletter"] = days_ago
+        else:
+            history[article.id] = now.isoformat()
+            article.extra["is_new"] = True
+            article.extra["days_in_newsletter"] = 0
+
+        result.append(article)
+
+    return result, history
 
 
 def _push_map_to_github(map_path: Path, repo_dir: Path) -> None:
@@ -199,14 +240,12 @@ def main() -> None:
     articles = scrape_all()
     logger.info(f"Scraping complete: {len(articles)} relevant articles")
 
-    # Filter out articles already sent in a previous newsletter
-    sent_ids = _load_sent_ids()
-    if sent_ids:
-        before = len(articles)
-        articles = [a for a in articles if a.id not in sent_ids]
-        logger.info(f"Filtered {before - len(articles)} already-sent articles — {len(articles)} new")
-    else:
-        logger.info("No sent history — first run, including all articles")
+    # Rolling window: keep articles from last 5 days, mark new vs carried-over
+    sent_history = _load_sent_history()
+    articles, sent_history = _apply_rolling_window(articles, sent_history)
+    new_count = sum(1 for a in articles if a.extra.get("is_new"))
+    carried_count = len(articles) - new_count
+    logger.info(f"Rolling window: {new_count} new, {carried_count} carried-over ({len(articles)} total)")
 
     # Step 2: AI pipeline
     logger.info("Step 2: Running AI summarization pipeline…")
@@ -273,11 +312,10 @@ def main() -> None:
 
     logger.info(f"Done. Sent: {sent_count}, Skipped (already sent): {skip_count}")
 
-    # Record sent article IDs so they aren't repeated in future newsletters
+    # Save updated rolling window history
     if sent_count > 0:
-        new_sent_ids = sent_ids | {a.id for a in articles}
-        _save_sent_ids(new_sent_ids)
-        logger.info(f"Recorded {len(articles)} article IDs as sent ({len(new_sent_ids)} total in history)")
+        _save_sent_history(sent_history)
+        logger.info(f"Rolling window history updated ({len(sent_history)} total entries)")
 
     # Sync article URLs into persistent NotebookLM notebook (non-blocking)
     article_urls = [a.url for a in articles if a.url]
