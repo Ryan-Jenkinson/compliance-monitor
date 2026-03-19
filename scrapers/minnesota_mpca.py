@@ -15,6 +15,7 @@ _MPCA_BASE = "https://www.pca.state.mn.us"
 _MPCA_URLS = [
     "https://www.pca.state.mn.us/news-and-stories",
     "https://www.pca.state.mn.us/pfas",
+    "https://www.pca.state.mn.us/air-water-land-climate/reporting-pfas-in-products",  # PRISM portal & registration
 ]
 _PFAS_SIGNALS = ["pfas", "prism", "fluorin", "amara", "polyfluoro", "perfluoro"]
 

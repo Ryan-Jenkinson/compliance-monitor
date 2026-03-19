@@ -1,17 +1,18 @@
 {
-  "last_updated": "2026-03-18",
+  "last_updated": "2026-03-18 (MN updated: PRISM Jul 1 2026 deadline, portal v1.11)",
   "states": {
     "MN": {
       "name": "Minnesota",
       "status": "comprehensive",
       "laws": ["Amara's Law (SF 2898)"],
-      "summary": "Most comprehensive state PFAS law. Covers products sold in MN.",
+      "summary": "Most comprehensive state PFAS law. PRISM registration portal launched Jan 2026 (v1.11 as of Mar 2026). $800 one-time reporting fee per manufacturer. Annual updates due Feb 1 each year.",
       "key_dates": [
-        "Jan 1, 2025: PFAS-containing products registration required",
-        "Jan 1, 2025: Ban on PFAS in cookware, food packaging, children's products",
+        "Jul 1, 2026: PFAS manufacturer registration deadline in PRISM portal (extended from Jan 1, 2026)",
+        "Feb 1, 2027: First annual PRISM update due",
+        "Jan 1, 2025: Ban on PFAS in cookware, food packaging, children's products already in effect",
         "Jan 1, 2032: Full ban on intentionally added PFAS in all products"
       ],
-      "andersen_note": "HOME STATE. Weatherstripping/seal fluoropolymer coatings subject to Amara's Law. Registration deadline passed — verify compliance status."
+      "andersen_note": "HOME STATE — ACTIVE DEADLINE. Registration in PRISM portal (prism.theic2.org) required by Jul 1, 2026. $800 one-time fee. Weatherstripping/seal fluoropolymer coatings are subject to Amara's Law. Contact: pfasreporting.mpca@state.mn.us"
     },
     "ME": {
       "name": "Maine",
