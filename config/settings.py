@@ -29,12 +29,15 @@ class Config:
         return _require("ANTHROPIC_API_KEY")
 
     @staticmethod
-    def sendgrid_api_key() -> str:
-        return _require("SENDGRID_API_KEY")
+    def gmail_address() -> str:
+        return _require("GMAIL_ADDRESS")
+
+    @staticmethod
+    def gmail_app_password() -> str:
+        return _require("GMAIL_APP_PASSWORD")
 
     # Email sender identity
-    SENDGRID_FROM_EMAIL: str = os.getenv("SENDGRID_FROM_EMAIL", "compliance@andersen.com")
-    SENDGRID_FROM_NAME: str = os.getenv("SENDGRID_FROM_NAME", "Andersen Compliance Intelligence")
+    GMAIL_FROM_NAME: str = os.getenv("GMAIL_FROM_NAME", "Andersen Compliance Intelligence")
 
     # Behaviour
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")

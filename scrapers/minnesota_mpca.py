@@ -1,7 +1,6 @@
-"""Minnesota MPCA HTML scraper — PFAS / PRISM program."""
+"""Minnesota MPCA scraper — PFAS news and updates."""
 from __future__ import annotations
 import logging
-from datetime import datetime, timezone
 from typing import List
 
 import requests
@@ -12,32 +11,40 @@ from processors.article import RawArticle
 
 logger = logging.getLogger(__name__)
 
-_MPCA_PFAS_URL = "https://www.pca.state.mn.us/air-water-land-climate/pfas"
-_MPCA_NEWS_URL = "https://www.pca.state.mn.us/news-and-stories"
+_MPCA_BASE = "https://www.pca.state.mn.us"
+_MPCA_URLS = [
+    "https://www.pca.state.mn.us/news-and-stories",
+    "https://www.pca.state.mn.us/pfas",
+]
+_PFAS_SIGNALS = ["pfas", "prism", "fluorin", "amara", "polyfluoro", "perfluoro"]
 
 
 class MinnesotaMPCAScraper(BaseScraper):
     name = "minnesota_mpca"
 
+    def __init__(self):
+        super().__init__(lookback_hours=168)  # 7 days — MPCA posts infrequently
+
     def fetch(self) -> List[RawArticle]:
         articles: list[RawArticle] = []
+        seen: set[str] = set()
 
-        for url, label in [(_MPCA_PFAS_URL, "PFAS"), (_MPCA_NEWS_URL, "PFAS")]:
+        for url in _MPCA_URLS:
             try:
                 resp = requests.get(url, timeout=15,
                                     headers={"User-Agent": "ComplianceMonitor/1.0"})
                 resp.raise_for_status()
-                articles.extend(self._parse_page(resp.text, url, label))
+                found = self._parse_page(resp.text, url, seen)
+                articles.extend(found)
             except Exception as e:
                 logger.warning(f"[minnesota_mpca] Error fetching {url}: {e}")
 
         return articles
 
-    def _parse_page(self, html: str, base_url: str, topic: str) -> List[RawArticle]:
+    def _parse_page(self, html: str, source_url: str, seen: set) -> List[RawArticle]:
         soup = BeautifulSoup(html, "lxml")
         articles = []
 
-        # Look for news/update links on the page
         for a_tag in soup.find_all("a", href=True):
             href = a_tag["href"]
             text = a_tag.get_text(strip=True)
@@ -47,25 +54,28 @@ class MinnesotaMPCAScraper(BaseScraper):
 
             # Resolve relative URLs
             if href.startswith("/"):
-                href = "https://www.pca.state.mn.us" + href
+                href = _MPCA_BASE + href
             elif not href.startswith("http"):
                 continue
 
-            # Only keep MPCA pages that look like news/updates
             if "pca.state.mn.us" not in href:
                 continue
 
-            pfas_signals = ["pfas", "prism", "fluorin", "amara"]
-            if not any(sig in (text + href).lower() for sig in pfas_signals):
+            if href in seen:
                 continue
 
+            haystack = (text + " " + href).lower()
+            if not any(sig in haystack for sig in _PFAS_SIGNALS):
+                continue
+
+            seen.add(href)
             articles.append(RawArticle(
                 id=self.url_id(href),
                 title=text,
                 url=href,
                 source="MN MPCA",
-                topic=topic,
-                published_at=datetime.now(tz=timezone.utc),  # No pub date from links
+                topic="PFAS",
+                published_at=None,
                 snippet=f"Minnesota MPCA update: {text}",
             ))
 

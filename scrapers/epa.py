@@ -1,94 +1,96 @@
-"""EPA RSS feed scraper."""
+"""EPA topic page scraper — PFAS and TSCA updates."""
 from __future__ import annotations
 import logging
-from datetime import datetime, timezone
-from email.utils import parsedate_to_datetime
 from typing import List
 
-import feedparser
-import yaml
-from pathlib import Path
+import requests
+from bs4 import BeautifulSoup
 
 from .base import BaseScraper
 from processors.article import RawArticle
 
 logger = logging.getLogger(__name__)
 
-_TOPICS_PATH = Path(__file__).parent.parent / "config" / "topics.yaml"
+_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+}
 
-# EPA news RSS feeds
-_EPA_FEEDS = [
-    "https://www.epa.gov/newsreleases/search/rss",
-    "https://www.epa.gov/rss/epa-newsroom.xml",
+# EPA topic pages that list news/updates
+_EPA_TOPIC_PAGES = [
+    {
+        "url": "https://www.epa.gov/pfas/news-and-updates-pfas",
+        "topic": "PFAS",
+        "fallback_url": "https://www.epa.gov/pfas",
+    },
+    {
+        "url": "https://www.epa.gov/assessing-and-managing-chemicals-under-tsca/news-and-events-tsca",
+        "topic": "TSCA",
+        "fallback_url": "https://www.epa.gov/tsca",
+    },
 ]
 
-
-def _load_epa_keywords() -> dict[str, list[str]]:
-    with open(_TOPICS_PATH) as f:
-        data = yaml.safe_load(f)
-    return {
-        t["name"]: [kw.lower() for kw in t["keywords"]]
-        for t in data["topics"]
-    }
+_PFAS_KEYWORDS = ["pfas", "pfoa", "pfos", "perfluoro", "polyfluoro", "fluoropolymer"]
+_TSCA_KEYWORDS = ["tsca", "toxic substances", "section 6", "section 8", "risk evaluation", "new chemical", "chemical data reporting"]
 
 
 class EPAScraper(BaseScraper):
     name = "epa"
 
     def fetch(self) -> List[RawArticle]:
-        topic_keywords = _load_epa_keywords()
         articles: list[RawArticle] = []
         seen: set[str] = set()
 
-        for feed_url in _EPA_FEEDS:
-            try:
-                feed = feedparser.parse(feed_url)
-                for entry in feed.entries:
-                    url = entry.get("link", "")
-                    if not url or url in seen:
-                        continue
-
-                    pub_date = self._parse_date(entry)
-                    if pub_date and pub_date < self.since:
-                        continue
-
-                    title = entry.get("title", "")
-                    summary = entry.get("summary", "")
-                    haystack = (title + " " + summary).lower()
-
-                    matched_topic = self._match_topic(haystack, topic_keywords)
-                    if not matched_topic:
-                        continue
-
-                    seen.add(url)
-                    articles.append(RawArticle(
-                        id=self.url_id(url),
-                        title=title,
-                        url=url,
-                        source="EPA",
-                        topic=matched_topic,
-                        published_at=pub_date,
-                        snippet=summary[:500],
-                    ))
-            except Exception as e:
-                logger.warning(f"[epa] Error parsing feed {feed_url}: {e}")
+        for page_config in _EPA_TOPIC_PAGES:
+            for url in [page_config["url"], page_config["fallback_url"]]:
+                try:
+                    resp = requests.get(url, headers=_HEADERS, timeout=15)
+                    resp.raise_for_status()
+                    found = self._parse_page(resp.text, url, page_config["topic"], seen)
+                    articles.extend(found)
+                    if found:
+                        break  # got results from primary URL, skip fallback
+                except Exception as e:
+                    logger.warning(f"[epa] Error fetching {url}: {e}")
 
         return articles
 
-    @staticmethod
-    def _parse_date(entry) -> datetime | None:
-        for field in ("published", "updated"):
-            val = entry.get(field)
-            if val:
-                try:
-                    return parsedate_to_datetime(val).replace(tzinfo=timezone.utc)
-                except Exception:
-                    pass
-        return None
+    def _parse_page(self, html: str, base_url: str, topic: str, seen: set) -> List[RawArticle]:
+        soup = BeautifulSoup(html, "lxml")
+        articles = []
+        keywords = _PFAS_KEYWORDS if topic == "PFAS" else _TSCA_KEYWORDS
 
-    @staticmethod
-    def _match_topic(haystack: str, topic_keywords: dict[str, list[str]]) -> str | None:
-        for topic, keywords in topic_keywords.items():
-            if any(kw in haystack for kw in keywords):
-                return topic
-        return None
+        for a_tag in soup.find_all("a", href=True):
+            href = a_tag["href"]
+            text = a_tag.get_text(strip=True)
+
+            if not text or len(text) < 20:
+                continue
+
+            # Resolve relative URLs
+            if href.startswith("/"):
+                href = "https://www.epa.gov" + href
+            elif not href.startswith("http"):
+                continue
+
+            if "epa.gov" not in href:
+                continue
+
+            if href in seen:
+                continue
+
+            haystack = (text + " " + href).lower()
+            if not any(kw in haystack for kw in keywords):
+                continue
+
+            seen.add(href)
+            articles.append(RawArticle(
+                id=self.url_id(href),
+                title=text,
+                url=href,
+                source="EPA",
+                topic=topic,
+                published_at=None,
+                snippet=f"EPA {topic} update: {text}",
+            ))
+
+        return articles

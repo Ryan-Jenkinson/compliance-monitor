@@ -32,10 +32,10 @@ def stage1_filter_prompt(articles: List[RawArticle], topic: str) -> str:
     return f"""\
 Topic: {topic}
 
-Below is a list of recently scraped articles. Your job is to identify which ones represent
-GENUINELY NEW regulatory developments — new rules, proposals, enforcement actions, deadlines,
-or significant policy changes. Exclude: opinion pieces, general news summaries, industry
-commentary without new regulatory content, and pure duplicates.
+Below is a list of articles scraped over the last 30 days. Your job is to identify which ones
+represent GENUINELY NEW regulatory developments — new rules, proposals, enforcement actions,
+deadlines, or significant policy changes. Exclude: opinion pieces, general news summaries,
+industry commentary without new regulatory content, and pure duplicates.
 
 Return ONLY a JSON array of article IDs to keep. If none qualify, return [].
 
@@ -67,7 +67,8 @@ Topic: {topic_config['label']}
 Andersen-specific context:
 {andersen_relevance}
 
-Articles to analyze:
+Articles to analyze (may span up to 30 days — prioritize and clearly label the most recent
+developments first; note the date of each development in the output):
 {content}
 
 Produce a JSON object with this exact structure:

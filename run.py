@@ -9,7 +9,9 @@ Usage:
     python run.py --force       # Skip already-sent-today check
 """
 import argparse
+import json
 import logging
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -23,12 +25,15 @@ from scrapers.epa import EPAScraper
 from scrapers.echa import ECHAScraper
 from scrapers.minnesota_mpca import MinnesotaMPCAScraper
 from scrapers.state_agencies import StateAgenciesScraper
+from scrapers.pfas_central import PFASCentralScraper
+from scrapers.safer_states import SaferStatesScraper
 from processors.deduplicator import deduplicate
 from processors.relevance_filter import keyword_filter
 from ai.summarizer import Summarizer
 from newsletter.renderer import NewsletterRenderer
-from delivery.sendgrid_sender import SendGridSender
+from delivery.gmail_sender import GmailSender
 from delivery.preview import open_preview
+from delivery.state_map_generator import generate_pfas_map
 from subscribers.db import init_db
 from subscribers.repository import SubscriberRepository
 
@@ -56,6 +61,62 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+_SENT_ARTICLES_PATH = Path(__file__).parent / "data" / "sent_articles.json"
+
+
+def _load_sent_ids() -> set:
+    if _SENT_ARTICLES_PATH.exists():
+        return set(json.loads(_SENT_ARTICLES_PATH.read_text()))
+    return set()
+
+
+def _save_sent_ids(ids: set) -> None:
+    _SENT_ARTICLES_PATH.write_text(json.dumps(sorted(ids), indent=2))
+
+
+def _push_map_to_github(map_path: Path, repo_dir: Path) -> None:
+    """Copy the map to the local GitHub Pages repo clone and push."""
+    logger = logging.getLogger("github_map")
+    try:
+        import shutil
+        dest = repo_dir / "index.html"
+        shutil.copy2(map_path, dest)
+        cmds = [
+            ["git", "-C", str(repo_dir), "add", "index.html"],
+            ["git", "-C", str(repo_dir), "commit", "-m", f"Update PFAS map {datetime.now().strftime('%Y-%m-%d')}"],
+            ["git", "-C", str(repo_dir), "push"],
+        ]
+        for cmd in cmds:
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0 and "nothing to commit" not in result.stdout:
+                logger.warning(f"Git command failed: {' '.join(cmd)}: {result.stderr.strip()}")
+                return
+        logger.info("PFAS map pushed to GitHub Pages.")
+    except Exception as e:
+        logger.warning(f"Failed to push map to GitHub: {e}")
+
+
+def _sync_notebooklm(urls: list) -> None:
+    """Fire-and-forget: sync article URLs into NotebookLM in a subprocess."""
+    logger = logging.getLogger("notebooklm")
+    script = Path(__file__).parent / "notebooklm" / "sync_sources.py"
+    try:
+        result = subprocess.run(
+            ["python3.14", str(script)] + urls,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        if result.returncode == 0:
+            logger.info("NotebookLM sync complete.")
+        else:
+            logger.warning(f"NotebookLM sync exited with code {result.returncode}: {result.stderr.strip()}")
+    except subprocess.TimeoutExpired:
+        logger.warning("NotebookLM sync timed out (sources may still process in background).")
+    except Exception as e:
+        logger.warning(f"NotebookLM sync failed: {e}")
+
+
 def scrape_all() -> list:
     """Run all scrapers and return deduplicated, keyword-filtered articles."""
     logger = logging.getLogger("scraper")
@@ -65,6 +126,8 @@ def scrape_all() -> list:
         ECHAScraper(),
         MinnesotaMPCAScraper(),
         StateAgenciesScraper(),
+        PFASCentralScraper(),
+        SaferStatesScraper(),
     ]
 
     all_articles = []
@@ -96,10 +159,32 @@ def main() -> None:
     # Initialize DB
     init_db()
 
+    # Generate PFAS state map and push to GitHub Pages
+    _GITHUB_PAGES_URL = "https://ryan-jenkinson.github.io/andersen-compliance-maps/"
+    _GITHUB_REPO_DIR = Path("/tmp/andersen-compliance-maps")
+    logger.info("Generating PFAS state map…")
+    try:
+        pfas_map_path = generate_pfas_map()
+        pfas_map_url = _GITHUB_PAGES_URL
+        # Push updated map to GitHub Pages
+        _push_map_to_github(pfas_map_path, _GITHUB_REPO_DIR)
+    except Exception as e:
+        logger.warning(f"PFAS map generation failed: {e}")
+        pfas_map_url = None
+
     # Step 1: Scrape
     logger.info("Step 1: Scraping sources…")
     articles = scrape_all()
     logger.info(f"Scraping complete: {len(articles)} relevant articles")
+
+    # Filter out articles already sent in a previous newsletter
+    sent_ids = _load_sent_ids()
+    if sent_ids:
+        before = len(articles)
+        articles = [a for a in articles if a.id not in sent_ids]
+        logger.info(f"Filtered {before - len(articles)} already-sent articles — {len(articles)} new")
+    else:
+        logger.info("No sent history — first run, including all articles")
 
     # Step 2: AI pipeline
     logger.info("Step 2: Running AI summarization pipeline…")
@@ -126,7 +211,7 @@ def main() -> None:
 
     if args.preview:
         # Render with default subscriber name and open in browser
-        html = renderer.render(pipeline_output, subscriber_name="Ryan")
+        html = renderer.render(pipeline_output, subscriber_name="Ryan", map_url=pfas_map_url)
         preview_path = open_preview(html)
         logger.info(f"Preview saved to: {preview_path}")
         print(f"Preview opened: {preview_path}")
@@ -135,14 +220,14 @@ def main() -> None:
     # Step 4: Send to all active subscribers
     logger.info("Step 4: Sending emails…")
     repo = SubscriberRepository()
-    sender = SendGridSender()
+    sender = GmailSender()
     subscribers = repo.list_active()
 
     if not subscribers:
         logger.warning("No active subscribers. Add one with: python subscribers/cli.py add")
         return
 
-    subject = SendGridSender.subject_for_date()
+    subject = GmailSender.subject_for_date()
     sent_count = 0
     skip_count = 0
 
@@ -152,7 +237,7 @@ def main() -> None:
             skip_count += 1
             continue
 
-        html = renderer.render(pipeline_output, subscriber_name=sub.first_name)
+        html = renderer.render(pipeline_output, subscriber_name=sub.first_name, map_url=pfas_map_url)
         success = sender.send(sub.email, subject, html)
 
         if success:
@@ -160,10 +245,23 @@ def main() -> None:
             sent_count += 1
             logger.info(f"Sent to {sub.email}")
         else:
-            repo.log_send(sub.id, "failure", "SendGrid send failed")
+            repo.log_send(sub.id, "failure", "Gmail send failed")
             logger.error(f"Failed to send to {sub.email}")
 
     logger.info(f"Done. Sent: {sent_count}, Skipped (already sent): {skip_count}")
+
+    # Record sent article IDs so they aren't repeated in future newsletters
+    if sent_count > 0:
+        new_sent_ids = sent_ids | {a.id for a in articles}
+        _save_sent_ids(new_sent_ids)
+        logger.info(f"Recorded {len(articles)} article IDs as sent ({len(new_sent_ids)} total in history)")
+
+    # Sync article URLs into persistent NotebookLM notebook (non-blocking)
+    article_urls = [a.url for a in articles if a.url]
+    if article_urls:
+        logger.info("Step 5: Syncing sources to NotebookLM…")
+        _sync_notebooklm(article_urls)
+
     logger.info("=" * 60)
 
 

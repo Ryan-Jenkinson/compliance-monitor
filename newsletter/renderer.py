@@ -43,6 +43,7 @@ class NewsletterRenderer:
         pipeline_output: dict,
         subscriber_name: str = "Ryan",
         inline_css: bool = True,
+        map_url: str | None = None,
     ) -> str:
         """
         Render the newsletter to HTML.
@@ -77,6 +78,7 @@ class NewsletterRenderer:
             run_timestamp=now.strftime("%Y-%m-%d %H:%M:%S"),
             total_sources=pipeline_output.get("total_sources", 0),
             total_articles=pipeline_output.get("total_articles", 0),
+            pfas_map_url=map_url,
         )
 
         if inline_css:

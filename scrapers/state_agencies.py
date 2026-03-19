@@ -20,28 +20,17 @@ _STATE_FEEDS: list[dict] = [
         "state": "California",
         "source": "CalRecycle",
         "topic": "EPR",
-        "feed_url": "https://calrecycle.ca.gov/rss/news.xml",
-        "keywords": ["EPR", "SB 54", "producer responsibility", "packaging"],
-    },
-    {
-        "state": "Oregon",
-        "source": "Oregon DEQ",
-        "topic": "EPR",
-        "feed_url": "https://www.oregon.gov/deq/newsroom/rss.xml",
-        "keywords": ["EPR", "producer responsibility", "packaging", "PFAS"],
-    },
-    {
-        "state": "Maine",
-        "source": "Maine DEP",
-        "topic": "EPR",
-        "feed_url": "https://www.maine.gov/dep/news/rss.xml",
-        "keywords": ["EPR", "producer responsibility", "packaging"],
+        "feed_url": "https://calrecycle.ca.gov/rss/",
+        "keywords": ["EPR", "SB 54", "producer responsibility", "packaging", "plastic", "recycl"],
     },
 ]
 
 
 class StateAgenciesScraper(BaseScraper):
     name = "state_agencies"
+
+    def __init__(self):
+        super().__init__(lookback_hours=168)  # 7 days — state agencies post infrequently
 
     def fetch(self) -> List[RawArticle]:
         articles: list[RawArticle] = []

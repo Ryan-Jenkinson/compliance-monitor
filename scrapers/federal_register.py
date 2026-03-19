@@ -85,7 +85,7 @@ class FederalRegisterScraper(BaseScraper):
                 pass
 
         agencies = ", ".join(
-            a.get("name", "") for a in item.get("agencies", [])
+            a.get("name", "") for a in (item.get("agencies") or [])
         )
 
         return RawArticle(
@@ -95,7 +95,7 @@ class FederalRegisterScraper(BaseScraper):
             source="Federal Register",
             topic=topic,
             published_at=pub_date,
-            snippet=item.get("abstract", "")[:500],
+            snippet=(item.get("abstract") or "")[:500],
             extra={
                 "document_number": item.get("document_number"),
                 "type": item.get("type"),

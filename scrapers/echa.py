@@ -1,64 +1,81 @@
-"""ECHA RSS feed scraper (REACH / SVHC updates)."""
+"""ECHA scraper — SVHC Candidate List table via Playwright (bypasses 403 bot block)."""
 from __future__ import annotations
 import logging
 from datetime import datetime, timezone
-from email.utils import parsedate_to_datetime
 from typing import List
 
-import feedparser
+from playwright.sync_api import sync_playwright
 
 from .base import BaseScraper
 from processors.article import RawArticle
 
 logger = logging.getLogger(__name__)
 
-_ECHA_FEEDS = [
-    "https://echa.europa.eu/rss/news_en.xml",
-    "https://echa.europa.eu/rss/svhc_en.xml",
-]
+_CANDIDATE_LIST_URL = "https://echa.europa.eu/candidate-list-table"
+_ECHA_BASE = "https://echa.europa.eu"
 
 
 class ECHAScraper(BaseScraper):
     name = "echa"
 
+    def __init__(self):
+        super().__init__(lookback_hours=4320)  # 180 days — ECHA updates list a few times per year
+
     def fetch(self) -> List[RawArticle]:
         articles: list[RawArticle] = []
-        seen: set[str] = set()
 
-        for feed_url in _ECHA_FEEDS:
-            try:
-                feed = feedparser.parse(feed_url)
-                for entry in feed.entries:
-                    url = entry.get("link", "")
-                    if not url or url in seen:
-                        continue
+        try:
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                page = browser.new_page()
+                page.goto(_CANDIDATE_LIST_URL, timeout=30000)
+                page.wait_for_selector("table tbody tr", timeout=20000)
+                html = page.content()
+                browser.close()
 
-                    pub_date = self._parse_date(entry)
-                    if pub_date and pub_date < self.since:
-                        continue
-
-                    seen.add(url)
-                    articles.append(RawArticle(
-                        id=self.url_id(url),
-                        title=entry.get("title", "Untitled"),
-                        url=url,
-                        source="ECHA",
-                        topic="REACH",
-                        published_at=pub_date,
-                        snippet=entry.get("summary", "")[:500],
-                    ))
-            except Exception as e:
-                logger.warning(f"[echa] Error parsing feed {feed_url}: {e}")
+            from bs4 import BeautifulSoup
+            soup = BeautifulSoup(html, "lxml")
+            articles = self._parse_candidate_list(soup)
+        except Exception as e:
+            logger.warning(f"[echa] Error fetching candidate list: {e}")
 
         return articles
 
-    @staticmethod
-    def _parse_date(entry) -> datetime | None:
-        for field in ("published", "updated"):
-            val = entry.get(field)
-            if val:
-                try:
-                    return parsedate_to_datetime(val).replace(tzinfo=timezone.utc)
-                except Exception:
-                    pass
-        return None
+    def _parse_candidate_list(self, soup) -> List[RawArticle]:
+        articles = []
+
+        for row in soup.select("table tbody tr"):
+            cells = row.find_all("td")
+            if len(cells) < 4:
+                continue
+
+            name_cell = cells[0]
+            date_cell = cells[3]
+
+            substance = name_cell.get_text(separator=" ", strip=True)
+            substance = substance.split("show/hide")[0].strip()[:200]
+
+            date_str = date_cell.get_text(strip=True)
+            try:
+                added_date = datetime.strptime(date_str, "%d-%b-%Y").replace(tzinfo=timezone.utc)
+            except ValueError:
+                continue
+
+            if added_date < self.since:
+                continue
+
+            link_tag = name_cell.find("a", href=True)
+            url = (_ECHA_BASE + link_tag["href"]) if link_tag else _CANDIDATE_LIST_URL
+            url_id = self.url_id(url + substance)
+
+            articles.append(RawArticle(
+                id=url_id,
+                title=f"SVHC Candidate List addition: {substance}",
+                url=url,
+                source="ECHA",
+                topic="REACH",
+                published_at=added_date,
+                snippet=f"Substance added to ECHA SVHC Candidate List on {date_str}: {substance}",
+            ))
+
+        return articles
