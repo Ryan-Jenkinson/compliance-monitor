@@ -9,6 +9,7 @@ class Subscriber:
     email: str
     first_name: str
     is_active: bool = True
+    scheduled_only: bool = False  # If True, skip during manual --force test sends
     id: Optional[int] = None
     created_at: Optional[datetime] = None
 

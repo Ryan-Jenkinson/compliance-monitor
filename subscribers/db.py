@@ -8,11 +8,12 @@ from config.settings import Config
 _SCHEMA = """
 -- Phase 1: Subscriber management
 CREATE TABLE IF NOT EXISTS subscribers (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    email       TEXT NOT NULL UNIQUE,
-    first_name  TEXT NOT NULL,
-    is_active   INTEGER NOT NULL DEFAULT 1,
-    created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    email           TEXT NOT NULL UNIQUE,
+    first_name      TEXT NOT NULL,
+    is_active       INTEGER NOT NULL DEFAULT 1,
+    scheduled_only  INTEGER NOT NULL DEFAULT 0,  -- 1 = skip during --force test sends
+    created_at      TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS topic_preferences (
@@ -83,5 +84,10 @@ def init_db() -> None:
     """Create all tables if they don't exist."""
     conn = get_connection()
     conn.executescript(_SCHEMA)
-    conn.commit()
+    # Migration: add scheduled_only column if it doesn't exist yet
+    try:
+        conn.execute("ALTER TABLE subscribers ADD COLUMN scheduled_only INTEGER NOT NULL DEFAULT 0")
+        conn.commit()
+    except Exception:
+        pass  # Column already exists
     conn.close()

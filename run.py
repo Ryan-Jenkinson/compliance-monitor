@@ -243,7 +243,8 @@ def main() -> None:
     logger.info("Step 4: Sending emails…")
     repo = SubscriberRepository()
     sender = GmailSender()
-    subscribers = repo.list_active()
+    # --force is a manual test send; exclude scheduled_only subscribers
+    subscribers = repo.list_active(include_scheduled_only=not args.force)
 
     if not subscribers:
         logger.warning("No active subscribers. Add one with: python subscribers/cli.py add")

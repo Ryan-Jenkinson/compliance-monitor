@@ -64,12 +64,17 @@ class SubscriberRepository:
         finally:
             conn.close()
 
-    def list_active(self) -> List[Subscriber]:
+    def list_active(self, include_scheduled_only: bool = True) -> List[Subscriber]:
         conn = get_connection()
         try:
-            rows = conn.execute(
-                "SELECT * FROM subscribers WHERE is_active = 1 ORDER BY created_at"
-            ).fetchall()
+            if include_scheduled_only:
+                rows = conn.execute(
+                    "SELECT * FROM subscribers WHERE is_active = 1 ORDER BY created_at"
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    "SELECT * FROM subscribers WHERE is_active = 1 AND scheduled_only = 0 ORDER BY created_at"
+                ).fetchall()
             return [self._row_to_subscriber(r) for r in rows]
         finally:
             conn.close()
@@ -136,5 +141,6 @@ class SubscriberRepository:
             email=row["email"],
             first_name=row["first_name"],
             is_active=bool(row["is_active"]),
+            scheduled_only=bool(row["scheduled_only"]),
             created_at=datetime.fromisoformat(row["created_at"]) if row["created_at"] else None,
         )
