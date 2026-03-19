@@ -27,6 +27,15 @@ from scrapers.minnesota_mpca import MinnesotaMPCAScraper
 from scrapers.state_agencies import StateAgenciesScraper
 from scrapers.pfas_central import PFASCentralScraper
 from scrapers.safer_states import SaferStatesScraper
+from scrapers.state_agency_pfas import (
+    MaineDEPScraper,
+    NewYorkDECScraper,
+    WashingtonEcologyScraper,
+    ColoradoCDPHEScraper,
+    OregonDEQScraper,
+    VermontDECScraper,
+    ConnecticutDEEPScraper,
+)
 from processors.deduplicator import deduplicate
 from processors.relevance_filter import keyword_filter
 from ai.summarizer import Summarizer
@@ -128,6 +137,13 @@ def scrape_all() -> list:
         StateAgenciesScraper(),
         PFASCentralScraper(),
         SaferStatesScraper(),
+        MaineDEPScraper(),
+        NewYorkDECScraper(),
+        WashingtonEcologyScraper(),
+        ColoradoCDPHEScraper(),
+        OregonDEQScraper(),
+        VermontDECScraper(),
+        ConnecticutDEEPScraper(),
     ]
 
     all_articles = []
