@@ -94,7 +94,12 @@ class Summarizer:
                 system=SYSTEM_COMPLIANCE_EXPERT,
                 cache_key=cache_key,
             )
-            keep_ids = set(json.loads(response.strip()))
+            text = response.strip()
+            if text.startswith("```"):
+                text = text.split("```")[1]
+                if text.startswith("json"):
+                    text = text[4:]
+            keep_ids = set(json.loads(text.strip()))
             return [a for a in articles if a.id in keep_ids]
         except (json.JSONDecodeError, Exception) as e:
             logger.warning(f"Stage 1 filter failed for {topic_name}: {e} — keeping all")

@@ -12,7 +12,7 @@ from config.settings import Config
 
 logger = logging.getLogger(__name__)
 
-_HAIKU = "claude-haiku-4-5-20251001"
+_HAIKU = "claude-haiku-4-5-20251001"  # claude-haiku-4-5
 _SONNET = "claude-sonnet-4-6"
 
 

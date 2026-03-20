@@ -209,45 +209,6 @@ _STATE_PFAS_CONFIGS: list[tuple[str, str, str, list[str]]] = [
     ]),
 ]
 
-# ---------------------------------------------------------------------------
-# EPR state agency sources (for Extended Producer Responsibility news)
-# States not already covered by CalRecycle RSS or dedicated scrapers
-# ---------------------------------------------------------------------------
-_STATE_EPR_CONFIGS: list[tuple[str, str, str, list[str]]] = [
-    ("Maine DEP EPR", "https://www.maine.gov", "maine.gov", [
-        "https://www.maine.gov/dep/waste/ewaste/",
-        "https://www.maine.gov/dep/waste/solidwaste/epr/",
-    ]),
-    ("Maryland MDE EPR", "https://mde.maryland.gov", "maryland.gov", [
-        "https://mde.maryland.gov/programs/land/RecyclingandOperationsprogram/Pages/EPR.aspx",
-    ]),
-    ("New Jersey DEP EPR", "https://www.nj.gov", "nj.gov", [
-        "https://www.nj.gov/dep/dshw/recycling/epr.html",
-    ]),
-    ("Illinois EPA EPR", "https://epa.illinois.gov", "illinois.gov", [
-        "https://epa.illinois.gov/topics/waste-management/extended-producer-responsibility.html",
-    ]),
-    ("Minnesota MPCA EPR", "https://www.pca.state.mn.us", "mn.us", [
-        "https://www.pca.state.mn.us/business-with-us/extended-producer-responsibility",
-    ]),
-    ("Washington Ecology EPR", "https://ecology.wa.gov", "ecology.wa.gov", [
-        "https://ecology.wa.gov/waste-toxics/reducing-waste/extended-producer-responsibility",
-    ]),
-    ("Hawaii EPR", "https://health.hawaii.gov", "hawaii.gov", [
-        "https://health.hawaii.gov/shwb/epr/",
-    ]),
-    ("Connecticut DEEP EPR", "https://portal.ct.gov", "ct.gov", [
-        "https://portal.ct.gov/DEEP/Waste-Management-and-Disposal/Extended-Producer-Responsibility",
-    ]),
-    ("New York DEC EPR", "https://dec.ny.gov", "ny.gov", [
-        "https://dec.ny.gov/environmental-protection/pollution-prevention-recycling/packaging-epr",
-    ]),
-    ("Massachusetts EPR", "https://www.mass.gov", "mass.gov", [
-        "https://www.mass.gov/extended-producer-responsibility",
-    ]),
-]
-
-
 class AllStatesPFASScraper(BaseScraper):
     """Scrapes PFAS agency pages for all US states not covered by dedicated scrapers."""
     name = "all_states_pfas"
@@ -271,23 +232,3 @@ class AllStatesPFASScraper(BaseScraper):
         return articles
 
 
-class AllStatesEPRScraper(BaseScraper):
-    """Scrapes EPR agency pages for states with enacted or proposed EPR packaging laws."""
-    name = "all_states_epr"
-
-    def __init__(self):
-        super().__init__(lookback_hours=168)
-
-    def fetch(self) -> List[RawArticle]:
-        articles: list[RawArticle] = []
-        seen: set[str] = set()
-
-        for source, base_url, allowed_domain, urls in _STATE_EPR_CONFIGS:
-            for url in urls:
-                found = _scrape_page(url, source, base_url, allowed_domain, seen)
-                # Override topic to EPR for these sources
-                for a in found:
-                    a.topic = "EPR"
-                articles.extend(found)
-
-        return articles
