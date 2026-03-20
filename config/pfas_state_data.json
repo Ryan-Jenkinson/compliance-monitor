@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-18 (MN updated: PRISM Jul 1 2026 deadline, portal v1.11)",
+  "last_updated": "2026-03-20 (NM updated: HB 212 comprehensive law Apr 2025, fluoropolymer exemption; MN: PRISM Jul 1 2026 deadline)",
   "states": {
     "MN": {
       "name": "Minnesota",
@@ -301,7 +301,19 @@
     "UT": {"name": "Utah", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
     "ID": {"name": "Idaho", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
     "AZ": {"name": "Arizona", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
-    "NM": {"name": "New Mexico", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
+    "NM": {
+      "name": "New Mexico",
+      "status": "comprehensive",
+      "laws": ["HB 212 (PFAS Protection Act, signed Apr 8, 2025)"],
+      "summary": "Third state to pass comprehensive PFAS law after Maine and Minnesota. HB 212 bans intentionally added PFAS across a broad range of consumer products in three phases. Manufacturer reporting to NMED begins Jan 1, 2027. NMED implementation rules expected July 2026. Notably includes a fluoropolymer exemption (unlike ME/MN).",
+      "key_dates": [
+        "Jul 2026: NMED implementation rules expected",
+        "Jan 1, 2027: Phase 1 bans take effect — cookware, food packaging, dental floss, juvenile products, firefighting foam; manufacturer reporting to NMED begins",
+        "Jan 1, 2028: Phase 2 bans — carpets, cleaning products, cosmetics, textiles, ski wax, upholstered furniture",
+        "Jan 1, 2032: Phase 3 — virtually all non-exempt products banned"
+      ],
+      "andersen_note": "EMERGING COMPLIANCE STATE. HB 212 signed Apr 8, 2025 — 3rd comprehensive state PFAS law. Key distinction: fluoropolymer exemption exists (unlike ME/MN), which may benefit Andersen's weatherstripping/seal coatings that use fluoropolymer PFAS. Phase 1 reporting starts Jan 2027 — track NMED rules due Jul 2026. Supply chain risk: NM law creates another registration/reporting obligation for Andersen's component manufacturers selling into NM."
+    },
     "OK": {"name": "Oklahoma", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."}
   }
 }
