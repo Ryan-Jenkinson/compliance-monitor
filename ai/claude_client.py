@@ -59,7 +59,7 @@ class ClaudeClient:
 
     def complete_sonnet(self, prompt: str, system: str = "", cache_key: str | None = None) -> str:
         return self.complete(prompt, system=system, model=_SONNET,
-                             max_tokens=4096, cache_key=cache_key)
+                             max_tokens=8096, cache_key=cache_key)
 
     def _cache_path(self, key: str) -> Path:
         date_str = datetime.now().strftime("%Y-%m-%d")
