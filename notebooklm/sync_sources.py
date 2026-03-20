@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 _PROJECT_ROOT = Path(__file__).parent.parent
 _STATE_PATH = _PROJECT_ROOT / "data" / "notebooklm_state.json"
-_NOTEBOOK_TITLE = "Andersen Compliance Intelligence"
+_NOTEBOOK_TITLE = "Compliance Intelligence"
 _STORAGE_PATH = Path.home() / ".notebooklm" / "storage_state.json"
 
 

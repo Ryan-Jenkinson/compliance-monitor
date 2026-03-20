@@ -73,7 +73,7 @@ def _build_state_cells(states: dict) -> str:
             continue
         status = state.get("status", "none")
         color = _STATUS_COLORS.get(status, _STATUS_COLORS["none"])
-        is_home = "HOME STATE" in state.get("andersen_note", "")
+        is_home = "HOME STATE" in state.get("company_note", "")
         home_dot = '<span class="home-dot"></span>' if is_home else ""
 
         # Build tooltip data attribute (used by JS click handler)
@@ -103,7 +103,7 @@ def _build_state_js_data(states: dict) -> str:
             f'"laws": {laws_js}, '
             f'"summary": "{_escape_js(state.get("summary", ""))}", '
             f'"key_dates": {key_dates_js}, '
-            f'"andersen_note": "{_escape_js(state.get("andersen_note", ""))}"'
+            f'"company_note": "{_escape_js(state.get("company_note", ""))}"'
             f'}}'
         )
     return "{\n" + ",\n".join(entries) + "\n}"
@@ -142,7 +142,7 @@ def generate_pfas_map(output_path: Path = None) -> Path:
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PFAS State Compliance Tracker — Andersen Windows &amp; Doors</title>
+  <title>PFAS State Compliance Tracker</title>
   <style>
     *, *::before, *::after {{ box-sizing: border-box; }}
 
@@ -378,7 +378,7 @@ def generate_pfas_map(output_path: Path = None) -> Path:
       border-bottom: 1px solid #F7FAFC;
       line-height: 1.5;
     }}
-    .andersen-note {{
+    .company-note {{
       background: #FFFBEB;
       border-left: 3px solid #D69E2E;
       border-radius: 0 4px 4px 0;
@@ -388,7 +388,7 @@ def generate_pfas_map(output_path: Path = None) -> Path:
       line-height: 1.5;
       margin-top: 4px;
     }}
-    .andersen-note strong {{
+    .company-note strong {{
       display: block;
       font-size: 10px;
       font-weight: 800;
@@ -410,7 +410,7 @@ def generate_pfas_map(output_path: Path = None) -> Path:
 <body>
 
 <div class="page-header">
-  <p class="brand">Andersen Windows &amp; Doors</p>
+  <p class="brand">Compliance Intelligence</p>
   <h1>PFAS State Compliance Tracker</h1>
   <p class="sub">Interactive map of US state PFAS laws &amp; restrictions &nbsp;&middot;&nbsp; Last updated: {last_updated}</p>
 </div>
@@ -430,7 +430,7 @@ def generate_pfas_map(output_path: Path = None) -> Path:
 
     <div class="home-note">
       <span class="home-note-dot"></span>
-      <span>Gold dot = MN (Andersen's home state) — subject to Amara's Law</span>
+      <span>Gold dot = MN — subject to Amara's Law</span>
     </div>
   </div>
 
@@ -502,11 +502,11 @@ function showDetail(abbr) {{
     datesHtml += '</ul>';
   }}
 
-  // Andersen note
+  // Company note
   var noteHtml = '';
-  if (state.andersen_note) {{
-    noteHtml = '<p class="detail-section-label">Andersen Relevance</p>'
-      + '<div class="andersen-note"><strong>Compliance Note</strong>' + escapeHtml(state.andersen_note) + '</div>';
+  if (state.company_note) {{
+    noteHtml = '<p class="detail-section-label">Company Relevance</p>'
+      + '<div class="company-note"><strong>Compliance Note</strong>' + escapeHtml(state.company_note) + '</div>';
   }}
 
   var html = '<div class="detail-abbr">' + abbr + '</div>'

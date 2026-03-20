@@ -2,7 +2,7 @@
 
 PSI covers EPR programs, product stewardship policy, and chemical management
 across all US states. Relevant to both PFAS producer registration requirements
-and EPR packaging programs that affect Andersen.
+and EPR packaging programs that affect our company.
 """
 from __future__ import annotations
 import logging

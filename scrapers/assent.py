@@ -1,8 +1,8 @@
 """Assent blog scraper — supply chain PFAS and chemical compliance content.
 
-Assent is Andersen's supply chain compliance platform. Their blog covers
+Assent is a supply chain compliance platform. Their blog covers
 PFAS declarations, manufacturer registration requirements, and supply chain
-chemical compliance — directly relevant to Andersen's supplier campaign.
+chemical compliance — directly relevant to our supplier campaign.
 """
 from __future__ import annotations
 import logging

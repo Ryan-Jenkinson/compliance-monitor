@@ -7,33 +7,32 @@ from processors.article import RawArticle
 SYSTEM_COMPLIANCE_EXPERT = """\
 You are a senior regulatory compliance analyst specializing in chemical regulations,
 packaging laws, and environmental compliance for US manufacturing companies.
-You write for a senior compliance specialist at Andersen Windows & Doors —
-a major window and door manufacturer headquartered in Bayport, Minnesota.
+You write for a senior compliance specialist at a major US manufacturing company.
 
-Andersen's PFAS compliance has TWO equally critical sides:
+The company's PFAS compliance has TWO equally critical sides:
 
-DIRECT SIDE (Andersen as manufacturer/seller):
-- Fluoropolymer coatings on weatherstripping and window/door seals contain PFAS
-- Andersen must register these products in MN PRISM portal by July 1, 2026 (Amara's Law)
+DIRECT SIDE (as manufacturer/seller):
+- Fluoropolymer coatings on manufactured components contain PFAS
+- These products must be registered in MN PRISM portal by July 1, 2026 (Amara's Law)
 - 3M has exited the PFAS market, creating raw material supply risk
 - Using Assent platform to collect official PFAS declarations and identify reformulation opportunities
 - Reformulating products where possible to reduce the number of items requiring PRISM registration
 
-INDIRECT SIDE (Andersen as buyer — supply chain risk):
-- Andersen purchases thousands of components from suppliers/distributors: electronics for
+INDIRECT SIDE (as buyer — supply chain risk):
+- The company purchases thousands of components from suppliers/distributors: electronics for
   automation equipment, cylinder O-rings, gaskets, seals, PPE, lubricants, adhesives, and more
 - Many of these components' UPSTREAM MANUFACTURERS use PFAS in their products
 - Under MN Amara's Law: if a manufacturer does not register in PRISM by July 1, 2026,
   it becomes ILLEGAL for distributors to sell those PFAS-containing products in Minnesota
-- This creates a cascading risk: Andersen could lose access to critical components if their
+- This creates a cascading risk: the company could lose access to critical components if their
   suppliers' manufacturers miss the PRISM deadline — an operational shutdown risk
-- Andersen is actively running supplier education email campaigns, reaching out to their
+- The company is actively running supplier education email campaigns, reaching out to their
   full supply base (including distributors of electronics, industrial components, PPE)
   to educate them on the need to work with their manufacturers (domestic AND foreign) to
   ensure PRISM registration before July 1, 2026
 - Foreign manufacturers exporting PFAS-containing products to MN are also subject to Amara's Law
 
-Andersen's other key compliance concerns:
+The company's other key compliance concerns:
 - EPR: packaging compliance in CA, ME, OR, CO and emerging states
 - REACH: EU/international supplier requirements and SVHC substance tracking
 - TSCA: chemical reporting and potential use restrictions in manufacturing
@@ -71,7 +70,7 @@ Return JSON only, no explanation. Example: ["abc123", "def456"]
 
 
 def stage2_summarize_prompt(articles: List[RawArticle], topic_config: dict) -> str:
-    """Stage 2: Ask Sonnet to produce structured topic summary with Andersen impact."""
+    """Stage 2: Ask Sonnet to produce structured topic summary with company impact."""
     articles_text = []
     for a in articles:
         is_new = a.extra.get("is_new", True)
@@ -87,13 +86,13 @@ def stage2_summarize_prompt(articles: List[RawArticle], topic_config: dict) -> s
         )
 
     content = "\n---\n".join(articles_text) if articles_text else "(no new articles)"
-    andersen_relevance = topic_config.get("andersen_relevance", "")
+    company_relevance = topic_config.get("company_relevance", "")
 
     return f"""\
 Topic: {topic_config['label']}
 
-Andersen-specific context:
-{andersen_relevance}
+Company-specific context:
+{company_relevance}
 
 Articles to analyze (may span up to 30 days — prioritize and clearly label the most recent
 developments first; note the date of each development in the output):
@@ -114,12 +113,12 @@ Produce a JSON object with this exact structure:
       "is_new": true
     }}
   ],
-  "andersen_impact": {{
-    "direct_products": "Impact on Andersen's OWN products containing PFAS — registration, reformulation, labeling obligations. Null if not applicable.",
-    "supply_chain": "Impact on Andersen's PURCHASING side — which component categories (electronics, gaskets, PPE, etc.) are at risk if their manufacturers miss registration deadlines. Be specific about procurement risk. Null if not applicable.",
-    "supplier_campaign": "What this development means for Andersen's supplier education campaigns — does it add urgency, identify new supplier segments to target, or change messaging? Null if not applicable.",
-    "direct_actions": ["Specific action item for Andersen's own product compliance"],
-    "supplier_actions": ["Specific action for Andersen's supplier outreach or Assent declarations"]
+  "company_impact": {{
+    "direct_products": "Impact on our OWN products containing PFAS — registration, reformulation, labeling obligations. Null if not applicable.",
+    "supply_chain": "Impact on our PURCHASING side — which component categories (electronics, gaskets, PPE, etc.) are at risk if their manufacturers miss registration deadlines. Be specific about procurement risk. Null if not applicable.",
+    "supplier_campaign": "What this development means for our supplier education campaigns — does it add urgency, identify new supplier segments to target, or change messaging? Null if not applicable.",
+    "direct_actions": ["Specific action item for direct product compliance"],
+    "supplier_actions": ["Specific action for supplier outreach or Assent declarations"]
   }},
   "has_news": true
 }}
@@ -128,7 +127,7 @@ If there are no articles or none are relevant, return:
 {{
   "topic": "{topic_config['name']}",
   "developments": [],
-  "andersen_impact": {{
+  "company_impact": {{
     "direct_products": null,
     "supply_chain": null,
     "supplier_campaign": null,
@@ -165,7 +164,7 @@ Here is a condensed view of all developments:
 {summaries_text}
 
 Write a 3-5 sentence executive summary for the top of today's compliance briefing email.
-Focus on the 1-2 most actionable or time-sensitive items. Be specific about Andersen's
+Focus on the 1-2 most actionable or time-sensitive items. Be specific about the company's
 exposure. Mention deadlines if present. Use professional but direct language — no filler.
 
 Return plain text only (no JSON, no markdown headers).

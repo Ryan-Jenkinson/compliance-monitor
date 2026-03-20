@@ -16,7 +16,7 @@ _LOG_PATH = _PROJECT_ROOT / "logs" / "cron.log"
 _PYTHON = sys.executable
 
 # Cron comment used as a sentinel to find/remove our entry
-_CRON_COMMENT = "# andersen-compliance-monitor"
+_CRON_COMMENT = "# compliance-monitor"
 _CRON_LINE = f"0 6 * * * cd {_PROJECT_ROOT} && {_PYTHON} {_RUN_PY} >> {_LOG_PATH} 2>&1 {_CRON_COMMENT}"
 
 

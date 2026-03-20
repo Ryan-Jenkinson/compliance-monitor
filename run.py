@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Andersen Compliance Intelligence — Main entry point.
+Compliance Intelligence — Main entry point.
 
 Usage:
     python run.py               # Full run: scrape → filter → summarize → render → send
@@ -65,7 +65,7 @@ def setup_logging(level: str = "INFO") -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Andersen Compliance Intelligence")
+    parser = argparse.ArgumentParser(description="Compliance Intelligence")
     parser.add_argument("--dry-run", action="store_true",
                         help="Scrape and summarize, print output, no email sent")
     parser.add_argument("--preview", action="store_true",
@@ -218,15 +218,15 @@ def main() -> None:
     logger = logging.getLogger("run")
 
     logger.info("=" * 60)
-    logger.info("Andersen Compliance Intelligence — starting run")
+    logger.info("Compliance Intelligence — starting run")
     logger.info(f"Mode: {'dry-run' if args.dry_run else 'preview' if args.preview else 'full'}")
 
     # Initialize DB
     init_db()
 
     # Generate PFAS state map and push to GitHub Pages
-    _GITHUB_PAGES_URL = "https://ryan-jenkinson.github.io/andersen-compliance-maps/"
-    _GITHUB_REPO_DIR = Path("/tmp/andersen-compliance-maps")
+    _GITHUB_PAGES_URL = "https://ryan-jenkinson.github.io/compliance-maps/"
+    _GITHUB_REPO_DIR = Path("/tmp/compliance-maps")
     logger.info("Generating PFAS state map…")
     try:
         pfas_map_path = generate_pfas_map()

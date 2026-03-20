@@ -25,18 +25,18 @@ topics:
       - "PFAS"
       - "perfluoroalkyl"
     epa_search: "PFAS"
-    andersen_relevance: >
-      DIRECT: Andersen uses fluoropolymer coatings on weatherstripping and seals —
+    company_relevance: >
+      DIRECT: The company uses fluoropolymer coatings on manufactured components —
       these must be registered in MN PRISM portal by July 1, 2026 under Amara's Law.
       3M has exited the PFAS market, requiring alternative supplier qualification.
-      Andersen is using Assent to collect PFAS declarations and identify reformulation
+      The company is using Assent to collect PFAS declarations and identify reformulation
       opportunities to reduce the total number of products requiring PRISM registration.
 
-      INDIRECT / SUPPLY CHAIN: Andersen buys thousands of PFAS-containing components
+      INDIRECT / SUPPLY CHAIN: The company buys thousands of PFAS-containing components
       from distributors — electronics and automation parts, cylinder O-rings, gaskets,
       seals, PPE, lubricants, adhesives, and more. If the upstream MANUFACTURERS of
       these items do not register in MN PRISM by July 1, 2026, their distributors
-      cannot legally sell those products in Minnesota. Andersen is running email
+      cannot legally sell those products in Minnesota. The company is running email
       campaigns to educate their entire supply base — including distributors of
       industrial components and PPE — on the need to coordinate with their
       manufacturers (domestic and foreign) to ensure PRISM registration.
@@ -63,8 +63,8 @@ topics:
     federal_register_terms:
       - "extended producer responsibility"
       - "packaging stewardship"
-    andersen_relevance: >
-      Andersen ships products with packaging in EPR states. CA SB 54 and similar laws
+    company_relevance: >
+      The company ships products with packaging in EPR states. CA SB 54 and similar laws
       may require registration with producer responsibility organizations (PROs) and
       payment of fees. Packaging redesign may be required to meet recycled content targets.
 
@@ -87,10 +87,10 @@ topics:
       - "EU chemicals"
     federal_register_terms: []   # REACH is EU; use ECHA RSS instead
     echa_feed: true
-    andersen_relevance: >
+    company_relevance: >
       International product lines and EU-based suppliers must comply with REACH.
       SVHC additions affect supplier declarations of conformity and product data sheets.
-      Relevant to Andersen's European distribution and global supply chain transparency.
+      Relevant to European distribution and global supply chain transparency.
 
   - name: TSCA
     label: "TSCA & US Chemical Regulation"
@@ -114,7 +114,7 @@ topics:
       - "TSCA"
       - "chemical risk evaluation"
     epa_search: "TSCA"
-    andersen_relevance: >
+    company_relevance: >
       TSCA Section 6 rules can restrict or require substitution of chemicals used in
-      Andersen's manufacturing processes and coatings. Section 8 reporting obligations
-      apply if Andersen manufactures or imports covered chemicals above threshold quantities.
+      manufacturing processes and coatings. Section 8 reporting obligations apply if
+      the company manufactures or imports covered chemicals above threshold quantities.

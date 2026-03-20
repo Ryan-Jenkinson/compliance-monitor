@@ -37,7 +37,7 @@ class Config:
         return _require("GMAIL_APP_PASSWORD")
 
     # Email sender identity
-    GMAIL_FROM_NAME: str = os.getenv("GMAIL_FROM_NAME", "Andersen Compliance Intelligence")
+    GMAIL_FROM_NAME: str = os.getenv("GMAIL_FROM_NAME", "Compliance Intelligence")
 
     # Behaviour
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")

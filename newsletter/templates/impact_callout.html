@@ -1,54 +1,61 @@
-<!-- Andersen Impact callout -->
+<!-- Company Impact callout -->
 <div class="impact-callout">
-  <div class="impact-callout-header">Andersen Impact Analysis</div>
 
   {% if impact.direct_products %}
   <div class="impact-row">
-    <div class="impact-label">Our Products</div>
-    <div class="impact-text">{{ impact.direct_products }}</div>
+    <span class="impact-label">Our Products</span>
+    <div class="impact-content">
+      <p class="impact-text">{{ impact.direct_products }}</p>
+    </div>
   </div>
   {% elif impact.direct_materials %}
-  {# Backward compatibility with old field name #}
   <div class="impact-row">
-    <div class="impact-label">Our Products</div>
-    <div class="impact-text">{{ impact.direct_materials }}</div>
+    <span class="impact-label">Our Products</span>
+    <div class="impact-content">
+      <p class="impact-text">{{ impact.direct_materials }}</p>
+    </div>
   </div>
   {% endif %}
 
   {% if impact.supply_chain %}
   <div class="impact-row">
-    <div class="impact-label">Supply Chain Risk</div>
-    <div class="impact-text">{{ impact.supply_chain }}</div>
+    <span class="impact-label">Supply Chain</span>
+    <div class="impact-content">
+      <p class="impact-text">{{ impact.supply_chain }}</p>
+    </div>
   </div>
   {% endif %}
 
   {% if impact.supplier_campaign %}
   <div class="impact-row">
-    <div class="impact-label">Supplier Campaign</div>
-    <div class="impact-text">{{ impact.supplier_campaign }}</div>
+    <span class="impact-label">Supplier Campaign</span>
+    <div class="impact-content">
+      <p class="impact-text">{{ impact.supplier_campaign }}</p>
+    </div>
   </div>
   {% endif %}
 
   {% set direct_actions = impact.direct_actions if impact.direct_actions else impact.action_items %}
   {% if direct_actions %}
   <div class="impact-row">
-    <div class="impact-label">Direct Actions</div>
-    <ul class="action-items">
-      {% for item in direct_actions %}
-      <li>{{ item }}</li>
-      {% endfor %}
-    </ul>
+    <span class="impact-label">Direct Actions</span>
+    <div class="impact-content">
+      <ul class="action-items">
+        {% for item in direct_actions %}<li>{{ item }}</li>{% endfor %}
+      </ul>
+    </div>
   </div>
   {% endif %}
 
   {% if impact.supplier_actions %}
   <div class="impact-row">
-    <div class="impact-label supplier-label">Supplier Campaign Actions</div>
-    <ul class="action-items supplier-actions">
-      {% for item in impact.supplier_actions %}
-      <li>{{ item }}</li>
-      {% endfor %}
-    </ul>
+    <span class="impact-label supplier">Supplier Actions</span>
+    <div class="impact-content">
+      <ul class="action-items supplier">
+        {% for item in impact.supplier_actions %}<li>{{ item }}</li>{% endfor %}
+      </ul>
+    </div>
   </div>
   {% endif %}
+
 </div>

@@ -132,7 +132,7 @@ class Summarizer:
             return {
                 "topic": topic_name,
                 "developments": [],
-                "andersen_impact": {
+                "company_impact": {
                     "direct_products": None,
                     "supply_chain": None,
                     "supplier_campaign": None,
