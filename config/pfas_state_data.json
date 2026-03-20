@@ -1,306 +1,124 @@
 {
-  "last_updated": "2026-03-20 (NM updated: HB 212 comprehensive law Apr 2025, fluoropolymer exemption; MN: PRISM Jul 1 2026 deadline)",
+  "last_updated": "2026-03-20 (Full 50-state audit — major updates to NH, RI, NJ, IL, ME, CT, CA, CO, VT, MN, OR, MD; upgrades for IN, FL, PA, VA, NV, MO)",
   "states": {
     "MN": {
       "name": "Minnesota",
       "status": "comprehensive",
-      "laws": ["Amara's Law (SF 2898)"],
-      "summary": "Most comprehensive state PFAS law. PRISM registration portal launched Jan 2026 (v1.11 as of Mar 2026). $800 one-time reporting fee per manufacturer. Annual updates due Feb 1 each year.",
+      "laws": ["Amara's Law (SF 2898)", "SF 3 / Chapter 1 (Jun 14, 2025)"],
+      "summary": "Most comprehensive state PFAS law. PRISM registration portal launched Jan 2026 (v1.11 as of Mar 2026). $800 one-time reporting fee per manufacturer. Annual updates due Feb 1 each year. SF 3 (Jun 2025) amended Amara's Law to expand exemptions for internal and electronic components from 2025 bans (shifted to 2032).",
       "key_dates": [
-        "Jul 1, 2026: PFAS manufacturer registration deadline in PRISM portal (extended from Jan 1, 2026)",
+        "Jan 1, 2025: Ban on PFAS in 11 product categories (carpets/rugs, cleaning products, cookware, cosmetics, dental floss, fabric treatments, juvenile products, menstruation products, textile furnishings, ski wax, upholstered furniture) already in effect",
+        "Jul 1, 2026: PFAS manufacturer registration deadline in PRISM portal",
         "Feb 1, 2027: First annual PRISM update due",
-        "Jan 1, 2025: Ban on PFAS in cookware, food packaging, children's products already in effect",
-        "Jan 1, 2032: Full ban on intentionally added PFAS in all products"
+        "Jan 1, 2032: Ban extended to internal/electronic components (SF 3 amendment)"
       ],
-      "andersen_note": "HOME STATE — ACTIVE DEADLINE. Registration in PRISM portal (prism.theic2.org) required by Jul 1, 2026. $800 one-time fee. Weatherstripping/seal fluoropolymer coatings are subject to Amara's Law. Contact: pfasreporting.mpca@state.mn.us"
+      "andersen_note": "HOME STATE — ACTIVE DEADLINE. Registration in PRISM portal (prism.theic2.org) required by Jul 1, 2026. $800 one-time fee. Weatherstripping/seal fluoropolymer coatings subject to Amara's Law. SF 3 (June 2025) exempted internal/electronic components from 2025 ban — shifts those to 2032, may affect some component categories. Contact: pfasreporting.mpca@state.mn.us"
     },
     "ME": {
       "name": "Maine",
       "status": "comprehensive",
-      "laws": ["LD 1503"],
-      "summary": "First state to pass comprehensive PFAS law. Requires disclosure of intentionally added PFAS by 2023, phase-out by 2030.",
+      "laws": ["LD 1503 (2021)", "LD 1537 (2024 amendment)", "LD 130 (2025 ag program)"],
+      "summary": "First state to pass comprehensive PFAS law. LD 1537 (2024) revised the phase-out timeline and eliminated the original 2023 disclosure requirement. Three-phase product ban schedule: 2026, 2029, 2032. LD 130 (2025) adds PFAS agricultural response program.",
       "key_dates": [
-        "Jan 1, 2023: PFAS disclosure to state required",
-        "Jan 1, 2030: Ban on sale of products with intentionally added PFAS"
+        "Jan 1, 2026: Phase 1 ban — cleaning products, cookware, cosmetics, dental floss, juvenile products, menstruation products, ski wax, upholstered furniture, most textiles",
+        "Jan 1, 2029: Phase 2 ban — artificial turf, outdoor apparel for wet weather",
+        "Jan 1, 2032: Phase 3 — all remaining products"
       ],
-      "andersen_note": "Products sold in ME may require PFAS disclosure. Check weatherstripping and seal coatings."
+      "andersen_note": "Products sold in ME subject to phase-out schedule. Phase 1 ban effective Jan 2026 — verify Andersen's applicable product lines. Original 2023 disclosure requirement was eliminated by LD 1537. Supply chain risk: component manufacturers selling into ME must comply with bans."
     },
     "WA": {
       "name": "Washington",
       "status": "comprehensive",
-      "laws": ["HB 2658", "SB 5135", "HB 1694"],
-      "summary": "Comprehensive PFAS phase-out across food packaging, firefighting foam, apparel, ski wax, and more.",
+      "laws": ["HB 2658", "HB 1694"],
+      "summary": "Comprehensive PFAS phase-out across food packaging, firefighting foam, apparel, ski wax, and more. Department of Ecology finalized rules for apparel and cleaning products in 2025.",
       "key_dates": [
         "Jan 1, 2023: Ban on PFAS in food packaging",
         "Jan 1, 2025: Ban on PFAS in cookware, carpets, ski wax",
-        "Jan 1, 2026: Ban on PFAS in apparel"
+        "Jan 1, 2026: Ban on PFAS in apparel and cleaning products (Ecology rules finalized 2025)"
       ],
-      "andersen_note": "Products sold in WA subject to multiple category bans. Review product lines sold in this market."
+      "andersen_note": "Products sold in WA subject to multiple category bans. Apparel/cleaning product rules finalized by Ecology in 2025. Review product lines sold in WA."
     },
     "CA": {
       "name": "California",
       "status": "comprehensive",
-      "laws": ["AB 1200", "AB 1817", "SB 1044", "AB 652"],
-      "summary": "Multiple PFAS laws covering food packaging, cookware, apparel, juvenile products, and more.",
+      "laws": ["AB 1200", "AB 1817", "SB 1044", "AB 652", "AB 347 (2024)", "AB 2515 (2024)"],
+      "summary": "Multiple PFAS laws covering food packaging, cookware, apparel, juvenile products, cosmetics, and menstrual products. AB 347 (2024) gives DTSC enforcement authority with manufacturer registration by 2029.",
       "key_dates": [
-        "Jan 1, 2023: PFAS disclosure on cookware required",
-        "Jan 1, 2025: Ban on PFAS in cookware",
-        "Jan 1, 2025: Ban on PFAS in apparel",
-        "Jul 1, 2025: Ban on PFAS in juvenile products"
+        "Jan 1, 2023: Ban on PFAS in plant-fiber food packaging (AB 1200)",
+        "Jan 1, 2024: Cookware PFAS disclosure/labeling required (AB 1200)",
+        "Jan 1, 2025: Ban on PFAS in apparel/textiles (AB 1817)",
+        "Jul 1, 2023: Ban on PFAS in juvenile products (AB 652)",
+        "Jul 1, 2029: Manufacturer registration required under DTSC (AB 347)",
+        "Jul 1, 2030: DTSC enforcement begins (AB 347)"
       ],
-      "andersen_note": "Large market with multiple PFAS product laws. Check all product lines sold in CA."
+      "andersen_note": "Large market with multiple active PFAS laws. AB 652 juvenile products ban was Jul 1, 2023 (already in effect). AB 347 (2024) adds manufacturer registration obligation. AB 2515 (2024) bans PFAS in menstrual products. Check all Andersen product lines sold in CA."
     },
     "CO": {
       "name": "Colorado",
       "status": "comprehensive",
-      "laws": ["HB 22-1345", "SB 23-016"],
-      "summary": "Bans PFAS in food packaging, firefighting foam, ski wax, and personal care products.",
+      "laws": ["HB 22-1345", "SB 24-081 (May 2024)"],
+      "summary": "Comprehensive PFAS phase-out. SB 24-081 (May 2024) significantly expanded the law with additional product categories and a multi-phase rollout through 2028.",
       "key_dates": [
-        "Jan 1, 2024: Ban on PFAS in food packaging",
-        "Jan 1, 2024: Ban on PFAS in ski wax",
-        "Jan 1, 2025: Expanded product bans"
+        "Jan 1, 2024: Ban on PFAS in food packaging, ski wax (HB 22-1345)",
+        "Jan 1, 2025: Outdoor apparel disclosure required (SB 24-081)",
+        "Jan 1, 2026: Ban on PFAS in cookware, cleaning products, dental floss, menstrual products, ski wax (SB 24-081)",
+        "Jan 1, 2028: Ban on PFAS in all cleaning products, textiles, food contact equipment, outdoor apparel for severe wet conditions (SB 24-081)"
       ],
-      "andersen_note": "Products sold in CO subject to packaging and product bans."
+      "andersen_note": "SB 24-081 (May 2024) is a major expansion — three-phase rollout through 2028. Products sold in CO subject to packaging and expanding product bans. Outdoor apparel disclosure required now (2025). Review all applicable Andersen product lines."
     },
     "VT": {
       "name": "Vermont",
       "status": "comprehensive",
-      "laws": ["H.150", "Act 21"],
-      "summary": "Bans PFAS in food contact materials, cookware, cosmetics, juvenile products, and more.",
+      "laws": ["Act 21 (2021)", "S.25 / Act 131 (2024)", "H.238 / Act 54 (Jun 2025)"],
+      "summary": "Progressive PFAS product ban law with multiple expansions. H.238/Act 54 (June 2025) expanded bans to include cleaning products, dental floss, and PFAS-lined containers.",
       "key_dates": [
-        "Jul 1, 2023: Ban on PFAS in food contact ware and cookware",
-        "Jul 1, 2025: Expanded product category bans"
+        "Jul 1, 2023: Ban on PFAS in food contact ware and cookware (Act 21)",
+        "Jul 1, 2025: Expanded product category bans (Act 131)",
+        "2026: Further expansions under H.238/Act 54 (cleaning products, dental floss, PFAS-lined containers)"
       ],
-      "andersen_note": "Small market but strong law. Review applicable product categories."
+      "andersen_note": "Small market but strong and expanding law. H.238/Act 54 signed June 2025 adds cleaning products, dental floss, PFAS-lined containers. Review applicable product categories for VT market."
     },
     "NY": {
       "name": "New York",
       "status": "comprehensive",
-      "laws": ["A6295", "S9332", "Multiple bills"],
-      "summary": "Multiple PFAS laws covering food packaging, carpets, cookware, apparel, and children's products.",
+      "laws": ["A6295", "S9332", "NY S 3008 / A 3008 (2025)"],
+      "summary": "Multiple PFAS laws covering food packaging, carpets, cookware, apparel, children's products, and firefighting PPE. 2025 budget bill bans PFAS in firefighting PPE by 2028.",
       "key_dates": [
         "Dec 31, 2022: Ban on PFAS in food packaging",
+        "Dec 31, 2024: Ban on PFAS in carpets and rugs",
+        "Jan 1, 2025: PPE PFAS disclosure notification requirement",
         "Jan 1, 2025: Ban on PFAS in cookware",
-        "Dec 31, 2024: Ban on PFAS in carpets and rugs"
+        "2028: Ban on manufacture and sale of firefighting PPE containing intentionally added PFAS (S 3008 / A 3008)"
       ],
-      "andersen_note": "Major market with multiple active PFAS laws."
+      "andersen_note": "Major market with multiple active PFAS laws. 2025 budget bill (S 3008/A 3008) adds firefighting PPE ban by 2028 — relevant if Andersen sources PPE in NY. Supply chain note: PPE disclosure notifications required Jan 2025."
     },
     "OR": {
       "name": "Oregon",
       "status": "comprehensive",
-      "laws": ["HB 2771", "SB 21"],
-      "summary": "Broad PFAS framework covering food packaging, cookware, apparel, juvenile products, and more.",
+      "laws": ["HB 2771", "SB 546 (2023 — Toxic-Free Cosmetics Act)", "SB 91 (2025)"],
+      "summary": "Broad PFAS framework. SB 546 (2023) bans PFAS in cosmetics effective 2027. SB 91 (2025) prohibits PFAS firefighting foam by July 2026.",
       "key_dates": [
-        "Jan 1, 2023: PFAS reporting requirements begin",
-        "Jan 1, 2025: Phase-out of PFAS in multiple product categories"
+        "Jan 1, 2023: PFAS reporting requirements begin (HB 2771)",
+        "Jan 1, 2025: Phase-out of PFAS in children's products, food packaging",
+        "Jan 1, 2027: Ban on PFAS in cosmetics (SB 546)",
+        "Jul 1, 2026: Ban on PFAS firefighting foam in Oregon fire departments (SB 91)"
       ],
-      "andersen_note": "Review product lines sold in OR against phase-out schedule."
+      "andersen_note": "Review product lines sold in OR against phase-out schedule. SB 546 (cosmetics, 2027) and SB 91 (firefighting foam, 2026) are newly enacted additions. Supply chain: cosmetics and firefighting foam component manufacturers need to comply."
     },
     "CT": {
       "name": "Connecticut",
       "status": "comprehensive",
-      "laws": ["PA 21-191", "PA 23-97"],
-      "summary": "Comprehensive PFAS restrictions across food packaging, cookware, apparel, and firefighting foam.",
+      "laws": ["PA 21-191 (2021)", "PA 24-59 (Jun 5, 2024)"],
+      "summary": "Comprehensive PFAS restrictions. PA 24-59 (June 2024, effective Oct 2024) is the major consumer product law, requiring labeling by Jul 2026 and full product ban by Jan 2028 across apparel, carpets, cleaning products, cookware, cosmetics, dental floss, fabric treatments, children's products, and more.",
       "key_dates": [
-        "Dec 31, 2023: Ban on PFAS in food contact substances",
-        "Dec 31, 2025: Expanded product bans"
+        "Oct 2021: Firefighting foam PFAS restrictions (PA 21-191)",
+        "Dec 31, 2023: Ban on PFAS in food contact substances (PA 21-191)",
+        "Oct 1, 2024: PA 24-59 effective — comprehensive consumer product law",
+        "Jul 1, 2026: PFAS labeling required across covered product categories",
+        "Jan 1, 2028: Full ban on PFAS in covered products"
       ],
-      "andersen_note": "Active PFAS law state. Monitor product compliance."
+      "andersen_note": "PA 24-59 (June 2024) is a comprehensive law covering a wide range of products. Labeling required by Jul 2026 — check all Andersen product lines sold in CT. CT DEEP issued final labeling order in Dec 2025. Jan 2028 full ban deadline is the key compliance date."
     },
-    "MA": {
-      "name": "Massachusetts",
-      "status": "limited",
-      "laws": ["PFAS MCL Rules", "Firefighting foam restrictions"],
-      "summary": "PFAS maximum contaminant levels in drinking water. Firefighting foam PFAS restrictions.",
-      "key_dates": [
-        "Oct 1, 2020: PFAS6 MCL of 20 ppt in drinking water",
-        "2022: Firefighting foam PFAS restrictions enacted"
-      ],
-      "andersen_note": "Primarily drinking water and firefighting foam focus. Monitor for expanded product legislation."
-    },
-    "MI": {
-      "name": "Michigan",
-      "status": "limited",
-      "laws": ["PA 20 of 2019", "PFAS MCL Rules"],
-      "summary": "Nation's most stringent PFAS drinking water MCLs (7 PFAS compounds). Active remediation program.",
-      "key_dates": [
-        "Aug 2020: PFAS MCLs established for 7 compounds",
-        "Ongoing: PFAS remediation and site investigation program"
-      ],
-      "andersen_note": "Manufacturing state with strict PFAS water standards. Monitor discharge and facility compliance."
-    },
-    "NJ": {
-      "name": "New Jersey",
-      "status": "limited",
-      "laws": ["PFAS MCL Rules", "SRP PFAS Rules"],
-      "summary": "Very low PFAS MCLs in drinking water. Firefighting foam restrictions. Expanding product laws.",
-      "key_dates": [
-        "2021: PFOA MCL of 14 ppt, PFOS MCL of 13 ppt established",
-        "Ongoing: PFAS site remediation requirements"
-      ],
-      "andersen_note": "Strict water standards. Watch for product legislation expansion."
-    },
-    "MD": {
-      "name": "Maryland",
-      "status": "limited",
-      "laws": ["SB 72", "HB 275"],
-      "summary": "Bans PFAS in food packaging and firefighting foam. Limited product scope.",
-      "key_dates": [
-        "Jan 1, 2024: Ban on PFAS in food packaging",
-        "2023: Firefighting foam restrictions"
-      ],
-      "andersen_note": "Food packaging focus. Monitor for broader product legislation."
-    },
-    "RI": {
-      "name": "Rhode Island",
-      "status": "limited",
-      "laws": ["H5475", "Firefighting foam law"],
-      "summary": "PFAS restrictions in food packaging and firefighting foam.",
-      "key_dates": [
-        "Jan 1, 2023: Ban on PFAS in food packaging",
-        "2022: Firefighting foam PFAS restrictions"
-      ],
-      "andersen_note": "Limited scope currently. Monitor legislative expansion."
-    },
-    "IL": {
-      "name": "Illinois",
-      "status": "limited",
-      "laws": ["SB 3718", "HB 3739"],
-      "summary": "PFAS restrictions on firefighting foam and some reporting requirements.",
-      "key_dates": [
-        "2022: Firefighting foam PFAS restrictions",
-        "Ongoing: PFAS monitoring and reporting programs"
-      ],
-      "andersen_note": "Primarily firefighting foam focus. Watch for product expansion."
-    },
-    "WI": {
-      "name": "Wisconsin",
-      "status": "limited",
-      "laws": ["SB 107", "AB 426"],
-      "summary": "Firefighting foam PFAS restrictions. Active PFAS monitoring in water.",
-      "key_dates": [
-        "2022: Ban on PFAS firefighting foam for training",
-        "Ongoing: PFAS groundwater monitoring requirements"
-      ],
-      "andersen_note": "Key manufacturing state. Firefighting foam restrictions active."
-    },
-    "NH": {
-      "name": "New Hampshire",
-      "status": "limited",
-      "laws": ["SB 309", "PFAS MCL Rules"],
-      "summary": "PFAS MCLs in drinking water. Firefighting foam restrictions.",
-      "key_dates": [
-        "2020: PFAS MCLs established (12 ppt for PFOA)",
-        "2021: Firefighting foam restrictions"
-      ],
-      "andersen_note": "Drinking water and firefighting foam focus."
-    },
-    "HI": {
-      "name": "Hawaii",
-      "status": "limited",
-      "laws": ["SB 2608", "HB 2645"],
-      "summary": "Firefighting foam PFAS restrictions and some product requirements.",
-      "key_dates": [
-        "Jan 1, 2026: Ban on PFAS in food packaging",
-        "2023: Firefighting foam phase-out"
-      ],
-      "andersen_note": "Remote market. Monitor food packaging law effective 2026."
-    },
-    "DE": {
-      "name": "Delaware",
-      "status": "limited",
-      "laws": ["HB 75"],
-      "summary": "PFAS restrictions in food packaging.",
-      "key_dates": [
-        "Jan 1, 2024: Ban on PFAS in food packaging"
-      ],
-      "andersen_note": "Food packaging focus only."
-    },
-    "MT": {
-      "name": "Montana",
-      "status": "limited",
-      "laws": ["SB 81"],
-      "summary": "Firefighting foam PFAS restrictions.",
-      "key_dates": ["2021: PFAS firefighting foam restrictions"],
-      "andersen_note": "Limited scope."
-    },
-    "AK": {
-      "name": "Alaska",
-      "status": "limited",
-      "laws": ["HB 79"],
-      "summary": "Firefighting foam PFAS restrictions.",
-      "key_dates": ["2022: PFAS firefighting foam use restrictions"],
-      "andersen_note": "Remote market. Limited scope."
-    },
-    "VA": {
-      "name": "Virginia",
-      "status": "proposed",
-      "laws": ["Multiple bills in progress"],
-      "summary": "Active PFAS legislation proposed covering food packaging and products. PFAS monitoring program active.",
-      "key_dates": ["2024-2025: Multiple PFAS bills under consideration"],
-      "andersen_note": "Watch for legislation passage. Growing market."
-    },
-    "NC": {
-      "name": "North Carolina",
-      "status": "proposed",
-      "laws": ["Pending legislation"],
-      "summary": "PFAS contamination hotspot (Cape Fear River). Active proposed legislation.",
-      "key_dates": ["Ongoing: PFAS contamination remediation and proposed product bills"],
-      "andersen_note": "High PFAS contamination awareness. Legislation likely."
-    },
-    "PA": {
-      "name": "Pennsylvania",
-      "status": "proposed",
-      "laws": ["HB 1249", "SB 1107 (proposed)"],
-      "summary": "PFAS MCLs for drinking water under development. Product legislation proposed.",
-      "key_dates": ["2024-2025: PFAS MCL rulemaking in progress"],
-      "andersen_note": "Major manufacturing state. Watch for MCL finalization."
-    },
-    "OH": {
-      "name": "Ohio",
-      "status": "proposed",
-      "laws": ["Pending legislation"],
-      "summary": "Limited enacted PFAS law. Some proposed product legislation.",
-      "key_dates": ["2025: Proposed food packaging restrictions"],
-      "andersen_note": "Manufacturing state. Monitor proposed legislation."
-    },
-    "MO": {
-      "name": "Missouri",
-      "status": "proposed",
-      "laws": ["Pending legislation"],
-      "summary": "Limited PFAS activity. Some proposed firefighting foam restrictions.",
-      "key_dates": ["2025: Proposed firefighting foam restrictions"],
-      "andersen_note": "Limited exposure currently."
-    },
-    "NV": {
-      "name": "Nevada",
-      "status": "proposed",
-      "laws": ["SB 68 (proposed)"],
-      "summary": "PFAS restrictions proposed for food packaging and firefighting foam.",
-      "key_dates": ["2025: Proposed PFAS legislation"],
-      "andersen_note": "Monitor legislative progress."
-    },
-    "FL": {"name": "Florida", "status": "none", "laws": [], "summary": "No significant PFAS-specific state product laws enacted. Limited regulatory activity.", "key_dates": [], "andersen_note": "No current PFAS product compliance requirements."},
-    "TX": {"name": "Texas", "status": "none", "laws": [], "summary": "No significant PFAS-specific state laws. Some groundwater monitoring.", "key_dates": [], "andersen_note": "No current PFAS product compliance requirements."},
-    "GA": {"name": "Georgia", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
-    "AL": {"name": "Alabama", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
-    "MS": {"name": "Mississippi", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
-    "LA": {"name": "Louisiana", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
-    "AR": {"name": "Arkansas", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
-    "TN": {"name": "Tennessee", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
-    "KY": {"name": "Kentucky", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
-    "WV": {"name": "West Virginia", "status": "none", "laws": [], "summary": "No significant PFAS state laws enacted. Some PFAS contamination issues.", "key_dates": [], "andersen_note": "No current requirements."},
-    "SC": {"name": "South Carolina", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
-    "IN": {"name": "Indiana", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
-    "IA": {"name": "Iowa", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
-    "KS": {"name": "Kansas", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
-    "NE": {"name": "Nebraska", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
-    "SD": {"name": "South Dakota", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
-    "ND": {"name": "North Dakota", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
-    "WY": {"name": "Wyoming", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
-    "UT": {"name": "Utah", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
-    "ID": {"name": "Idaho", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
-    "AZ": {"name": "Arizona", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
     "NM": {
       "name": "New Mexico",
       "status": "comprehensive",
@@ -314,6 +132,250 @@
       ],
       "andersen_note": "EMERGING COMPLIANCE STATE. HB 212 signed Apr 8, 2025 — 3rd comprehensive state PFAS law. Key distinction: fluoropolymer exemption exists (unlike ME/MN), which may benefit Andersen's weatherstripping/seal coatings that use fluoropolymer PFAS. Phase 1 reporting starts Jan 2027 — track NMED rules due Jul 2026. Supply chain risk: NM law creates another registration/reporting obligation for Andersen's component manufacturers selling into NM."
     },
+    "NH": {
+      "name": "New Hampshire",
+      "status": "comprehensive",
+      "laws": ["SB 309 (2020 — PFAS MCLs)", "HB 1649 / Chapter 349 (Aug 2, 2024)", "HB 167 / Chapter 19 (May 14, 2025)"],
+      "summary": "Upgraded to comprehensive. HB 1649 (Aug 2024) bans intentionally added PFAS in food packaging, juvenile products, textile furnishings, upholstered furniture, cosmetics, and feminine hygiene products, effective Jan 1, 2027. HB 167 (May 2025) bans PFAS in ski, boat, and board waxes.",
+      "key_dates": [
+        "2020: PFAS MCLs established (12 ppt for PFOA — SB 309)",
+        "2021: Firefighting foam restrictions",
+        "Jan 1, 2027: Ban on PFAS in food packaging, juvenile products, textile furnishings, upholstered furniture, cosmetics, feminine hygiene products (HB 1649)",
+        "2025: Ban on PFAS in ski, boat, and board waxes (HB 167)"
+      ],
+      "andersen_note": "NEWLY COMPREHENSIVE as of Aug 2024. HB 1649 product bans take effect Jan 1, 2027 — review Andersen products sold in NH. Supply chain: component manufacturers into NH must also comply. Wax ban already effective (HB 167, May 2025)."
+    },
+    "RI": {
+      "name": "Rhode Island",
+      "status": "comprehensive",
+      "laws": ["H5475 (2022 — food packaging/foam)", "S2152 / H7356 — Consumer PFAS Ban Act (signed Jun 26, 2024)", "HB 5019 (2025 — PPE)"],
+      "summary": "Upgraded to comprehensive. S2152 (June 2024) is a sweeping ban covering juvenile products, carpets/rugs, cookware, cosmetics, food packaging, and textiles, effective January 1, 2027. HB 5019 (2025) prohibits firefighting PPE containing PFAS by 2027.",
+      "key_dates": [
+        "Jan 1, 2023: Ban on PFAS in food packaging (H5475)",
+        "Jan 1, 2025: Firefighting foam ban Class B (S2152)",
+        "Jan 1, 2027: Comprehensive ban — juvenile products, carpets/rugs, cookware, cosmetics, food packaging, textiles (S2152)",
+        "2027: Ban on firefighting PPE containing PFAS (HB 5019)"
+      ],
+      "andersen_note": "NEWLY COMPREHENSIVE as of June 2024. Jan 1, 2027 comprehensive ban is the key deadline — verify all Andersen product lines sold in RI. Supply chain: component manufacturers selling into RI must register and comply by 2027."
+    },
+    "NJ": {
+      "name": "New Jersey",
+      "status": "comprehensive",
+      "laws": ["PFAS MCL Rules (2021)", "S1042 / A1421 — PAFC Act (signed Jan 12, 2026)"],
+      "summary": "Upgraded to comprehensive. The PAFC Act (Protecting Against Forever Chemicals Act), signed January 12, 2026, bans intentionally added PFAS in fiber-based food packaging, cosmetics, carpets, fabric treatments, and other consumer products, with labeling for cookware. Full ban effective Jan 12, 2028. Penalties up to $25,000/day.",
+      "key_dates": [
+        "2021: PFOA MCL of 14 ppt, PFOS MCL of 13 ppt in drinking water",
+        "Jan 12, 2026: PAFC Act signed — comprehensive PFAS product ban law",
+        "Jan 12, 2028: Full ban effective — fiber-based food packaging, cosmetics, carpets, fabric treatments; cookware labeling required"
+      ],
+      "andersen_note": "NEWLY COMPREHENSIVE as of Jan 12, 2026. PAFC Act signed just weeks ago — Jan 2028 effective date. Penalties up to $25,000/day for violations. Verify Andersen product lines sold in NJ. Supply chain: NJ is a major market — component manufacturers must comply by Jan 2028."
+    },
+    "IL": {
+      "name": "Illinois",
+      "status": "comprehensive",
+      "laws": ["SB 3718 / HB 3739 (2022 — firefighting foam)", "SB 727 / PA 103-1077 (Mar 5, 2025 — MCLs)", "HB 2516 (signed Aug 15, 2025)"],
+      "summary": "Upgraded to comprehensive. HB 2516 (Aug 2025) bans PFAS in cosmetics, dental floss, juvenile products, menstrual products, and intimate apparel effective Jan 1, 2032. SB 727 (Mar 2025) requires PFAS MCLs matching federal EPA standards — Board adopted final MCLs Jan 22, 2026.",
+      "key_dates": [
+        "2022: Firefighting foam PFAS restrictions (SB 3718/HB 3739)",
+        "Mar 5, 2025: Safe Public Drinking Water Act signed (SB 727 / PA 103-1077)",
+        "Jan 22, 2026: PFAS MCLs finalized (PFOA, PFOS, PFHxS, PFNA, HFPO-DA matching federal limits)",
+        "Aug 1, 2027: IEPA fluoropolymer report due (HB 2516)",
+        "Jan 1, 2032: Ban on PFAS in cosmetics, dental floss, juvenile products, menstrual products, intimate apparel (HB 2516)"
+      ],
+      "andersen_note": "NEWLY COMPREHENSIVE as of Aug 2025. HB 2516 product ban effective Jan 2032 — long runway but compliance planning needed. Note: cookware and food packaging were NOT included in HB 2516. SB 727 MCLs finalized Jan 2026. Large market — major compliance consideration. Supply chain: manufacturers selling covered products into IL must comply by 2032."
+    },
+    "MA": {
+      "name": "Massachusetts",
+      "status": "limited",
+      "laws": ["PFAS MCL Rules", "Firefighting foam restrictions"],
+      "summary": "PFAS maximum contaminant levels in drinking water. Firefighting foam PFAS restrictions. No consumer product bans enacted as of early 2026.",
+      "key_dates": [
+        "Oct 1, 2020: PFAS6 MCL of 20 ppt in drinking water",
+        "2022: Firefighting foam PFAS restrictions enacted"
+      ],
+      "andersen_note": "Primarily drinking water and firefighting foam focus. Multiple bills introduced but none passed. Monitor for expanded product legislation — large market."
+    },
+    "MI": {
+      "name": "Michigan",
+      "status": "limited",
+      "laws": ["PA 20 of 2019", "PFAS MCL Rules"],
+      "summary": "Nation's most stringent PFAS drinking water MCLs (7 PFAS compounds). Active remediation program. HB 5657 (Hazardous Products Act, 2024) introduced but not enacted.",
+      "key_dates": [
+        "Aug 2020: PFAS MCLs established for 7 compounds",
+        "Ongoing: PFAS remediation and site investigation program"
+      ],
+      "andersen_note": "Manufacturing state with strict PFAS water standards. Monitor discharge and facility compliance. Product ban legislation (HB 5657) was introduced in 2024 — watch for 2025-2026 progress."
+    },
+    "MD": {
+      "name": "Maryland",
+      "status": "limited",
+      "laws": ["SB 72 / HB 275 (food packaging Jan 2024)", "HB 643 (cosmetics Jan 2025)", "HB 1147 (2024 — playground/turf)", "HB 1153 / SB 956 (2024 — industrial discharge)"],
+      "summary": "Expanding PFAS framework. Food packaging ban (2024), cosmetics ban (Jan 2025), playground surfacing/artificial turf (2024), and industrial PFAS discharge monitoring (2024). Approaching comprehensive status.",
+      "key_dates": [
+        "Jan 1, 2024: Ban on PFAS in food packaging",
+        "2023: Firefighting foam PFAS restrictions",
+        "Jan 1, 2025: Ban on 13 named PFAS in cosmetics (HB 643)",
+        "2024: Playground surfacing and artificial turf regulations (HB 1147)",
+        "2024: Industrial PFAS discharge monitoring requirements (HB 1153/SB 956)"
+      ],
+      "andersen_note": "MD PFAS framework expanding rapidly — cosmetics ban effective Jan 2025. Industrial discharge monitoring (HB 1153) may affect Andersen's Bayport-adjacent manufacturing operations. HB 1147 relevant if Andersen sells playground/turf-adjacent products. Monitor for consumer product legislation expansion."
+    },
+    "WI": {
+      "name": "Wisconsin",
+      "status": "limited",
+      "laws": ["Firefighting foam training restrictions (2022)", "PFAS Drinking Water MCL Rule (signed Mar 2, 2026)"],
+      "summary": "Firefighting foam training ban (2022). Governor Evers signed new drinking water rules March 2, 2026, lowering the PFAS limit from 70 ppt to 4 ppt (matching federal PFOA/PFOS MCLs) plus three additional PFAS. AB 131 ($125M PFAS liability/grant program) passed Senate March 17, 2026 — pending signature.",
+      "key_dates": [
+        "2022: Ban on PFAS firefighting foam for training/testing",
+        "Mar 2, 2026: New drinking water MCL signed — PFOA/PFOS limit lowered to 4 ppt (matching federal)",
+        "Pending: AB 131 ($125M PFAS liability and grant program)"
+      ],
+      "andersen_note": "Key manufacturing state. New MCL rule signed Mar 2026 — facility water monitoring may be required. AB 131 pending — could affect remediation obligations. Watch for product legislation."
+    },
+    "HI": {
+      "name": "Hawaii",
+      "status": "limited",
+      "laws": ["HB 1644 (2022 — plant-fiber food packaging)", "SB 2427 / HB 1896 (2024 — expanded food packaging and products)"],
+      "summary": "Plant-fiber food packaging ban effective Dec 31, 2024. Broader expansion for all food packaging and cosmetics/personal care products proposed with Dec 31, 2026 effective date.",
+      "key_dates": [
+        "Dec 31, 2024: Ban on PFAS in plant-fiber food packaging (wraps, plates, food boats, pizza boxes) — HB 1644",
+        "Dec 31, 2026: Broader food packaging and cosmetics/personal care products ban (SB 2427/HB 1896 — confirm enactment)"
+      ],
+      "andersen_note": "Remote market. Plant-fiber food packaging ban already in effect (Dec 2024). Confirm SB 2427/HB 1896 enacted status for the 2026 expansion."
+    },
+    "DE": {
+      "name": "Delaware",
+      "status": "limited",
+      "laws": ["HB 75 (food packaging Jan 2024)", "Additional 2025 disclosure/notification bill (verify)"],
+      "summary": "Food packaging ban effective Jan 2024. Delaware identified as one of 13 states enacting PFAS bills in 2025 — specific bill details to be confirmed.",
+      "key_dates": [
+        "Jan 1, 2024: Ban on PFAS in food packaging (HB 75)"
+      ],
+      "andersen_note": "Food packaging focus. A 2025 PFAS bill was reportedly enacted — verify specific requirements. Monitor for product legislation expansion."
+    },
+    "MT": {
+      "name": "Montana",
+      "status": "limited",
+      "laws": ["SB 81 (2021 — firefighting foam)"],
+      "summary": "Firefighting foam PFAS restrictions. No consumer product bans.",
+      "key_dates": ["2021: PFAS firefighting foam restrictions"],
+      "andersen_note": "Limited scope. No new laws found in 2024-2025."
+    },
+    "AK": {
+      "name": "Alaska",
+      "status": "limited",
+      "laws": ["Firefighting foam restrictions (2022 — verify HB 79 bill number)"],
+      "summary": "Firefighting foam PFAS restrictions enacted 2022.",
+      "key_dates": ["2022: PFAS firefighting foam use restrictions"],
+      "andersen_note": "Remote market. Limited scope."
+    },
+    "IN": {
+      "name": "Indiana",
+      "status": "limited",
+      "laws": ["HB 1189 / P.L. 22 (signed Mar 30, 2020)", "HB 1341 (signed Apr 20, 2023)"],
+      "summary": "Previously incorrectly classified as 'none.' Indiana has had enacted PFAS laws since 2020. HB 1189 prohibits PFAS-containing Class B firefighting foam for training/testing without containment. HB 1341 requires labeling of firefighting gear indicating whether it contains PFAS.",
+      "key_dates": [
+        "Mar 30, 2020: PFAS firefighting foam training ban (HB 1189 / P.L. 22)",
+        "Jun 30, 2024: PFAS labeling requirement for firefighting gear effective (HB 1341, signed Apr 2023)"
+      ],
+      "andersen_note": "Corrected from 'none' — Indiana has firefighting foam and gear labeling laws. Not currently a consumer product ban state. Monitor for expansion. Note: HB 1341 firefighting gear labeling effective Jun 2024 — relevant if Andersen sources PPE in IN."
+    },
+    "FL": {
+      "name": "Florida",
+      "status": "limited",
+      "laws": ["DEP PFAS Cleanup Target Level (CTL) rulemaking"],
+      "summary": "Previously classified as 'none' — Florida has enacted PFAS cleanup target levels through DEP rulemaking. HB 1019 (2026 session) proposes a firefighting foam phase-out (Jul 2026–2029) — pending.",
+      "key_dates": [
+        "Ongoing: DEP PFAS CTL rulemaking — cleanup standards for contaminated sites",
+        "Pending: HB 1019 — firefighting foam phase-out proposed for 2026-2029"
+      ],
+      "andersen_note": "Corrected from 'none' — Florida has active PFAS CTL rulemaking. Large market. HB 1019 firefighting foam bill pending in 2026 session. No consumer product bans enacted yet. Monitor closely."
+    },
+    "VA": {
+      "name": "Virginia",
+      "status": "limited",
+      "laws": ["HB 2050 (signed Apr 2025 — PFAS water discharge program)"],
+      "summary": "Upgraded from 'proposed.' HB 2050 (April 2025) creates the Occoquan Reservoir PFAS Reduction Program, requiring DEQ to modify discharge permits for facilities exceeding PFAS MCLs, effective July 1, 2025. Consumer product bans (HB 864 — cosmetics) remain pending.",
+      "key_dates": [
+        "Jul 1, 2025: Occoquan Reservoir PFAS Reduction Program effective — DEQ discharge permit modifications (HB 2050)",
+        "Pending: HB 864 — cosmetics PFAS ban proposed"
+      ],
+      "andersen_note": "Upgraded from 'proposed.' HB 2050 water discharge program active Jul 2025. Growing market — consumer product legislation (cosmetics) pending. Monitor HB 864 progress."
+    },
+    "PA": {
+      "name": "Pennsylvania",
+      "status": "limited",
+      "laws": ["PFAS MCL Rule (enacted Jan 2023 — published, effective as regulation)"],
+      "summary": "Upgraded from 'proposed.' Pennsylvania's PFAS MCL rule set enforceable limits of 14 ppt for PFOA and 18 ppt for PFOS in drinking water — monitoring began Jan 1, 2024. Pennsylvania moved ahead of EPA in this area. Consumer product ban (HB 2238) remains proposed.",
+      "key_dates": [
+        "Jan 2023: PFAS MCL rule published and enacted — PFOA 14 ppt, PFOS 18 ppt",
+        "Jan 1, 2024: Drinking water monitoring requirements began",
+        "Pending: HB 2238 — consumer product bans proposed"
+      ],
+      "andersen_note": "Upgraded from 'proposed.' MCL rule enacted — major manufacturing state with strict water standards. Monitor facility water compliance. HB 2238 (product bans) in committee — watch for 2026 action."
+    },
+    "NV": {
+      "name": "Nevada",
+      "status": "limited",
+      "laws": ["AB 97 (2021 — firefighting foam training ban)"],
+      "summary": "Previously incorrectly classified as 'proposed.' Nevada enacted AB 97 (2021) banning PFAS firefighting foam for training (effective Jan 1, 2022). SB 76 (2023) — broader PFAS bill — was vetoed by governor June 16, 2023. SB 173 (2025) failed in committee.",
+      "key_dates": [
+        "Jan 1, 2022: PFAS firefighting foam training ban (AB 97)"
+      ],
+      "andersen_note": "Corrected from 'proposed.' Has firefighting foam restriction only. SB 76 vetoed 2023; SB 173 failed 2025 — consumer product legislation has not advanced. Monitor future sessions."
+    },
+    "MO": {
+      "name": "Missouri",
+      "status": "limited",
+      "laws": ["HB 1925 (firefighting foam ban — verify enacted status)"],
+      "summary": "Likely upgraded from 'proposed.' HB 1925 reportedly bans PFAS in firefighting foam effective January 2027/2028. Confirm governor signature date.",
+      "key_dates": [
+        "Jan 2027/2028: Firefighting foam PFAS ban (HB 1925 — confirm effective date)"
+      ],
+      "andersen_note": "Status upgrade probable — confirm HB 1925 enacted and exact effective date. Limited to firefighting foam only. No consumer product bans."
+    },
+    "NC": {
+      "name": "North Carolina",
+      "status": "proposed",
+      "laws": ["H.B. 569 (proposed)", "H.B. 881 — PFAS Free NC (proposed)", "Water Safety Act (proposed)"],
+      "summary": "Multiple bills active in 2025 but none signed into law. PFAS contamination hotspot (Cape Fear River). Active legislative attention but no enacted product bans or MCLs.",
+      "key_dates": ["2025: Multiple PFAS bills under active consideration"],
+      "andersen_note": "High PFAS contamination awareness from Cape Fear River. Multiple bills proposed but not enacted as of early 2026. Monitor closely — likely to pass legislation."
+    },
+    "OH": {
+      "name": "Ohio",
+      "status": "proposed",
+      "laws": ["HB 272 (proposed — food packaging)"],
+      "summary": "HB 272 introduced May 2025 (food packaging PFAS ban) but not enacted — in House General Government Committee as of early 2026.",
+      "key_dates": ["2025: HB 272 in committee — food packaging PFAS ban proposed"],
+      "andersen_note": "Manufacturing state. Monitor proposed legislation."
+    },
+    "WV": {
+      "name": "West Virginia",
+      "status": "proposed",
+      "laws": ["HB 3475 (2025 — PFAS MCL, proposed)"],
+      "summary": "HB 3475 (2025) proposed requiring MCLs for PFAS but not enacted. PFAS contamination issues present.",
+      "key_dates": ["2025: HB 3475 proposed but not enacted"],
+      "andersen_note": "No current requirements. Some PFAS contamination issues. Monitor MCL rulemaking."
+    },
+    "TX": {"name": "Texas", "status": "none", "laws": [], "summary": "No significant PFAS-specific state laws. Some groundwater monitoring.", "key_dates": [], "andersen_note": "No current PFAS product compliance requirements."},
+    "GA": {"name": "Georgia", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
+    "AL": {"name": "Alabama", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
+    "MS": {"name": "Mississippi", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
+    "LA": {"name": "Louisiana", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
+    "AR": {"name": "Arkansas", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
+    "TN": {"name": "Tennessee", "status": "none", "laws": [], "summary": "No significant PFAS state laws. Bills introduced but none passed.", "key_dates": [], "andersen_note": "No current requirements. Monitor proposed bills."},
+    "KY": {"name": "Kentucky", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
+    "SC": {"name": "South Carolina", "status": "none", "laws": [], "summary": "No enacted PFAS statutes or product bans. AFFF litigation MDL centered in SC courts but is civil litigation, not legislation.", "key_dates": [], "andersen_note": "No current requirements."},
+    "IA": {"name": "Iowa", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
+    "KS": {"name": "Kansas", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
+    "NE": {"name": "Nebraska", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
+    "SD": {"name": "South Dakota", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
+    "ND": {"name": "North Dakota", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
+    "WY": {"name": "Wyoming", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
+    "UT": {"name": "Utah", "status": "none", "laws": [], "summary": "No significant PFAS state laws. Implements federal EPA MCLs through federal primacy.", "key_dates": [], "andersen_note": "No current requirements."},
+    "ID": {"name": "Idaho", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."},
+    "AZ": {"name": "Arizona", "status": "none", "laws": [], "summary": "No significant PFAS state laws. Implements federal EPA MCLs through federal primacy.", "key_dates": [], "andersen_note": "No current requirements."},
     "OK": {"name": "Oklahoma", "status": "none", "laws": [], "summary": "No significant PFAS state laws.", "key_dates": [], "andersen_note": "No current requirements."}
   }
 }
