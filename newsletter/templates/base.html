@@ -66,6 +66,8 @@
     .masthead-dateline .sep { color: #3A5870; margin: 0 10px; }
 
     /* ── Sidebar ──────────────────────────────────────────── */
+    /* No position/flex/min-height here — sticky added by JS  */
+    /* in browser only; email clients never see sticky.        */
     .sidebar-cell {
       width: 156px;
       background-color: #09111C;
@@ -97,24 +99,25 @@
       display: block;
     }
     .sidebar-links {
-      flex: 1;
       padding: 4px 0;
       list-style: none;
       margin: 0;
     }
     .sidebar-link {
-      display: flex;
-      align-items: center;
-      gap: 9px;
+      display: block;
       padding: 11px 16px;
       text-decoration: none;
       border-left: 2px solid transparent;
       border-bottom: 1px solid rgba(196, 165, 90, 0.06);
-      transition: background-color 0.12s, border-left-color 0.12s;
     }
     .sidebar-link:hover {
       background-color: rgba(196, 165, 90, 0.06);
       border-left-color: rgba(196, 165, 90, 0.55);
+    }
+    .sidebar-link-inner {
+      display: flex;
+      align-items: center;
+      gap: 9px;
     }
     .sidebar-pip {
       width: 5px; height: 5px;
@@ -135,7 +138,7 @@
     }
     .sidebar-footer {
       padding: 12px 16px 18px;
-      border-top: 1px solid rgba(196, 165, 90, 0.12);
+      border-top: 1px solid rgba(196, 165, 90, 0.08);
     }
     .sidebar-date {
       font-family: 'DM Mono', 'Courier New', Courier, monospace;
@@ -153,10 +156,7 @@
     }
 
     /* ── Greeting ─────────────────────────────────────────── */
-    .greeting {
-      padding: 32px 44px 24px;
-      border-bottom: 1px solid #EAE6DE;
-    }
+    .greeting { padding: 32px 44px 24px; border-bottom: 1px solid #EAE6DE; }
     .greeting-name {
       font-family: 'Playfair Display', Georgia, serif;
       font-size: 22px; font-weight: 400; font-style: italic;
@@ -185,7 +185,7 @@
       font-size: 10px; font-weight: 400;
       color: #1C4A8A; text-decoration: none;
       letter-spacing: 0.2px;
-      border-bottom: 1px solid rgba(28, 74, 138, 0.22);
+      border-bottom: 1px solid rgba(28, 74, 138, 0.25);
       padding-bottom: 1px;
     }
 
@@ -212,36 +212,28 @@
     }
 
     /* ── Checkbox collapse (topic) ────────────────────────── */
-    /* Input hidden — only toggleable via label click         */
     .topic-toggle { display: none; }
     .topic-label {
-      display: block;
-      cursor: pointer;
-      user-select: none;
-      -webkit-user-select: none;
+      display: block; cursor: pointer;
+      user-select: none; -webkit-user-select: none;
     }
     .topic-label:hover .topic-header { background-color: #FAF8F4; }
-
-    /* Collapsed state — body hidden when checkbox checked    */
     .topic-toggle:checked ~ .topic-body { display: none; }
 
     /* ── Topic section ────────────────────────────────────── */
     .topic-section { position: relative; }
     .topic-header {
-      padding: 19px 44px 19px 41px; /* 41 = 44 - 3px left border */
-      display: flex;
-      align-items: center;
-      gap: 14px;
+      padding: 19px 44px 19px 41px;
+      display: flex; align-items: center; gap: 14px;
       background-color: #FFFFFF;
-      border-left: 3px solid transparent; /* color set inline */
+      border-left: 3px solid transparent;
       transition: background-color 0.12s ease;
     }
     .topic-tag {
       font-family: 'DM Mono', 'Courier New', Courier, monospace;
       font-size: 8px; font-weight: 500;
       letter-spacing: 2.5px; text-transform: uppercase;
-      padding: 4px 9px;
-      border: 1px solid currentColor;
+      padding: 4px 9px; border: 1px solid currentColor;
       flex-shrink: 0; line-height: 1;
     }
     .topic-name {
@@ -256,31 +248,17 @@
       padding: 3px 10px; letter-spacing: 0.3px;
       flex-shrink: 0; border: 1px solid #E0DCD4;
     }
-    .topic-tally-none {
-      color: #B0A8A0; background: transparent; border-color: #E8E5DF;
-    }
-    .topic-chevron {
-      font-style: normal; font-size: 13px;
-      flex-shrink: 0; display: inline-block; line-height: 1;
-    }
+    .topic-tally-none { color: #B0A8A0; background: transparent; border-color: #E8E5DF; }
+    .topic-chevron { font-style: normal; font-size: 13px; flex-shrink: 0; display: inline-block; line-height: 1; }
     .topic-chevron::before { content: "\2193"; color: #C4A55A; }
     .topic-toggle:checked ~ .topic-label .topic-chevron::before { content: "\203A"; color: #B8B0A8; }
 
-    .topic-body {
-      padding: 8px 44px 28px 44px;
-      background-color: #FDFCFA;
-    }
+    .topic-body { padding: 8px 44px 28px 44px; background-color: #FDFCFA; }
 
     /* ── Development item ─────────────────────────────────── */
-    .dev-item {
-      padding: 20px 0;
-      border-bottom: 1px solid #F0ECE8;
-    }
+    .dev-item { padding: 20px 0; border-bottom: 1px solid #F0ECE8; }
     .dev-item:last-of-type { border-bottom: none; padding-bottom: 6px; }
-    .dev-head {
-      display: flex; align-items: flex-start;
-      gap: 9px; margin-bottom: 7px;
-    }
+    .dev-head { display: flex; align-items: flex-start; gap: 9px; margin-bottom: 7px; }
     .new-badge {
       display: inline-block;
       background-color: #0A5233; color: #FFFFFF;
@@ -294,25 +272,15 @@
       font-size: 14px; font-weight: 600;
       color: #09111C; line-height: 1.45; margin: 0;
     }
-    .dev-headline a {
-      color: inherit; text-decoration: none;
-      border-bottom: 1px solid rgba(196, 165, 90, 0.5);
-    }
+    .dev-headline a { color: inherit; text-decoration: none; border-bottom: 1px solid rgba(196, 165, 90, 0.5); }
     .dev-meta {
       font-family: 'DM Mono', 'Courier New', Courier, monospace;
       font-size: 10px; font-weight: 300;
       color: #A8A09A; margin: 0 0 10px; letter-spacing: 0.2px;
     }
     .dev-sep { color: #D4CEC8; margin: 0 8px; }
-    .dev-summary {
-      font-family: Lora, Georgia, serif;
-      font-size: 13px; line-height: 1.78;
-      color: #3A3028; margin: 0 0 12px;
-    }
-    .dev-footer {
-      display: flex; align-items: center;
-      gap: 10px; flex-wrap: wrap;
-    }
+    .dev-summary { font-family: Lora, Georgia, serif; font-size: 13px; line-height: 1.78; color: #3A3028; margin: 0 0 12px; }
+    .dev-footer { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .urgency-badge {
       display: inline-block;
       font-family: 'DM Mono', 'Courier New', Courier, monospace;
@@ -325,84 +293,53 @@
     .urgency-LOW    { color: #14532D; background-color: #F0FDF6; border-color: #BBF7D0; }
     .deadline-note {
       font-family: 'DM Mono', 'Courier New', Courier, monospace;
-      font-size: 9px; font-weight: 500;
-      color: #9B1C1C; letter-spacing: 0.2px;
+      font-size: 9px; font-weight: 500; color: #9B1C1C; letter-spacing: 0.2px;
     }
 
     /* ── No-news state ────────────────────────────────────── */
     .no-news {
       font-family: 'DM Mono', 'Courier New', Courier, monospace;
-      font-size: 11px; font-weight: 300;
-      color: #B0A8A0; letter-spacing: 0.5px;
-      padding: 22px 0 4px; margin: 0;
+      font-size: 11px; font-weight: 300; color: #B0A8A0;
+      letter-spacing: 0.5px; padding: 22px 0 4px; margin: 0;
     }
 
     /* ── Checkbox collapse (impact) ───────────────────────── */
     .impact-ck { display: none; }
-    .impact-ck-label {
-      display: block;
-      cursor: pointer;
-      user-select: none;
-      -webkit-user-select: none;
-    }
+    .impact-ck-label { display: block; cursor: pointer; user-select: none; -webkit-user-select: none; }
     .impact-ck:checked ~ .impact-callout { display: none; }
+    .impact-chevron { font-style: normal; font-size: 13px; display: inline-block; line-height: 1; }
+    .impact-chevron::before { content: "\2193"; color: #C4A55A; }
+    .impact-ck:checked ~ .impact-ck-label .impact-chevron::before { content: "\203A"; color: #2E4E68; }
 
-    /* ── Impact accordion wrapper ─────────────────────────── */
-    .impact-accordion {
-      margin-top: 20px;
-      border: 1px solid #DAD5CE;
-    }
-    .impact-toggle {
-      display: flex; align-items: center;
-      gap: 12px; padding: 12px 16px;
-      background-color: #09111C;
-    }
+    /* ── Impact accordion ─────────────────────────────────── */
+    .impact-accordion { margin-top: 20px; border: 1px solid #DAD5CE; }
+    .impact-toggle { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background-color: #09111C; }
     .impact-toggle-label {
       font-family: 'DM Mono', 'Courier New', Courier, monospace;
       font-size: 9px; font-weight: 500;
       letter-spacing: 3.5px; text-transform: uppercase;
       color: #C4A55A; flex: 1;
     }
-    .impact-chevron {
-      font-style: normal; font-size: 13px;
-      display: inline-block; line-height: 1;
-    }
-    .impact-chevron::before { content: "\2193"; color: #C4A55A; }
-    .impact-ck:checked ~ .impact-ck-label .impact-chevron::before { content: "\203A"; color: #2E4E68; }
 
     /* ── Impact callout ───────────────────────────────────── */
     .impact-callout { background-color: #F9F7F3; }
-    .impact-row {
-      padding: 13px 18px;
-      border-bottom: 1px solid #EDEBE5;
-      display: flex; gap: 20px; align-items: flex-start;
-    }
+    .impact-row { padding: 13px 18px; border-bottom: 1px solid #EDEBE5; display: flex; gap: 20px; align-items: flex-start; }
     .impact-row:last-child { border-bottom: none; }
     .impact-label {
       font-family: 'DM Mono', 'Courier New', Courier, monospace;
       font-size: 8px; font-weight: 500;
       text-transform: uppercase; letter-spacing: 2px;
-      color: #8A7040; flex-shrink: 0;
-      width: 100px; padding-top: 2px; line-height: 1.5;
+      color: #8A7040; flex-shrink: 0; width: 100px; padding-top: 2px; line-height: 1.5;
     }
     .impact-label.supplier { color: #1C4A8A; }
     .impact-content { flex: 1; }
-    .impact-text {
-      font-family: Lora, Georgia, serif;
-      font-size: 13px; line-height: 1.68;
-      color: #2A2018; margin: 0;
-    }
+    .impact-text { font-family: Lora, Georgia, serif; font-size: 13px; line-height: 1.68; color: #2A2018; margin: 0; }
     .action-items { list-style: none; margin: 0; padding: 0; }
     .action-items li {
-      font-family: Lora, Georgia, serif;
-      font-size: 13px; color: #2A2018;
-      line-height: 1.6; margin-bottom: 6px;
-      padding-left: 16px; position: relative;
+      font-family: Lora, Georgia, serif; font-size: 13px; color: #2A2018;
+      line-height: 1.6; margin-bottom: 6px; padding-left: 16px; position: relative;
     }
-    .action-items li::before {
-      content: '\2014'; position: absolute; left: 0;
-      color: #C4A55A; font-size: 12px;
-    }
+    .action-items li::before { content: '\2014'; position: absolute; left: 0; color: #C4A55A; font-size: 12px; }
     .action-items li:last-child { margin-bottom: 0; }
     .action-items.supplier li { color: #18304C; }
     .action-items.supplier li::before { color: #4A7AB5; }
@@ -412,50 +349,33 @@
 
     /* ── Footer ───────────────────────────────────────────── */
     .email-footer { background-color: #09111C; padding: 22px 52px 28px; }
-    .footer-rule {
-      height: 1px;
-      background: linear-gradient(90deg, rgba(196,165,90,0.55) 0%, rgba(196,165,90,0.06) 100%);
-      margin-bottom: 18px;
-    }
-    .footer-meta {
-      font-family: 'DM Mono', 'Courier New', Courier, monospace;
-      font-size: 9px; font-weight: 300;
-      color: #5888A8; letter-spacing: 0.4px;
-      line-height: 1.9; margin: 0 0 8px;
-    }
+    .footer-rule { height: 1px; background: linear-gradient(90deg, rgba(196,165,90,0.55) 0%, rgba(196,165,90,0.06) 100%); margin-bottom: 18px; }
+    .footer-meta { font-family: 'DM Mono', 'Courier New', Courier, monospace; font-size: 9px; font-weight: 300; color: #5888A8; letter-spacing: 0.4px; line-height: 1.9; margin: 0 0 8px; }
     .footer-meta strong { color: #78A8C8; font-weight: 500; }
-    .footer-links {
-      font-family: 'DM Mono', 'Courier New', Courier, monospace;
-      font-size: 9px; font-weight: 300;
-      color: #4A7090; letter-spacing: 0.4px; margin: 0;
-    }
+    .footer-links { font-family: 'DM Mono', 'Courier New', Courier, monospace; font-size: 9px; font-weight: 300; color: #4A7090; letter-spacing: 0.4px; margin: 0; }
     .footer-links a { color: #6898B8; text-decoration: none; }
 
-    /* ── Desktop browser only: sticky sidebar ────────────── */
-    @media screen and (min-width: 601px) {
-      .sidebar-nav { position: sticky; top: 0; }
-    }
-
-    /* ── Mobile ───────────────────────────────────────────── */
+    /* ── Mobile: stack sidebar above content ──────────────── */
     @media screen and (max-width: 600px) {
-      .sidebar-cell    { display: block !important; width: 100% !important; border-right: none; border-bottom: 1px solid rgba(196,165,90,0.15); }
-      .sidebar-nav     { width: 100% !important; padding: 8px 12px; }
-      .sidebar-top-rule{ display: none; }
-      .sidebar-header  { display: none; }
-      .sidebar-links   { display: block; padding: 0; }
-      .sidebar-link    { display: inline-block; padding: 5px 10px; margin: 3px 2px; border-bottom: none; border-left: none; border: 1px solid rgba(196,165,90,0.2); }
-      .sidebar-footer  { display: none; }
-      .content-cell    { display: block !important; width: 100% !important; }
-      .masthead        { padding: 26px 24px 22px; }
-      .masthead-title  { font-size: 27px; }
-      .greeting        { padding: 24px 24px 18px; }
-      .utility-bar     { padding: 10px 24px; }
-      .exec-section    { padding: 24px 24px 26px; }
-      .topic-header    { padding: 16px 24px 16px 21px; }
-      .topic-body      { padding: 8px 24px 22px 24px; }
-      .email-footer    { padding: 18px 24px 24px; }
-      .impact-row      { flex-direction: column; gap: 5px; }
-      .impact-label    { width: auto; }
+      .sidebar-cell   { display: block !important; width: 100% !important; border-right: none; border-bottom: 2px solid rgba(196,165,90,0.2); }
+      .sidebar-nav    { width: 100% !important; padding: 10px 0; }
+      .sidebar-header { display: none; }
+      .sidebar-top-rule { display: none; }
+      .sidebar-links  { display: flex !important; flex-direction: row; flex-wrap: wrap; padding: 4px 16px; gap: 6px; }
+      .sidebar-link   { display: inline-flex !important; padding: 5px 10px; border-bottom: none; border-left: none; border: 1px solid rgba(196,165,90,0.22); }
+      .sidebar-link-inner { gap: 6px; }
+      .sidebar-footer { display: none; }
+      .content-cell   { display: block !important; width: 100% !important; }
+      .masthead       { padding: 26px 24px 22px; }
+      .masthead-title { font-size: 27px; }
+      .greeting       { padding: 24px 24px 18px; }
+      .utility-bar    { padding: 10px 24px; }
+      .exec-section   { padding: 24px 24px 26px; }
+      .topic-header   { padding: 16px 24px 16px 21px; }
+      .topic-body     { padding: 8px 24px 22px 24px; }
+      .email-footer   { padding: 18px 24px 24px; }
+      .impact-row     { flex-direction: column; gap: 5px; }
+      .impact-label   { width: auto; }
     }
 
   </style>
@@ -479,13 +399,13 @@
       </td></tr>
     </table>
 
-    <!-- ── Two-column: sidebar + content ── -->
+    <!-- ── Two-column: sidebar (156px) + content ── -->
     <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
       <tr>
 
-        <!-- Sidebar -->
+        <!-- Sidebar — sticky applied by JS below for browser only -->
         <td class="sidebar-cell" width="156" valign="top">
-          <div class="sidebar-nav">
+          <div class="sidebar-nav" id="sidebar-nav">
             <div class="sidebar-top-rule"></div>
             <div class="sidebar-header">
               <span class="sidebar-eyebrow">Contents</span>
@@ -495,11 +415,13 @@
               {% for topic in topics %}
               <li>
                 <a href="#section-{{ topic.topic | lower }}" class="sidebar-link">
-                  <span class="sidebar-pip" style="background-color: {{ topic.color }};"></span>
-                  <span class="sidebar-code">{{ topic.topic }}</span>
-                  {% if topic.developments %}
-                  <span class="sidebar-count">{{ topic.developments | length }}</span>
-                  {% endif %}
+                  <span class="sidebar-link-inner">
+                    <span class="sidebar-pip" style="background-color: {{ topic.color }};"></span>
+                    <span class="sidebar-code">{{ topic.topic }}</span>
+                    {% if topic.developments %}
+                    <span class="sidebar-count">{{ topic.developments | length }}</span>
+                    {% endif %}
+                  </span>
                 </a>
               </li>
               {% endfor %}
@@ -516,13 +438,11 @@
           <table class="email-body" width="100%" cellpadding="0" cellspacing="0" role="presentation">
             <tr><td>
 
-              <!-- Greeting -->
               <div class="greeting">
                 <p class="greeting-name">Good morning, {{ subscriber_name }}.</p>
                 <p class="greeting-sub">Your compliance briefing for {{ date_long }}.</p>
               </div>
 
-              <!-- Utility bar -->
               <div class="utility-bar">
                 <span class="utility-label">Links</span>
                 {% if pfas_map_url %}
@@ -530,7 +450,6 @@
                 {% endif %}
               </div>
 
-              <!-- Executive Summary -->
               <div class="exec-section">
                 <span class="section-eyebrow">Executive Summary</span>
                 <div class="exec-pull">
@@ -538,7 +457,6 @@
                 </div>
               </div>
 
-              <!-- Topic Sections -->
               {% for topic in topics %}
               {% include 'topic_section.html' %}
               {% if not loop.last %}<div class="section-divider"></div>{% endif %}
@@ -572,5 +490,19 @@
 
   </td></tr>
 </table>
+
+<!-- Sticky sidebar: runs only in browsers (stripped by all email clients) -->
+<script>
+(function () {
+  var nav = document.getElementById('sidebar-nav');
+  if (!nav) return;
+  nav.style.position = 'sticky';
+  nav.style.top = '0';
+  nav.style.minHeight = '100vh';
+  nav.style.display = 'flex';
+  nav.style.flexDirection = 'column';
+})();
+</script>
+
 </body>
 </html>
