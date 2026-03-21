@@ -1,65 +1,68 @@
 <!-- Topic: {{ topic.topic }} -->
-<div class="topic-section">
-  <details class="topic-details">
-    <summary>
-      <div class="topic-header" style="border-left-color: {{ topic.color }};">
-        <span class="topic-tag" style="color: {{ topic.color }};">{{ topic.topic }}</span>
-        <span class="topic-name">{{ topic.label }}</span>
-        {% if topic.developments %}
-        <span class="topic-tally">{{ topic.developments | length }}&nbsp;update{{ 's' if topic.developments | length != 1 }}</span>
-        {% else %}
-        <span class="topic-tally topic-tally-none">no updates</span>
-        {% endif %}
-        <i class="topic-chevron">&#8250;</i>
-      </div>
-    </summary>
+<div class="topic-section" id="section-{{ topic.topic | lower }}">
 
-    <div class="topic-body">
+  <input type="checkbox" id="toggle-{{ topic.topic | lower }}" class="topic-toggle" checked>
 
+  <label for="toggle-{{ topic.topic | lower }}" class="topic-label">
+    <div class="topic-header" style="border-left-color: {{ topic.color }};">
+      <span class="topic-tag" style="color: {{ topic.color }};">{{ topic.topic }}</span>
+      <span class="topic-name">{{ topic.label }}</span>
       {% if topic.developments %}
-        {% for dev in topic.developments %}
-        <div class="dev-item">
-
-          <div class="dev-head">
-            {% if dev.is_new %}<span class="new-badge">New</span>{% endif %}
-            <p class="dev-headline">
-              <a href="{{ dev.url }}" target="_blank">{{ dev.headline }}</a>
-            </p>
-          </div>
-
-          <p class="dev-meta">
-            {{ dev.source }}{% if dev.date %}<span class="dev-sep">&#183;</span>{{ dev.date }}{% endif %}
-          </p>
-
-          <p class="dev-summary">{{ dev.summary }}</p>
-
-          <div class="dev-footer">
-            <span class="urgency-badge urgency-{{ dev.urgency }}">{{ dev.urgency }}</span>
-            {% if dev.deadline %}
-            <span class="deadline-note">&#9873;&nbsp;{{ dev.deadline }}</span>
-            {% endif %}
-          </div>
-
-        </div>
-        {% endfor %}
-
-        {% set impact = topic.company_impact %}
-        {% if impact and (impact.direct_products or impact.direct_materials or impact.supply_chain or impact.direct_actions or impact.action_items) %}
-        <details class="impact-details">
-          <summary>
-            <div class="impact-toggle">
-              <span class="impact-toggle-label">Company Impact &amp; Actions</span>
-              <i class="impact-chevron">&#8250;</i>
-            </div>
-          </summary>
-          {% include 'impact_callout.html' %}
-        </details>
-        {% endif %}
-
+      <span class="topic-tally">{{ topic.developments | length }}&nbsp;update{{ 's' if topic.developments | length != 1 }}</span>
       {% else %}
-        <p class="no-news">No developments in the last 30 days.</p>
+      <span class="topic-tally topic-tally-none">no updates</span>
+      {% endif %}
+      <i class="topic-chevron"></i>
+    </div>
+  </label>
+
+  <div class="topic-body">
+
+    {% if topic.developments %}
+      {% for dev in topic.developments %}
+      <div class="dev-item">
+
+        <div class="dev-head">
+          {% if dev.is_new %}<span class="new-badge">New</span>{% endif %}
+          <p class="dev-headline">
+            <a href="{{ dev.url }}" target="_blank">{{ dev.headline }}</a>
+          </p>
+        </div>
+
+        <p class="dev-meta">
+          {{ dev.source }}{% if dev.date %}<span class="dev-sep">&#183;</span>{{ dev.date }}{% endif %}
+        </p>
+
+        <p class="dev-summary">{{ dev.summary }}</p>
+
+        <div class="dev-footer">
+          <span class="urgency-badge urgency-{{ dev.urgency }}">{{ dev.urgency }}</span>
+          {% if dev.deadline %}
+          <span class="deadline-note">&#9873;&nbsp;{{ dev.deadline }}</span>
+          {% endif %}
+        </div>
+
+      </div>
+      {% endfor %}
+
+      {% set impact = topic.company_impact %}
+      {% if impact and (impact.direct_products or impact.direct_materials or impact.supply_chain or impact.direct_actions or impact.action_items) %}
+      <div class="impact-accordion">
+        <input type="checkbox" id="toggle-impact-{{ topic.topic | lower }}" class="impact-ck" checked>
+        <label for="toggle-impact-{{ topic.topic | lower }}" class="impact-ck-label">
+          <div class="impact-toggle">
+            <span class="impact-toggle-label">Company Impact &amp; Actions</span>
+            <i class="impact-chevron"></i>
+          </div>
+        </label>
+        {% include 'impact_callout.html' %}
+      </div>
       {% endif %}
 
-    </div>
-  </details>
+    {% else %}
+      <p class="no-news">No developments in the last 30 days.</p>
+    {% endif %}
+
+  </div>
+
 </div>
