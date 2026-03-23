@@ -195,6 +195,12 @@ def _push_maps_to_github(pfas_map_path: Path, epr_map_path: Optional[Path],
                 shutil.copy2(tl_src, repo_dir / tl_name)
                 files.append(tl_name)
 
+        # Copy legislative intel map if it exists
+        intel_src = data_dir / "state_maps" / "pfas_proposed_preview.html"
+        if intel_src.exists():
+            shutil.copy2(intel_src, repo_dir / "pfas-legislative-intel.html")
+            files.append("pfas-legislative-intel.html")
+
         date_str = date.today().isoformat()
         _git_push(repo_dir, files, f"Update state maps {date_str}")
         logger.info("Maps pushed to GitHub Pages.")

@@ -531,12 +531,14 @@ def generate_pfas_map(output_path: Path = None, activity_counts: Optional[Dict[s
   <p class="sub">Interactive map of US state PFAS laws &amp; restrictions &nbsp;&middot;&nbsp; Last updated: {last_updated}</p>
   <a class="download-btn" href="./pfas-tracker.xlsx" download>&#8595; Download Excel</a>
   <a class="download-btn" href="./pfas-timeline.html" style="margin-left:8px;">&#9201; Deadline Timeline</a>
+  <a class="download-btn" href="./pfas-legislative-intel.html" style="margin-left:8px;">&#9878; Legislative Intel Map</a>
 </div>
 <nav class="site-nav">
   <span class="nav-section">Maps</span>
   <a href="./index.html" class="nav-item active">PFAS</a>
   <a href="./epr-map.html" class="nav-item">EPR</a>
   <a href="./reach-map.html" class="nav-item">REACH</a>
+  <a href="./pfas-legislative-intel.html" class="nav-item">PFAS Intel</a>
   <div class="nav-sep"></div>
   <span class="nav-section">Timelines</span>
   <a href="./pfas-timeline.html" class="nav-item">PFAS</a>
