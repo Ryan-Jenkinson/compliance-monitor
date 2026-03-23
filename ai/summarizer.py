@@ -31,7 +31,7 @@ class Summarizer:
         self.client = ClaudeClient()
         self.topics = _load_topics()
 
-    def run(self, articles: List[RawArticle]) -> dict:
+    def run(self, articles: List[RawArticle], week_context: dict | None = None) -> dict:
         """
         Run the full 3-stage pipeline.
 
@@ -69,8 +69,8 @@ class Summarizer:
             summary = self._stage2_summarize(filtered_articles, topic_config)
             topic_summaries.append(summary)
 
-        # Stage 3: executive summary
-        exec_summary = self._stage3_exec_summary(topic_summaries)
+        # Stage 3: weekly briefing (day-aware)
+        exec_summary = self._stage3_exec_summary(topic_summaries, week_context=week_context)
 
         return {
             "exec_summary": exec_summary,
@@ -142,9 +142,10 @@ class Summarizer:
                 "has_news": False,
             }
 
-    def _stage3_exec_summary(self, topic_summaries: list[dict]) -> str:
-        cache_key = f"s3_{'_'.join(ts['topic'] for ts in topic_summaries)}"
-        prompt = stage3_exec_summary_prompt(topic_summaries)
+    def _stage3_exec_summary(self, topic_summaries: list[dict], week_context: dict | None = None) -> str:
+        today = (week_context or {}).get("today", "")
+        cache_key = f"s3_{today}_{'_'.join(ts['topic'] for ts in topic_summaries)}"
+        prompt = stage3_exec_summary_prompt(topic_summaries, week_context=week_context)
 
         try:
             return self.client.complete_sonnet(

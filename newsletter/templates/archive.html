@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compliance Intelligence — Archive</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #FAF7F2;
+      --header: #2C2C2C;
+      --text: #1A1A1A;
+      --text-secondary: #4A4740;
+      --text-muted: #9A9590;
+      --border: #E5E1DA;
+      --border-light: #ECEAE5;
+      --accent: #D64045;
+      --mono: 'IBM Plex Mono', 'Courier New', monospace;
+      --serif: 'Libre Baskerville', Georgia, serif;
+      --sans: 'Source Sans 3', 'Trebuchet MS', Helvetica, sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: var(--bg);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .header {
+      background-color: var(--header);
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-brand {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #9A9590;
+    }
+    .header-right {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: #6E6A63;
+      letter-spacing: 1px;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 28px 64px;
+    }
+
+    .page-title {
+      padding: 48px 0 8px;
+    }
+    .page-eyebrow {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .page-heading {
+      font-family: var(--serif);
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+    .page-subtitle {
+      font-family: var(--sans);
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 0;
+    }
+
+    .divider {
+      height: 1px;
+      background-color: var(--border);
+      margin: 28px 0 32px;
+    }
+
+    /* ── Year group ── */
+    .year-group { margin-bottom: 40px; }
+    .year-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    /* ── Week row ── */
+    .week-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border-light);
+      gap: 16px;
+    }
+    .week-row:last-child { border-bottom: none; }
+    .week-left { flex: 1; min-width: 0; }
+    .week-label {
+      font-family: var(--serif);
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .week-dates {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+    .week-links {
+      display: flex;
+      gap: 16px;
+      flex-shrink: 0;
+      align-items: center;
+    }
+    .week-link {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      padding-bottom: 1px;
+      transition: border-color 0.15s ease;
+      white-space: nowrap;
+    }
+    .week-link:hover { border-color: var(--accent); }
+    .week-link-secondary {
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+    .week-link-secondary:hover { border-color: var(--text-muted); }
+
+    .empty-state {
+      padding: 48px 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+
+    .bottom-bar {
+      background-color: var(--header);
+      padding: 18px 32px;
+      text-align: center;
+    }
+    .bottom-bar-text {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: #6E6A63;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 520px) {
+      .header { padding: 14px 20px; }
+      .container { padding: 0 20px 48px; }
+      .page-heading { font-size: 22px; }
+      .week-row { flex-direction: column; gap: 8px; }
+      .week-links { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <span class="header-brand">Compliance Intelligence</span>
+    <span class="header-right">Archive</span>
+  </div>
+
+  <div class="container">
+    <div class="page-title">
+      <p class="page-eyebrow">Weekly Briefings</p>
+      <h1 class="page-heading">Archive</h1>
+      <p class="page-subtitle">All end-of-week compliance briefings, most recent first.</p>
+    </div>
+
+    <div class="divider"></div>
+
+    {% if archive_weeks %}
+      {% set current_year = namespace(val='') %}
+      {% for week in archive_weeks %}
+        {% if week.year != current_year.val %}
+          {% if not loop.first %}</div>{% endif %}
+          {% set current_year.val = week.year %}
+          <div class="year-group">
+          <p class="year-label">{{ week.year }}</p>
+        {% endif %}
+
+        <div class="week-row">
+          <div class="week-left">
+            <p class="week-label">Week of {{ week.label }}</p>
+            <p class="week-dates">{{ week.week_start }} – {{ week.week_end }}</p>
+          </div>
+          <div class="week-links">
+            {% if week.newsletter_url %}
+            <a href="{{ week.newsletter_url }}" class="week-link" target="_blank">Full Briefing &rarr;</a>
+            {% endif %}
+            {% if week.weekly_briefing_url %}
+            <a href="{{ week.weekly_briefing_url }}" class="week-link week-link-secondary" target="_blank">Executive Summary</a>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if loop.last %}</div>{% endif %}
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">No archived weeks yet — check back after the first Friday run.</div>
+    {% endif %}
+  </div>
+
+  <div class="bottom-bar">
+    <span class="bottom-bar-text">Compliance Intelligence &mdash; {{ date_display }}</span>
+  </div>
+
+</body>
+</html>

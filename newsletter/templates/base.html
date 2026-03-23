@@ -137,6 +137,46 @@
       letter-spacing: 1px; text-transform: uppercase;
       margin: 0; line-height: 2.2;
     }
+    /* ── Archive section ── */
+    .archive-section {
+      border-top: 2px solid rgba(255, 255, 255, 0.12);
+      padding: 14px 14px 6px;
+      margin-top: 4px;
+    }
+    .archive-eyebrow {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 3px; text-transform: uppercase;
+      color: #D4D0C8;
+      display: block; margin-bottom: 10px;
+    }
+    .archive-week-link {
+      display: block;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 11px; font-weight: 400;
+      color: #B8B4AC;
+      text-decoration: underline;
+      text-decoration-color: rgba(184, 180, 172, 0.4);
+      text-underline-offset: 2px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      letter-spacing: 0.5px;
+      transition: color 0.15s;
+    }
+    .archive-week-link:hover { color: #F0EDE8; text-decoration-color: rgba(240,237,232,0.5); }
+    .archive-all-link {
+      display: block;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 10px; font-weight: 600;
+      color: #D64045;
+      text-decoration: underline;
+      text-decoration-color: rgba(214, 64, 69, 0.5);
+      text-underline-offset: 2px;
+      padding: 10px 0 4px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .archive-all-link:hover { color: #E86065; }
 
     /* ── Body shell ───────────────────────────────────────── */
     .content-cell { vertical-align: top; }
@@ -163,41 +203,40 @@
 
     /* ── Utility bar ──────────────────────────────────────── */
     .utility-bar {
-      padding: 10px 40px;
+      padding: 12px 40px;
       background-color: #FAF7F2;
       border-bottom: 1px solid #D4CFC7;
     }
     .utility-label {
-      font-family: 'IBM Plex Mono', 'Courier New', monospace;
-      font-size: 10px; font-weight: 600;
-      letter-spacing: 3px; text-transform: uppercase;
-      color: #6E6A63; margin-right: 16px;
+      font-family: 'Source Sans 3', 'Trebuchet MS', Helvetica, sans-serif;
+      font-size: 14px; font-weight: 600;
+      color: #4A4740; margin-right: 16px;
     }
     .utility-bar a {
-      font-family: 'IBM Plex Mono', 'Courier New', monospace;
-      font-size: 10px; font-weight: 400;
-      color: #2B5EA7; text-decoration: none;
-      border-bottom: 1px solid rgba(43, 94, 167, 0.3);
-      padding-bottom: 1px;
+      font-family: 'Source Sans 3', 'Trebuchet MS', Helvetica, sans-serif;
+      font-size: 14px; font-weight: 500;
+      color: #2B5EA7; text-decoration: underline;
+      text-decoration-color: rgba(43, 94, 167, 0.4);
+      text-underline-offset: 2px;
+      margin-right: 12px;
     }
 
     /* ── Executive summary link ────────────────────────────── */
     .exec-link-bar {
-      padding: 14px 40px;
+      padding: 16px 40px;
       border-bottom: 1px solid #ECEAE5;
-      background-color: #FFFFFF;
+      background-color: #F5F2EC;
     }
     .exec-link {
-      font-family: 'IBM Plex Mono', 'Courier New', monospace;
-      font-size: 11px; font-weight: 500;
-      letter-spacing: 1px;
-      text-decoration: none;
-      color: #6E6A63;
-      border-bottom: 1px solid #D4CFC7;
-      padding-bottom: 1px;
-      transition: color 0.15s ease;
+      font-family: 'Source Sans 3', 'Trebuchet MS', Helvetica, sans-serif;
+      font-size: 15px; font-weight: 600;
+      text-decoration: underline;
+      text-decoration-color: #D64045;
+      text-underline-offset: 3px;
+      color: #D64045;
+      transition: opacity 0.15s ease;
     }
-    .exec-link:hover { color: #1A1A1A; border-color: #1A1A1A; }
+    .exec-link:hover { opacity: 0.75; }
     .section-eyebrow {
       font-family: 'IBM Plex Mono', 'Courier New', monospace;
       font-size: 10px; font-weight: 600;
@@ -435,9 +474,20 @@
               </tr>
               {% endfor %}
             </table>
+            {% if archive_weeks %}
+            <div class="archive-section">
+              <span class="archive-eyebrow">Archive</span>
+              {% for week in archive_weeks | reverse | list %}{% if loop.index <= 8 %}
+              <a href="{{ week.newsletter_url or week.weekly_briefing_url }}" class="archive-week-link" target="_blank">{{ week.label }}</a>
+              {% endif %}{% endfor %}
+              {% if archive_url %}
+              <a href="{{ archive_url }}" class="archive-all-link" target="_blank">All weeks &rarr;</a>
+              {% endif %}
+            </div>
+            {% endif %}
             <div class="sidebar-footer">
               <p class="sidebar-date">{{ date_display }}</p>
-              <p class="sidebar-date">Daily Briefing</p>
+              {% if week_label %}<p class="sidebar-date">Week of {{ week_label }}</p>{% endif %}
             </div>
           </div>
         </td>
@@ -453,15 +503,18 @@
               </div>
 
               <div class="utility-bar">
-                <span class="utility-label">Links</span>
+                <span class="utility-label">State Maps:</span>
                 {% if pfas_map_url %}
                 <a href="{{ pfas_map_url }}">PFAS State Tracker &rarr;</a>
+                {% endif %}
+                {% if epr_map_url %}
+                <a href="{{ epr_map_url }}">EPR State Tracker &rarr;</a>
                 {% endif %}
               </div>
 
               {% if exec_summary_url %}
               <div class="exec-link-bar">
-                <a href="{{ exec_summary_url }}" class="exec-link" target="_blank">Executive briefing &rarr;</a>
+                <a href="{{ exec_summary_url }}" class="exec-link" target="_blank">&rarr; Executive Summary</a>
               </div>
               {% endif %}
 

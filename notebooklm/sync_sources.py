@@ -1,12 +1,18 @@
 #!/usr/bin/env python3.14
 """
-Sync today's article URLs into a persistent NotebookLM notebook.
+Sync weekly compliance briefing into the persistent NotebookLM notebook.
 
-Called by run.py via subprocess after each successful run:
-    python3.14 notebooklm/sync_sources.py <url1> <url2> ...
+Called by run.py on Fridays after a successful end-of-week run:
+    python3.14 notebooklm/sync_sources.py --weekly-url <url> [--digest <text>]
 
-State is persisted in data/notebooklm_state.json so URLs are never re-added.
+Strategy (avoids the 50-source limit):
+  1. Add the weekly briefing URL as a new source (1 per week, ~1 year before limit)
+  2. Replace the rolling "historical digest" text source with an updated version
+     covering all prior weeks — so full history lives in just 1 source slot
+
+State is persisted in data/notebooklm_state.json.
 """
+import argparse
 import asyncio
 import json
 import logging
@@ -25,8 +31,13 @@ _STORAGE_PATH = Path.home() / ".notebooklm" / "storage_state.json"
 
 def _load_state() -> dict:
     if _STATE_PATH.exists():
-        return json.loads(_STATE_PATH.read_text())
-    return {"notebook_id": None, "added_urls": []}
+        s = json.loads(_STATE_PATH.read_text())
+        # Migrate old format (added_urls list → weekly_urls list)
+        if "added_urls" in s and "weekly_urls" not in s:
+            s["weekly_urls"] = s.pop("added_urls")
+            s.setdefault("digest_source_id", None)
+        return s
+    return {"notebook_id": None, "weekly_urls": [], "digest_source_id": None}
 
 
 def _save_state(state: dict) -> None:
@@ -35,36 +46,26 @@ def _save_state(state: dict) -> None:
 
 
 async def _find_or_create_notebook(client) -> str:
-    """Return the notebook ID, creating it if it doesn't exist yet."""
     notebooks = await client.notebooks.list()
     for nb in notebooks:
         if nb.title == _NOTEBOOK_TITLE:
             logger.info(f"Found existing notebook: {nb.id}")
             return nb.id
-
     logger.info(f"Creating new notebook: {_NOTEBOOK_TITLE}")
     nb = await client.notebooks.create(_NOTEBOOK_TITLE)
-    logger.info(f"Created notebook: {nb.id}")
     return nb.id
 
 
-async def _sync(urls: list[str]) -> None:
+async def _sync(weekly_url: str | None, digest_text: str | None) -> None:
     from notebooklm import NotebookLMClient
 
     state = _load_state()
-    already_added = set(state["added_urls"])
-    new_urls = [u for u in urls if u not in already_added]
-
-    if not new_urls:
-        logger.info("No new URLs to add — all already in notebook.")
-        return
 
     async with await NotebookLMClient.from_storage(str(_STORAGE_PATH)) as client:
-        # Find or create the notebook
+        # Find or verify notebook
         if not state["notebook_id"]:
             state["notebook_id"] = await _find_or_create_notebook(client)
         else:
-            # Verify notebook still exists
             try:
                 await client.notebooks.get(state["notebook_id"])
             except Exception:
@@ -72,36 +73,60 @@ async def _sync(urls: list[str]) -> None:
                 state["notebook_id"] = await _find_or_create_notebook(client)
 
         notebook_id = state["notebook_id"]
-        logger.info(f"Syncing {len(new_urls)} new URLs into notebook {notebook_id}")
+        already_added = set(state["weekly_urls"])
 
-        # Add sources (don't wait — let NotebookLM process in background)
-        successfully_added = []
-        for url in new_urls:
+        # 1. Add this week's briefing URL (if new)
+        if weekly_url and weekly_url not in already_added:
             try:
-                await client.sources.add_url(notebook_id, url, wait=False)
-                successfully_added.append(url)
-                logger.info(f"  Added: {url}")
+                await client.sources.add_url(notebook_id, weekly_url, wait=False)
+                state["weekly_urls"].append(weekly_url)
+                logger.info(f"Added weekly briefing: {weekly_url}")
             except Exception as e:
-                logger.warning(f"  Failed to add {url}: {e}")
+                logger.warning(f"Failed to add weekly URL: {e}")
 
-        # Persist state
-        state["added_urls"] = list(already_added | set(successfully_added))
+        # 2. Replace historical digest document
+        if digest_text:
+            # Remove old digest source if we have its ID
+            if state.get("digest_source_id"):
+                try:
+                    await client.sources.delete(notebook_id, state["digest_source_id"])
+                    logger.info("Removed old historical digest source.")
+                except Exception as e:
+                    logger.warning(f"Could not remove old digest (may already be gone): {e}")
+                state["digest_source_id"] = None
+
+            # Add updated digest as a text source
+            try:
+                source = await client.sources.add_text(
+                    notebook_id,
+                    title="Historical Compliance Digest",
+                    text=digest_text,
+                )
+                state["digest_source_id"] = source.id
+                logger.info(f"Uploaded historical digest (source {source.id})")
+            except Exception as e:
+                logger.warning(f"Failed to upload digest: {e}")
+
         state["last_sync"] = datetime.now().isoformat()
         _save_state(state)
-        logger.info(f"Done. Added {len(successfully_added)}/{len(new_urls)} sources.")
+        logger.info("NotebookLM sync complete.")
 
 
 def main() -> None:
-    urls = sys.argv[1:]
-    if not urls:
-        logger.info("No URLs provided — nothing to sync.")
+    parser = argparse.ArgumentParser(description="Sync weekly briefing to NotebookLM")
+    parser.add_argument("--weekly-url", help="URL of this week's archived briefing page")
+    parser.add_argument("--digest", help="Historical digest text to upload/replace")
+    args = parser.parse_args()
+
+    if not args.weekly_url and not args.digest:
+        logger.info("Nothing to sync — pass --weekly-url and/or --digest.")
         return
 
     if not _STORAGE_PATH.exists():
-        logger.error(f"NotebookLM not authenticated. Run: python3.14 -m notebooklm login")
+        logger.error("NotebookLM not authenticated. Run: python3.14 -m notebooklm login")
         sys.exit(1)
 
-    asyncio.run(_sync(urls))
+    asyncio.run(_sync(weekly_url=args.weekly_url, digest_text=args.digest))
 
 
 if __name__ == "__main__":

@@ -3,20 +3,24 @@
 Compliance Intelligence — Main entry point.
 
 Usage:
-    python run.py               # Full run: scrape → filter → summarize → render → send
-    python run.py --dry-run     # Scrape + summarize, print output, no email
-    python run.py --preview     # Render to HTML file and open in browser
-    python run.py --force       # Skip already-sent-today check
+    python run.py                        # Full run: scrape → summarize → render → send
+    python run.py --dry-run              # Scrape + summarize, print output, no email
+    python run.py --preview              # Render to HTML files and open in browser
+    python run.py --force                # Skip already-sent-today check
+    python run.py --finalize-week        # Manually create end-of-week archive (if Friday run failed)
+    python run.py --send-reminder        # Send Friday 9 AM reminder email (called by cron)
+    python run.py --test-email addr@...  # Send only to test address(es)
 """
 import argparse
-import json
 import logging
+import shutil
 import subprocess
 import sys
-from datetime import datetime, timedelta, timezone
+import webbrowser
+from datetime import date, datetime
 from pathlib import Path
+from typing import List, Optional, Tuple
 
-# Ensure project root is on sys.path when run as script
 sys.path.insert(0, str(Path(__file__).parent))
 
 from config.settings import Config
@@ -43,14 +47,20 @@ from scrapers.assent import AssentScraper
 from scrapers.product_stewardship import ProductStewardshipScraper
 from processors.deduplicator import deduplicate
 from processors.relevance_filter import keyword_filter
+from processors.week_tracker import apply_weekly_window, get_week_context, last_week_is_archived
 from ai.summarizer import Summarizer
 from newsletter.renderer import NewsletterRenderer
 from delivery.gmail_sender import GmailSender
-from delivery.preview import open_preview
 from delivery.state_map_generator import generate_pfas_map
-from subscribers.db import init_db
+from subscribers.db import init_db, get_archive_weeks, save_archive_week
 from subscribers.repository import SubscriberRepository
 
+_PAGES_BASE = "https://ryan-jenkinson.github.io/compliance-maps"
+_GITHUB_REPO_DIR = Path("/tmp/compliance-maps")
+_REMINDER_EMAIL = "ryan.jenkinson@andersencorp.com"
+
+
+# ── Logging ────────────────────────────────────────────────────────────────
 
 def setup_logging(level: str = "INFO") -> None:
     logging.basicConfig(
@@ -64,6 +74,8 @@ def setup_logging(level: str = "INFO") -> None:
     )
 
 
+# ── CLI ────────────────────────────────────────────────────────────────────
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Compliance Intelligence")
     parser.add_argument("--dry-run", action="store_true",
@@ -72,158 +84,20 @@ def parse_args() -> argparse.Namespace:
                         help="Render HTML and open in browser, no email sent")
     parser.add_argument("--force", action="store_true",
                         help="Send even if already sent today")
+    parser.add_argument("--finalize-week", action="store_true",
+                        help="Manually trigger end-of-week archive (if Friday run failed)")
+    parser.add_argument("--send-reminder", action="store_true",
+                        help="Send Friday reminder email to verify end-of-week run")
     parser.add_argument("--test-email", action="append", default=[],
-                        help="Send only to these addresses (repeatable, skips subscriber list)")
+                        help="Send only to these addresses (repeatable)")
+    parser.add_argument("--week-of", metavar="YYYY-MM-DD",
+                        help="Override today's date (e.g. use last Friday to archive last week)")
     return parser.parse_args()
 
 
-_SENT_ARTICLES_PATH = Path(__file__).parent / "data" / "sent_articles.json"
-_ROLLING_WINDOW_DAYS = 5
-
-
-def _load_sent_history() -> dict:
-    """Returns {article_id: first_sent_iso} dict. Migrates old list format automatically."""
-    if not _SENT_ARTICLES_PATH.exists():
-        return {}
-    data = json.loads(_SENT_ARTICLES_PATH.read_text())
-    if isinstance(data, list):
-        # Migrate: old format was a plain list of IDs — treat all as sent today
-        now = datetime.now(timezone.utc).isoformat()
-        return {id_: now for id_ in data}
-    return data
-
-
-def _save_sent_history(history: dict) -> None:
-    _SENT_ARTICLES_PATH.write_text(json.dumps(history, indent=2, sort_keys=True))
-
-
-def _apply_rolling_window(articles: list, history: dict) -> tuple:
-    """
-    Filter articles to the rolling window and mark each as new or carried-over.
-
-    - New articles (not in history): marked is_new=True, added to history.
-    - Carried-over articles (in history, within window): marked is_new=False with age.
-    - Expired articles (older than ROLLING_WINDOW_DAYS): dropped.
-
-    Returns (filtered_articles, updated_history).
-    """
-    now = datetime.now(timezone.utc)
-    cutoff = now - timedelta(days=_ROLLING_WINDOW_DAYS)
-    result = []
-
-    for article in articles:
-        if article.id in history:
-            first_sent = datetime.fromisoformat(history[article.id])
-            if first_sent.tzinfo is None:
-                first_sent = first_sent.replace(tzinfo=timezone.utc)
-            if first_sent < cutoff:
-                continue  # Expired — drop it
-            days_ago = (now - first_sent).days
-            article.extra["is_new"] = False
-            article.extra["days_in_newsletter"] = days_ago
-        else:
-            history[article.id] = now.isoformat()
-            article.extra["is_new"] = True
-            article.extra["days_in_newsletter"] = 0
-
-        result.append(article)
-
-    return result, history
-
-
-def _push_map_to_github(map_path: Path, repo_dir: Path) -> None:
-    """Copy the map to the local GitHub Pages repo clone and push."""
-    logger = logging.getLogger("github_map")
-    try:
-        import shutil
-        dest = repo_dir / "index.html"
-        shutil.copy2(map_path, dest)
-        cmds = [
-            ["git", "-C", str(repo_dir), "add", "index.html"],
-            ["git", "-C", str(repo_dir), "commit", "-m", f"Update PFAS map {datetime.now().strftime('%Y-%m-%d')}"],
-            ["git", "-C", str(repo_dir), "push"],
-        ]
-        for cmd in cmds:
-            result = subprocess.run(cmd, capture_output=True, text=True)
-            if result.returncode != 0 and "nothing to commit" not in result.stdout:
-                logger.warning(f"Git command failed: {' '.join(cmd)}: {result.stderr.strip()}")
-                return
-        logger.info("PFAS map pushed to GitHub Pages.")
-    except Exception as e:
-        logger.warning(f"Failed to push map to GitHub: {e}")
-
-
-def _push_newsletter_to_github(html: str, repo_dir: Path, exec_html=None):
-    """Save newsletter + exec summary to GitHub Pages repo and push. Returns (newsletter_url, exec_url)."""
-    logger = logging.getLogger("github_newsletter")
-    _BASE = "https://ryan-jenkinson.github.io/compliance-maps"
-    try:
-        import shutil
-
-        newsletter_dir = repo_dir / "newsletter"
-        newsletter_dir.mkdir(exist_ok=True)
-
-        date_str = datetime.now().strftime("%Y-%m-%d")
-
-        # Save newsletter
-        dated_path = newsletter_dir / f"{date_str}.html"
-        latest_path = newsletter_dir / "latest.html"
-        dated_path.write_text(html, encoding="utf-8")
-        shutil.copy2(dated_path, latest_path)
-
-        files_to_add = [f"newsletter/{date_str}.html", "newsletter/latest.html"]
-        newsletter_url = f"{_BASE}/newsletter/{date_str}.html"
-        exec_url = None
-
-        # Save exec summary if provided
-        if exec_html:
-            exec_dated = newsletter_dir / f"exec-{date_str}.html"
-            exec_latest = newsletter_dir / "exec-latest.html"
-            exec_dated.write_text(exec_html, encoding="utf-8")
-            shutil.copy2(exec_dated, exec_latest)
-            files_to_add += [f"newsletter/exec-{date_str}.html", "newsletter/exec-latest.html"]
-            exec_url = f"{_BASE}/newsletter/exec-{date_str}.html"
-
-        cmds = [
-            ["git", "-C", str(repo_dir), "add"] + files_to_add,
-            ["git", "-C", str(repo_dir), "commit", "-m", f"Update newsletter {date_str}"],
-            ["git", "-C", str(repo_dir), "push"],
-        ]
-        for cmd in cmds:
-            result = subprocess.run(cmd, capture_output=True, text=True)
-            if result.returncode != 0 and "nothing to commit" not in result.stdout:
-                logger.warning(f"Git command failed: {' '.join(cmd)}: {result.stderr.strip()}")
-                return newsletter_url, exec_url
-        logger.info("Newsletter pushed to GitHub Pages.")
-        return newsletter_url, exec_url
-    except Exception as e:
-        logger.warning(f"Failed to push newsletter to GitHub: {e}")
-        return None, None
-
-
-def _sync_notebooklm(urls: list) -> None:
-    """Fire-and-forget: sync article URLs into NotebookLM in a subprocess."""
-    logger = logging.getLogger("notebooklm")
-    script = Path(__file__).parent / "notebooklm" / "sync_sources.py"
-    try:
-        result = subprocess.run(
-            ["python3.14", str(script)] + urls,
-            capture_output=True,
-            text=True,
-            timeout=120,
-        )
-        if result.returncode == 0:
-            logger.info("NotebookLM sync complete.")
-        else:
-            logger.warning(f"NotebookLM sync exited with code {result.returncode}: {result.stderr.strip()}")
-    except subprocess.TimeoutExpired:
-        logger.warning("NotebookLM sync timed out (sources may still process in background).")
-    except Exception as e:
-        logger.warning(f"NotebookLM sync failed: {e}")
-
+# ── Scraping ───────────────────────────────────────────────────────────────
 
 def scrape_all() -> list:
-    """Run all scrapers and return deduplicated, keyword-filtered articles."""
     logger = logging.getLogger("scraper")
     scrapers = [
         FederalRegisterScraper(),
@@ -244,7 +118,6 @@ def scrape_all() -> list:
         AssentScraper(),
         ProductStewardshipScraper(),
     ]
-
     all_articles = []
     for scraper in scrapers:
         try:
@@ -256,57 +129,221 @@ def scrape_all() -> list:
 
     logger.info(f"Total before dedup: {len(all_articles)}")
     articles = deduplicate(all_articles)
-    logger.info(f"Total after dedup: {len(articles)}")
+    logger.info(f"After dedup: {len(articles)}")
     articles = keyword_filter(articles)
-    logger.info(f"Total after keyword filter: {len(articles)}")
+    logger.info(f"After keyword filter: {len(articles)}")
     return articles
 
 
-def main() -> None:
-    args = parse_args()
-    setup_logging(Config.LOG_LEVEL)
-    logger = logging.getLogger("run")
+# ── GitHub Pages ───────────────────────────────────────────────────────────
 
-    logger.info("=" * 60)
-    logger.info("Compliance Intelligence — starting run")
-    logger.info(f"Mode: {'dry-run' if args.dry_run else 'preview' if args.preview else 'full'}")
+def _git_push(repo_dir: Path, files: list[str], message: str) -> bool:
+    logger = logging.getLogger("github")
+    cmds = [
+        ["git", "-C", str(repo_dir), "add"] + files,
+        ["git", "-C", str(repo_dir), "commit", "-m", message],
+        ["git", "-C", str(repo_dir), "push"],
+    ]
+    for cmd in cmds:
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0 and "nothing to commit" not in result.stdout + result.stderr:
+            logger.warning(f"Git command failed: {' '.join(cmd)}: {result.stderr.strip()}")
+            return False
+    return True
 
-    # Initialize DB
-    init_db()
 
-    # Generate PFAS state map and push to GitHub Pages
-    _GITHUB_PAGES_URL = "https://ryan-jenkinson.github.io/compliance-maps/"
-    _GITHUB_REPO_DIR = Path("/tmp/compliance-maps")
-    logger.info("Generating PFAS state map…")
+def _push_maps_to_github(pfas_map_path: Path, epr_map_path: Optional[Path],
+                          repo_dir: Path) -> Tuple[Optional[str], Optional[str]]:
+    """Copy PFAS (and optionally EPR) map to GitHub Pages repo and push."""
+    logger = logging.getLogger("github_maps")
+    try:
+        dest = repo_dir / "index.html"
+        shutil.copy2(pfas_map_path, dest)
+        files = ["index.html"]
+        epr_url = None
+
+        if epr_map_path:
+            epr_dest = repo_dir / "epr-map.html"
+            shutil.copy2(epr_map_path, epr_dest)
+            files.append("epr-map.html")
+            epr_url = f"{_PAGES_BASE}/epr-map.html"
+
+        date_str = date.today().isoformat()
+        _git_push(repo_dir, files, f"Update state maps {date_str}")
+        logger.info("Maps pushed to GitHub Pages.")
+        return f"{_PAGES_BASE}/", epr_url
+    except Exception as e:
+        logger.warning(f"Failed to push maps to GitHub: {e}")
+        return f"{_PAGES_BASE}/", None
+
+
+def _push_daily_newsletter(web_html: str, repo_dir: Path) -> Optional[str]:
+    """Push daily newsletter web version. Returns dated URL."""
+    logger = logging.getLogger("github_newsletter")
+    try:
+        newsletter_dir = repo_dir / "newsletter"
+        newsletter_dir.mkdir(exist_ok=True)
+        date_str = date.today().isoformat()
+
+        dated_path = newsletter_dir / f"{date_str}.html"
+        latest_path = newsletter_dir / "latest.html"
+        dated_path.write_text(web_html, encoding="utf-8")
+        shutil.copy2(dated_path, latest_path)
+
+        _git_push(repo_dir, [f"newsletter/{date_str}.html", "newsletter/latest.html"],
+                  f"Daily newsletter {date_str}")
+        return f"{_PAGES_BASE}/newsletter/{date_str}.html"
+    except Exception as e:
+        logger.warning(f"Failed to push daily newsletter: {e}")
+        return None
+
+
+def _push_weekly_briefing(briefing_html: str, repo_dir: Path,
+                           week_context: dict, is_archive: bool = False) -> Optional[str]:
+    """Push weekly briefing page. On Friday (is_archive=True), also saves dated archive copy."""
+    logger = logging.getLogger("github_weekly")
+    try:
+        newsletter_dir = repo_dir / "newsletter"
+        newsletter_dir.mkdir(exist_ok=True)
+        files = []
+
+        # Always update the "latest" weekly briefing
+        latest_path = newsletter_dir / "weekly-latest.html"
+        latest_path.write_text(briefing_html, encoding="utf-8")
+        files.append("newsletter/weekly-latest.html")
+
+        week_url = f"{_PAGES_BASE}/newsletter/weekly-latest.html"
+
+        if is_archive:
+            # Friday: also save a permanent dated copy
+            friday_date = week_context["week_end"]  # YYYY-MM-DD
+            archived_path = newsletter_dir / f"week-{friday_date}.html"
+            archived_path.write_text(briefing_html, encoding="utf-8")
+            files.append(f"newsletter/week-{friday_date}.html")
+            week_url = f"{_PAGES_BASE}/newsletter/week-{friday_date}.html"
+
+        _git_push(repo_dir, files, f"Weekly briefing {week_context['week_label']}")
+        return week_url
+    except Exception as e:
+        logger.warning(f"Failed to push weekly briefing: {e}")
+        return None
+
+
+def _push_archive_index(archive_html: str, repo_dir: Path) -> Optional[str]:
+    """Push the archive index page."""
+    logger = logging.getLogger("github_archive")
+    try:
+        newsletter_dir = repo_dir / "newsletter"
+        newsletter_dir.mkdir(exist_ok=True)
+        path = newsletter_dir / "archive.html"
+        path.write_text(archive_html, encoding="utf-8")
+        _git_push(repo_dir, ["newsletter/archive.html"], "Update archive index")
+        return f"{_PAGES_BASE}/newsletter/archive.html"
+    except Exception as e:
+        logger.warning(f"Failed to push archive index: {e}")
+        return None
+
+
+# ── NotebookLM ─────────────────────────────────────────────────────────────
+
+def _sync_notebooklm_weekly(weekly_url: str, archive_weeks: List[dict]) -> None:
+    """Sync weekly briefing URL + historical digest to NotebookLM (Fridays only)."""
+    logger = logging.getLogger("notebooklm")
+    script = Path(__file__).parent / "notebooklm" / "sync_sources.py"
+
+    # Build historical digest text from all archive weeks
+    digest_lines = ["COMPLIANCE INTELLIGENCE — HISTORICAL WEEKLY SUMMARIES", "=" * 60, ""]
+    for week in archive_weeks:
+        digest_lines.append(f"Week of {week['label']} ({week['week_start']} – {week['week_end']})")
+        if week.get("weekly_briefing_url"):
+            digest_lines.append(f"Briefing: {week['weekly_briefing_url']}")
+        digest_lines.append("")
+    digest_text = "\n".join(digest_lines)
+
+    try:
+        result = subprocess.run(
+            ["python3.14", str(script),
+             "--weekly-url", weekly_url,
+             "--digest", digest_text],
+            capture_output=True, text=True, timeout=120,
+        )
+        if result.returncode == 0:
+            logger.info("NotebookLM weekly sync complete.")
+        else:
+            logger.warning(f"NotebookLM sync failed: {result.stderr.strip()}")
+    except subprocess.TimeoutExpired:
+        logger.warning("NotebookLM sync timed out.")
+    except Exception as e:
+        logger.warning(f"NotebookLM sync error: {e}")
+
+
+# ── Maps ───────────────────────────────────────────────────────────────────
+
+def _generate_maps(repo_dir: Path) -> Tuple[Optional[str], Optional[str]]:
+    """Generate PFAS + EPR maps and push to GitHub Pages. Returns (pfas_url, epr_url)."""
+    logger = logging.getLogger("maps")
+    pfas_map_path = None
+    epr_map_path = None
+
     try:
         pfas_map_path = generate_pfas_map()
-        pfas_map_url = _GITHUB_PAGES_URL
-        # Push updated map to GitHub Pages
-        _push_map_to_github(pfas_map_path, _GITHUB_REPO_DIR)
+        logger.info("PFAS map generated.")
     except Exception as e:
         logger.warning(f"PFAS map generation failed: {e}")
-        pfas_map_url = None
+
+    try:
+        from delivery.epr_map_generator import generate_epr_map
+        epr_map_path = generate_epr_map()
+        logger.info("EPR map generated.")
+    except Exception as e:
+        logger.warning(f"EPR map generation failed: {e}")
+
+    if pfas_map_path:
+        pfas_url, epr_url = _push_maps_to_github(pfas_map_path, epr_map_path, repo_dir)
+        return pfas_url, epr_url
+    return None, None
+
+
+# ── Main pipeline ──────────────────────────────────────────────────────────
+
+def run_pipeline(args: argparse.Namespace) -> None:
+    logger = logging.getLogger("run")
+    today = date.fromisoformat(args.week_of) if args.week_of else date.today()
+    week_context = get_week_context(today)
+    is_friday = week_context["is_friday"]
+    is_finalize = args.finalize_week
+
+    logger.info("=" * 60)
+    logger.info(f"Compliance Intelligence — {week_context['today_name']}, week of {week_context['week_label']}")
+    logger.info(f"Mode: {'finalize-week' if is_finalize else 'dry-run' if args.dry_run else 'preview' if args.preview else 'full'}")
+
+    init_db()
+
+    # Monday check: warn if last week's archive is missing
+    if week_context["is_monday"] and not last_week_is_archived():
+        logger.warning("Last week's archive not found. Consider running: python run.py --finalize-week")
+        try:
+            GmailSender().send_missing_archive_warning(week_context["week_label"])
+        except Exception:
+            pass
 
     # Step 1: Scrape
     logger.info("Step 1: Scraping sources…")
     articles = scrape_all()
     logger.info(f"Scraping complete: {len(articles)} relevant articles")
 
-    # Rolling window: keep articles from last 5 days, mark new vs carried-over
-    sent_history = _load_sent_history()
-    articles, sent_history = _apply_rolling_window(articles, sent_history)
-    new_count = sum(1 for a in articles if a.extra.get("is_new"))
-    carried_count = len(articles) - new_count
-    logger.info(f"Rolling window: {new_count} new, {carried_count} carried-over ({len(articles)} total)")
+    # Apply weekly window (Sat–Fri)
+    articles, new_count, carried_count = apply_weekly_window(articles)
+    logger.info(f"Weekly window: {new_count} new, {carried_count} carried-over ({len(articles)} total)")
 
     # Step 2: AI pipeline
     logger.info("Step 2: Running AI summarization pipeline…")
     summarizer = Summarizer()
-    pipeline_output = summarizer.run(articles)
+    pipeline_output = summarizer.run(articles, week_context=week_context)
 
     if args.dry_run:
         print("\n" + "=" * 60)
-        print("DRY RUN — Executive Summary:")
+        print(f"DRY RUN — Weekly Briefing ({week_context['today_name']}, week of {week_context['week_label']}):")
         print(pipeline_output["exec_summary"])
         print("\nTopics:")
         for ts in pipeline_output["topics"]:
@@ -315,140 +352,185 @@ def main() -> None:
             for d in devs:
                 print(f"    [{d.get('urgency')}] {d.get('headline')}")
         print(f"\nTotal articles: {pipeline_output['total_articles']}")
-        print(f"Total sources: {pipeline_output['total_sources']}")
         return
 
     # Step 3: Render
-    logger.info("Step 3: Rendering newsletter…")
+    logger.info("Step 3: Rendering…")
     renderer = NewsletterRenderer()
+    archive_weeks = get_archive_weeks()
+    archive_url = f"{_PAGES_BASE}/newsletter/archive.html"
 
     if args.preview:
-        from delivery.preview import save_preview
-        d = datetime.now()
-        ts = d.strftime('%Y-%m-%d_%H%M%S')
+        ts = datetime.now().strftime('%Y-%m-%d_%H%M%S')
+        data_dir = Config.DATA_DIR
 
-        # Render exec summary page
-        exec_filename = f"preview_exec_{ts}.html"
-        exec_preview_path = Config.DATA_DIR / exec_filename
-        exec_summary_url = f"file://{exec_preview_path.resolve()}"
+        # Render weekly briefing page
+        briefing_html = renderer.render_weekly_briefing(
+            pipeline_output, newsletter_url=None, week_context=week_context,
+        )
+        briefing_path = data_dir / f"preview_weekly_{ts}.html"
+        briefing_path.write_text(briefing_html, encoding="utf-8")
 
-        # Render web preview (interactive, with JS)
+        # Render web newsletter (main page)
         web_html = renderer.render(
-            pipeline_output, map_url=pfas_map_url, is_web_version=True,
-            exec_summary_url=exec_summary_url,
+            pipeline_output, map_url=None, is_web_version=True,
+            exec_summary_url=f"file://{briefing_path.resolve()}",
+            week_context=week_context, archive_weeks=archive_weeks, archive_url=archive_url,
         )
-        web_filename = f"preview_web_{ts}.html"
-        web_preview_path = Config.DATA_DIR / web_filename
-        web_preview_path.write_text(web_html, encoding="utf-8")
+        web_path = data_dir / f"preview_web_{ts}.html"
+        web_path.write_text(web_html, encoding="utf-8")
 
-        # Now render exec summary with link back to web version
-        exec_html = renderer.render_exec_summary(
+        # Re-render weekly briefing with back-link to web version
+        briefing_html = renderer.render_weekly_briefing(
             pipeline_output,
-            newsletter_url=f"file://{web_preview_path.resolve()}",
+            newsletter_url=f"file://{web_path.resolve()}",
+            week_context=week_context,
         )
-        exec_preview_path.write_text(exec_html, encoding="utf-8")
+        briefing_path.write_text(briefing_html, encoding="utf-8")
 
-        # Render email preview (full content, no JS)
+        # Render email version
         email_html = renderer.render(
-            pipeline_output, subscriber_name="Ryan", map_url=pfas_map_url,
-            exec_summary_url=exec_summary_url,
+            pipeline_output, subscriber_name="Ryan", map_url=None,
+            exec_summary_url=f"file://{briefing_path.resolve()}",
+            week_context=week_context, archive_weeks=archive_weeks, archive_url=archive_url,
         )
-        email_filename = f"preview_email_{ts}.html"
-        email_preview_path = Config.DATA_DIR / email_filename
-        email_preview_path.write_text(email_html, encoding="utf-8")
+        email_path = data_dir / f"preview_email_{ts}.html"
+        email_path.write_text(email_html, encoding="utf-8")
 
-        import webbrowser
-        webbrowser.open(f"file://{web_preview_path.resolve()}")
+        # Render archive index
+        archive_html = renderer.render_archive_index(archive_weeks)
+        archive_path = data_dir / f"preview_archive_{ts}.html"
+        archive_path.write_text(archive_html, encoding="utf-8")
 
-        logger.info(f"Web version preview: {web_preview_path}")
-        logger.info(f"Email version preview: {email_preview_path}")
-        logger.info(f"Exec summary preview: {exec_preview_path}")
-        print(f"Web version (interactive): {web_preview_path}")
-        print(f"Email version (full content): {email_preview_path}")
-        print(f"Exec summary: {exec_preview_path}")
+        webbrowser.open(f"file://{web_path.resolve()}")
+        print(f"Web version:     {web_path}")
+        print(f"Weekly briefing: {briefing_path}")
+        print(f"Email version:   {email_path}")
+        print(f"Archive index:   {archive_path}")
         return
 
-    # Step 3b: Render exec summary + newsletter and push to GitHub Pages
-    logger.info("Step 3b: Publishing to GitHub Pages…")
-    # First render exec summary (needs newsletter URL, but we know the pattern)
-    date_str = datetime.now().strftime("%Y-%m-%d")
-    _PAGES_BASE = "https://ryan-jenkinson.github.io/compliance-maps"
-    newsletter_url = f"{_PAGES_BASE}/newsletter/{date_str}.html"
-    exec_summary_url = f"{_PAGES_BASE}/newsletter/exec-{date_str}.html"
+    # Step 3b: Generate maps (Fridays and --finalize-week only)
+    pfas_map_url = f"{_PAGES_BASE}/"
+    epr_map_url = f"{_PAGES_BASE}/epr-map.html"
+    if is_friday or is_finalize:
+        logger.info("Step 3b: Generating and pushing state maps…")
+        pfas_map_url, epr_map_url = _generate_maps(_GITHUB_REPO_DIR)
 
-    exec_html = renderer.render_exec_summary(pipeline_output, newsletter_url=newsletter_url)
+    # Step 3c: Publish to GitHub Pages
+    logger.info("Step 3c: Publishing to GitHub Pages…")
+
+    # Daily newsletter web version
     web_html = renderer.render(
-        pipeline_output, map_url=pfas_map_url, is_web_version=True,
-        exec_summary_url=exec_summary_url,
+        pipeline_output, map_url=pfas_map_url, epr_map_url=epr_map_url,
+        is_web_version=True, week_context=week_context,
+        archive_weeks=archive_weeks, archive_url=archive_url,
     )
-    _push_newsletter_to_github(web_html, _GITHUB_REPO_DIR, exec_html=exec_html)
+    newsletter_url = _push_daily_newsletter(web_html, _GITHUB_REPO_DIR)
+
+    # Weekly briefing page (updated daily, archived on Friday)
+    briefing_html = renderer.render_weekly_briefing(
+        pipeline_output,
+        newsletter_url=newsletter_url,
+        week_context=week_context,
+    )
+    weekly_briefing_url = _push_weekly_briefing(
+        briefing_html, _GITHUB_REPO_DIR, week_context,
+        is_archive=(is_friday or is_finalize),
+    )
+
+    # Friday / finalize: save archive entry and push archive index
+    if is_friday or is_finalize:
+        save_archive_week(
+            week_start=week_context["week_start"],
+            week_end=week_context["week_end"],
+            label=week_context["week_label"],
+            year=week_context["year"],
+            newsletter_url=newsletter_url,
+            weekly_briefing_url=weekly_briefing_url,
+        )
+        archive_weeks = get_archive_weeks()  # Reload with new entry
+        archive_html = renderer.render_archive_index(archive_weeks)
+        archive_url = _push_archive_index(archive_html, _GITHUB_REPO_DIR)
+        logger.info(f"End-of-week archive saved: week of {week_context['week_label']}")
+
+    # Update web version with exec_summary_url and archive now that we have the URL
+    web_html = renderer.render(
+        pipeline_output, map_url=pfas_map_url, epr_map_url=epr_map_url,
+        is_web_version=True, exec_summary_url=weekly_briefing_url,
+        week_context=week_context, archive_weeks=archive_weeks, archive_url=archive_url,
+    )
 
     # Step 4: Send emails
     sender = GmailSender()
-    subject = GmailSender.subject_for_date()
+    subject = GmailSender.subject_for_date(today, week_label=week_context["week_label"])
     sent_count = 0
     skip_count = 0
 
     if args.test_email:
-        # --test-email mode: send to specific addresses, skip subscriber list entirely
         logger.info(f"Step 4: Sending TEST emails to {args.test_email}…")
         for email in args.test_email:
             name = email.split("@")[0].split(".")[0].title()
             html = renderer.render(
                 pipeline_output, subscriber_name=name, map_url=pfas_map_url,
-                exec_summary_url=exec_summary_url,
+                epr_map_url=epr_map_url, exec_summary_url=weekly_briefing_url,
+                week_context=week_context, archive_weeks=archive_weeks, archive_url=archive_url,
             )
             success = sender.send(email, f"[TEST] {subject}", html)
             if success:
                 sent_count += 1
-                logger.info(f"Test sent to {email}")
-            else:
-                logger.error(f"Failed to send test to {email}")
     else:
         logger.info("Step 4: Sending emails to subscribers…")
         repo = SubscriberRepository()
         subscribers = repo.list_active(include_scheduled_only=not args.force)
 
         if not subscribers:
-            logger.warning("No active subscribers. Add one with: python subscribers/cli.py add")
-            return
+            logger.warning("No active subscribers.")
+        else:
+            for sub in subscribers:
+                if not args.force and repo.already_sent_today(sub.id):
+                    skip_count += 1
+                    continue
+                html = renderer.render(
+                    pipeline_output, subscriber_name=sub.first_name,
+                    map_url=pfas_map_url, epr_map_url=epr_map_url,
+                    exec_summary_url=weekly_briefing_url,
+                    week_context=week_context, archive_weeks=archive_weeks, archive_url=archive_url,
+                )
+                success = sender.send(sub.email, subject, html)
+                if success:
+                    repo.log_send(sub.id, "success")
+                    sent_count += 1
+                else:
+                    repo.log_send(sub.id, "failure", "Gmail send failed")
 
-        for sub in subscribers:
-            if not args.force and repo.already_sent_today(sub.id):
-                logger.info(f"Skipping {sub.email} — already sent today")
-                skip_count += 1
-                continue
+    logger.info(f"Done. Sent: {sent_count}, Skipped: {skip_count}")
 
-            html = renderer.render(
-                pipeline_output, subscriber_name=sub.first_name, map_url=pfas_map_url,
-                exec_summary_url=exec_summary_url,
-            )
-            success = sender.send(sub.email, subject, html)
-
-            if success:
-                repo.log_send(sub.id, "success")
-                sent_count += 1
-                logger.info(f"Sent to {sub.email}")
-            else:
-                repo.log_send(sub.id, "failure", "Gmail send failed")
-                logger.error(f"Failed to send to {sub.email}")
-
-    logger.info(f"Done. Sent: {sent_count}, Skipped (already sent): {skip_count}")
-
-    # Save updated rolling window history
-    if sent_count > 0:
-        _save_sent_history(sent_history)
-        logger.info(f"Rolling window history updated ({len(sent_history)} total entries)")
-
-    # Sync article URLs into persistent NotebookLM notebook (non-blocking)
-    article_urls = [a.url for a in articles if a.url]
-    if article_urls:
-        logger.info("Step 5: Syncing sources to NotebookLM…")
-        _sync_notebooklm(article_urls)
+    # Step 5: NotebookLM sync (Fridays only)
+    if (is_friday or is_finalize) and weekly_briefing_url:
+        logger.info("Step 5: Syncing to NotebookLM…")
+        _sync_notebooklm_weekly(weekly_briefing_url, get_archive_weeks())
 
     logger.info("=" * 60)
 
 
+def main() -> None:
+    args = parse_args()
+    setup_logging(Config.LOG_LEVEL)
+
+    # --send-reminder: send Friday reminder email and exit
+    if args.send_reminder:
+        logging.getLogger("reminder").info("Sending Friday reminder email…")
+        from processors.week_tracker import get_week_context
+        ctx = get_week_context()
+        try:
+            GmailSender().send_friday_reminder(ctx["week_label"])
+            logging.getLogger("reminder").info("Reminder sent.")
+        except Exception as e:
+            logging.getLogger("reminder").error(f"Reminder failed: {e}")
+        return
+
+    run_pipeline(args)
+
+
 if __name__ == "__main__":
-    # Catch-up logic: if this is the morning run and already sent today, exit cleanly
     main()

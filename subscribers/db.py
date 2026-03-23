@@ -54,6 +54,26 @@ CREATE TABLE IF NOT EXISTS regulation_events (
     created_at      TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Phase 3: Weekly article tracking (Sat–Fri window, replaces sent_articles.json)
+CREATE TABLE IF NOT EXISTS weekly_articles (
+    article_id    TEXT NOT NULL,
+    week_start    TEXT NOT NULL,  -- YYYY-MM-DD (the Saturday that starts the week)
+    first_seen    TEXT NOT NULL DEFAULT (datetime('now')),
+    topic         TEXT,
+    PRIMARY KEY (article_id, week_start)
+);
+
+-- Phase 3: Archive index (one row per archived Friday end-of-week briefing)
+CREATE TABLE IF NOT EXISTS archive_weeks (
+    week_start           TEXT PRIMARY KEY,  -- YYYY-MM-DD (Saturday)
+    week_end             TEXT NOT NULL,     -- YYYY-MM-DD (Friday)
+    label                TEXT NOT NULL,     -- e.g. "Mar 22 – 28"
+    year                 TEXT NOT NULL,
+    newsletter_url       TEXT,
+    weekly_briefing_url  TEXT,
+    archived_at          TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- PowerBI export view
 CREATE VIEW IF NOT EXISTS powerbi_export AS
 SELECT
@@ -90,4 +110,28 @@ def init_db() -> None:
         conn.commit()
     except Exception:
         pass  # Column already exists
+    conn.close()
+
+
+def get_archive_weeks() -> list[dict]:
+    """Return all archived weeks ordered by week_start descending."""
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT * FROM archive_weeks ORDER BY week_start DESC"
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def save_archive_week(week_start: str, week_end: str, label: str, year: str,
+                      newsletter_url: str | None, weekly_briefing_url: str | None) -> None:
+    """Insert or replace an archive week entry."""
+    conn = get_connection()
+    conn.execute(
+        """INSERT OR REPLACE INTO archive_weeks
+           (week_start, week_end, label, year, newsletter_url, weekly_briefing_url)
+           VALUES (?, ?, ?, ?, ?, ?)""",
+        (week_start, week_end, label, year, newsletter_url, weekly_briefing_url),
+    )
+    conn.commit()
     conn.close()

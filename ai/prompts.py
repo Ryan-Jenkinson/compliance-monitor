@@ -144,56 +144,92 @@ Prioritize NEW articles in your analysis but include CARRIED OVER items as conte
 """
 
 
-def stage3_exec_summary_prompt(topic_summaries: list[dict]) -> str:
-    """Stage 3: Generate 3-5 sentence executive summary across all topics."""
+def stage3_exec_summary_prompt(topic_summaries: list[dict], week_context: dict | None = None) -> str:
+    """Stage 3: Generate weekly briefing across all topics, day-aware."""
     topic_text = []
     for ts in topic_summaries:
         topic_text.append(f"TOPIC: {ts['topic']}")
         if ts.get("developments"):
             for d in ts["developments"]:
-                topic_text.append(f"  - [{d.get('urgency','?')}] {d.get('headline','')}: {d.get('summary','')[:200]}")
+                status = "NEW" if d.get("is_new", True) else "CARRIED OVER"
+                topic_text.append(f"  - [{status}][{d.get('urgency','?')}] {d.get('headline','')}: {d.get('summary','')[:200]}")
         else:
             topic_text.append("  - No new developments")
 
     summaries_text = "\n".join(topic_text)
 
+    ctx = week_context or {}
+    today_name = ctx.get("today_name", "today")
+    week_start_long = ctx.get("week_start_long", "this week")
+    week_end_long = ctx.get("week_end_long", "this Friday")
+    week_label = ctx.get("week_label", "this week")
+    is_friday = ctx.get("is_friday", False)
+
+    if is_friday:
+        day_framing = (
+            f"Today is Friday — this is the END-OF-WEEK summary covering the full week of {week_label} "
+            f"({week_start_long} through {week_end_long}). Write it as a complete weekly wrap-up."
+        )
+        opening_instruction = (
+            "1-2 sentences wrapping up the week — what was the overall posture? "
+            "What was the most significant development of the week?"
+        )
+        developments_instruction = (
+            "3-6 bullet points covering all material developments from this week. "
+            "This is the full week summary — be comprehensive but tight."
+        )
+    else:
+        day_framing = (
+            f"Today is {today_name}. This briefing covers developments so far in the week of {week_label} "
+            f"(since {week_start_long}). Articles marked CARRIED OVER appeared earlier this week."
+        )
+        opening_instruction = (
+            f"1-2 sentences framing where things stand as of {today_name} — "
+            "what is the posture, what's the most significant thing since Monday?"
+        )
+        developments_instruction = (
+            f"3-5 bullet points covering new developments since the start of this week. "
+            "Prioritize items marked NEW. Include CARRIED OVER items only if still actively relevant."
+        )
+
     return f"""\
-You have just analyzed today's compliance news across PFAS, EPR, REACH, and TSCA topics.
-Here is a condensed view of all developments:
+You have just analyzed this week's compliance news across PFAS, EPR, REACH, and TSCA topics.
+{day_framing}
+
+Here is a condensed view of all developments (NEW = appeared today or earlier this week, CARRIED OVER = seen earlier this week):
 
 {summaries_text}
 
-Write an executive briefing for SENIOR LEADERSHIP — people who are not compliance specialists
-and may not know what PFAS, EPR, REACH, TSCA, PRISM, or other acronyms mean.
+Write a weekly briefing for a small, expert compliance team — a compliance lead, their senior manager,
+and occasionally a director. These people receive this briefing every week and have been tracking
+PFAS, EPR, REACH, and TSCA for years. They know the regulatory landscape, the active campaigns,
+and the company's current strategy cold. Do NOT explain what PFAS is. Do NOT re-state known major
+deadlines as if they are breaking news. Write as a trusted colleague catching up experts.
 
-This will be read by VPs, directors, and C-suite. It should read like a polished internal memo
-from a trusted advisor — authoritative, concise, and clear about business impact.
-
-Structure (use these exact section markers):
+Structure (use these EXACT section markers on their own lines):
 
 [OPENING]
-A 2-3 sentence opening paragraph that frames the week's regulatory landscape. Set context:
-what is the overall posture (stable, escalating, approaching deadlines)? Mention the single
-most important thing leadership should know. Spell out any acronym on first use.
+{opening_instruction}
 
 [KEY DEVELOPMENTS]
-3-4 bullet points covering only items that have material business impact. Each bullet should:
-- Lead with the business consequence, not the regulatory detail
-- Name specific deadlines, cost exposure, or operational risk
-- Be 1-2 sentences max
-- Use plain business language — "supply chain disruption risk" not "TSCA Section 6 rulemaking"
+{developments_instruction}
+Each bullet: lead with what changed and where, then the implication. 1-2 sentences max. Prefix with "•".
 
 [OUTLOOK]
-A 1-2 sentence forward-looking close. What should leadership be watching for next?
-What decisions may be needed soon?
+1-2 sentences on what to watch next. Specific if possible.
+
+[FUN FACT]
+One compliance-related fun fact or dry compliance joke for the team. Keep it brief (1-2 sentences).
+Prioritize genuinely interesting-but-true facts related to this week's topics (regulatory history,
+surprising statistics, obscure rules). If nothing interesting applies, a dry compliance team joke is fine
+— something your team would actually chuckle at, not a groan. Examples of the right tone:
+"Fun fact: the EU REACH candidate list now covers 240+ substances — it started with 15 in 2008."
+"Compliance joke: Why did the PFAS molecule cross the road? To get to the other side of the regulatory threshold."
 
 Writing rules:
-- Spell out every acronym on first use (e.g. "PFAS (a class of industrial chemicals used in coatings and components)")
-- No jargon without explanation. If a compliance term is necessary, define it in context.
-- Be direct and confident. No hedging ("may potentially"), no filler ("it is worth noting").
-- Write at the level of a Wall Street Journal article — precise, polished, authoritative.
+- Full familiarity with all acronyms assumed — no definitions
+- Direct and confident. No hedging, no filler
+- If genuinely no significant new developments, say so plainly in [OPENING], keep [KEY DEVELOPMENTS] brief
 
-Return plain text with section markers [OPENING], [KEY DEVELOPMENTS], [OUTLOOK] on their own lines.
-Bullets in KEY DEVELOPMENTS should be prefixed with "•".
-No JSON, no markdown, no headers beyond the section markers.
+Return plain text only. Section markers on their own lines. No JSON, no markdown beyond the markers.
 """

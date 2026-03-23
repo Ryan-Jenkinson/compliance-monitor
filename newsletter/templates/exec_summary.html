@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Executive Briefing — {{ date_display }}</title>
+  <title>{% if week_label %}Week of {{ week_label }} — {% endif %}Weekly Briefing</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -83,7 +83,40 @@
       font-weight: 700;
       line-height: 1.25;
       color: var(--text);
-      margin-bottom: 0;
+      margin-bottom: 8px;
+    }
+    .title-range {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* ── Fun fact ── */
+    .fun-fact {
+      padding: 20px 24px;
+      background-color: #F5F2EC;
+      border-left: 3px solid var(--border);
+      margin: 0 0 28px;
+      border-radius: 2px;
+    }
+    .fun-fact-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .fun-fact-text {
+      font-family: var(--sans);
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text-secondary);
+      font-style: italic;
     }
 
     /* ── Divider ── */
@@ -222,8 +255,11 @@
   <div class="container">
 
     <div class="title-block">
-      <p class="title-label">Executive Briefing</p>
-      <h1 class="title-main">Regulatory Landscape Overview</h1>
+      <p class="title-label">{% if is_friday %}End of Week Summary{% else %}Weekly Briefing — {{ today_name }}{% endif %}</p>
+      <h1 class="title-main">{% if week_label %}Week of {{ week_label }}{% else %}This Week in Compliance{% endif %}</h1>
+      {% if week_start_long and week_end_long %}
+      <p class="title-range">{{ week_start_long }} – {{ week_end_long }}</p>
+      {% endif %}
     </div>
 
     <div class="divider"></div>
@@ -272,6 +308,13 @@
     <div class="outlook">
       <p class="outlook-label">Looking Ahead</p>
       <p>{{ ns.outlook }}</p>
+    </div>
+    {% endif %}
+
+    {% if fun_fact %}
+    <div class="fun-fact">
+      <p class="fun-fact-label">Did You Know</p>
+      <p class="fun-fact-text">{{ fun_fact }}</p>
     </div>
     {% endif %}
 
