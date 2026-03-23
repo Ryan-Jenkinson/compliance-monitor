@@ -52,8 +52,9 @@ from ai.summarizer import Summarizer
 from newsletter.renderer import NewsletterRenderer
 from delivery.gmail_sender import GmailSender
 from delivery.state_map_generator import generate_pfas_map
-from subscribers.db import init_db, get_archive_weeks, save_archive_week
+from subscribers.db import init_db, get_archive_weeks, save_archive_week, get_upcoming_deadlines
 from subscribers.repository import SubscriberRepository
+from delivery.calendar_generator import generate_ics
 
 _PAGES_BASE = "https://ryan-jenkinson.github.io/compliance-maps"
 _GITHUB_REPO_DIR = Path("/tmp/compliance-maps")
@@ -154,8 +155,9 @@ def _git_push(repo_dir: Path, files: list[str], message: str) -> bool:
 
 def _push_maps_to_github(pfas_map_path: Path, epr_map_path: Optional[Path],
                           reach_map_path: Optional[Path],
-                          repo_dir: Path) -> Tuple[Optional[str], Optional[str], Optional[str]]:
-    """Copy PFAS, EPR, and REACH maps to GitHub Pages repo and push."""
+                          repo_dir: Path,
+                          excel_paths: Optional[dict] = None) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+    """Copy PFAS, EPR, and REACH maps (and Excel files) to GitHub Pages repo and push."""
     logger = logging.getLogger("github_maps")
     try:
         dest = repo_dir / "index.html"
@@ -175,6 +177,14 @@ def _push_maps_to_github(pfas_map_path: Path, epr_map_path: Optional[Path],
             shutil.copy2(reach_map_path, reach_dest)
             files.append("reach-map.html")
             reach_url = f"{_PAGES_BASE}/reach-map.html"
+
+        # Copy Excel exports with stable filenames
+        if excel_paths:
+            for key, src_path in excel_paths.items():
+                if src_path and Path(src_path).exists():
+                    dest_name = f"{key}-tracker.xlsx"
+                    shutil.copy2(src_path, repo_dir / dest_name)
+                    files.append(dest_name)
 
         date_str = date.today().isoformat()
         _git_push(repo_dir, files, f"Update state maps {date_str}")
@@ -252,6 +262,25 @@ def _push_archive_index(archive_html: str, repo_dir: Path) -> Optional[str]:
         return None
 
 
+def _push_calendar_to_github(calendar_html: str, ics_path: Path, repo_dir: Path) -> Tuple[Optional[str], Optional[str]]:
+    """Push deadline calendar HTML and .ics to GitHub Pages. Returns (html_url, ics_url)."""
+    logger = logging.getLogger("calendar")
+    try:
+        dest_html = repo_dir / "deadlines.html"
+        dest_ics = repo_dir / "deadlines.ics"
+        dest_html.write_text(calendar_html, encoding="utf-8")
+        shutil.copy2(ics_path, dest_ics)
+        date_str = date.today().isoformat()
+        _git_push(repo_dir, ["deadlines.html", "deadlines.ics"], f"Update deadline calendar {date_str}")
+        logger.info("Deadline calendar pushed to GitHub Pages.")
+        html_url = f"{_PAGES_BASE}/deadlines.html"
+        ics_url = f"{_PAGES_BASE}/deadlines.ics"
+        return html_url, ics_url
+    except Exception as e:
+        logger.warning(f"Failed to push deadline calendar: {e}")
+        return None, None
+
+
 # ── NotebookLM ─────────────────────────────────────────────────────────────
 
 def _sync_notebooklm_weekly(weekly_url: str, archive_weeks: List[dict]) -> None:
@@ -287,36 +316,64 @@ def _sync_notebooklm_weekly(weekly_url: str, archive_weeks: List[dict]) -> None:
 
 # ── Maps ───────────────────────────────────────────────────────────────────
 
-def _generate_maps(repo_dir: Path) -> Tuple[Optional[str], Optional[str], Optional[str]]:
-    """Generate PFAS, EPR, and REACH maps and push to GitHub Pages."""
+def _generate_maps(repo_dir: Path, articles: Optional[List] = None) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+    """Generate PFAS, EPR, and REACH maps (with activity heat) and push to GitHub Pages."""
     logger = logging.getLogger("maps")
     pfas_map_path = None
     epr_map_path = None
     reach_map_path = None
 
+    # Compute activity counts from this week's articles
+    us_activity: Optional[dict] = None
+    eu_activity: Optional[dict] = None
+    if articles:
+        try:
+            from delivery.map_activity import count_us_state_activity, count_eu_country_activity
+            article_dicts = [
+                {"title": getattr(a, "title", ""), "snippet": getattr(a, "snippet", "")}
+                for a in articles
+            ]
+            us_activity = count_us_state_activity(article_dicts)
+            eu_activity = count_eu_country_activity(article_dicts)
+            logger.info(f"Activity counts: {sum(us_activity.values())} US mentions, {sum(eu_activity.values())} EU mentions")
+        except Exception as e:
+            logger.warning(f"Activity count failed: {e}")
+
     try:
-        pfas_map_path = generate_pfas_map()
+        pfas_map_path = generate_pfas_map(activity_counts=us_activity)
         logger.info("PFAS map generated.")
     except Exception as e:
         logger.warning(f"PFAS map generation failed: {e}")
 
     try:
         from delivery.epr_map_generator import generate_epr_map
-        epr_map_path = generate_epr_map()
+        epr_map_path = generate_epr_map(activity_counts=us_activity)
         logger.info("EPR map generated.")
     except Exception as e:
         logger.warning(f"EPR map generation failed: {e}")
 
     try:
         from delivery.reach_map_generator import generate_reach_map
-        reach_map_path = generate_reach_map()
+        reach_map_path = generate_reach_map(activity_counts=eu_activity)
         logger.info("REACH map generated.")
     except Exception as e:
         logger.warning(f"REACH map generation failed: {e}")
 
+    # Generate Excel exports
+    excel_paths: dict = {}
+    try:
+        from delivery.excel_exporter import generate_pfas_excel, generate_epr_excel, generate_reach_excel
+        excel_paths["pfas"] = generate_pfas_excel(activity_counts=us_activity)
+        excel_paths["epr"] = generate_epr_excel(activity_counts=us_activity)
+        excel_paths["reach"] = generate_reach_excel(activity_counts=eu_activity)
+        logger.info("Excel exports generated.")
+    except Exception as e:
+        logger.warning(f"Excel generation failed: {e}")
+
     if pfas_map_path:
         pfas_url, epr_url, reach_url = _push_maps_to_github(
-            pfas_map_path, epr_map_path, reach_map_path, repo_dir
+            pfas_map_path, epr_map_path, reach_map_path, repo_dir,
+            excel_paths=excel_paths,
         )
         return pfas_url, epr_url, reach_url
     return None, None, None
@@ -434,7 +491,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
     reach_map_url = f"{_PAGES_BASE}/reach-map.html" if (_GITHUB_REPO_DIR / "reach-map.html").exists() else None
     if is_friday or is_finalize:
         logger.info("Step 3b: Generating and pushing state maps…")
-        pfas_map_url, epr_map_url, reach_map_url = _generate_maps(_GITHUB_REPO_DIR)
+        pfas_map_url, epr_map_url, reach_map_url = _generate_maps(_GITHUB_REPO_DIR, articles=articles)
 
     # Step 3c: Publish to GitHub Pages
     logger.info("Step 3c: Publishing to GitHub Pages…")
@@ -473,11 +530,27 @@ def run_pipeline(args: argparse.Namespace) -> None:
         archive_url = _push_archive_index(archive_html, _GITHUB_REPO_DIR)
         logger.info(f"End-of-week archive saved: week of {week_context['week_label']}")
 
+    # Step 3d: Generate deadline calendar (Fridays and --finalize-week only)
+    calendar_url: Optional[str] = (
+        f"{_PAGES_BASE}/deadlines.html"
+        if (_GITHUB_REPO_DIR / "deadlines.html").exists()
+        else None
+    )
+    if is_friday or is_finalize:
+        logger.info("Step 3d: Generating deadline calendar…")
+        deadlines = get_upcoming_deadlines(days_ahead=365)
+        if deadlines:
+            ics_path = generate_ics(deadlines)
+            ics_url = f"{_PAGES_BASE}/deadlines.ics"
+            calendar_html = renderer.render_deadline_calendar(deadlines, ics_url=ics_url)
+            calendar_url, _ = _push_calendar_to_github(calendar_html, ics_path, _GITHUB_REPO_DIR)
+
     # Update web version with exec_summary_url and archive now that we have the URL
     web_html = renderer.render(
         pipeline_output, map_url=pfas_map_url, epr_map_url=epr_map_url, reach_map_url=reach_map_url,
         is_web_version=True, exec_summary_url=weekly_briefing_url,
         week_context=week_context, archive_weeks=archive_weeks, archive_url=archive_url,
+        calendar_url=calendar_url,
     )
 
     # Step 4: Send emails
@@ -494,6 +567,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
                 pipeline_output, subscriber_name=name, map_url=pfas_map_url,
                 epr_map_url=epr_map_url, reach_map_url=reach_map_url, exec_summary_url=weekly_briefing_url,
                 week_context=week_context, archive_weeks=archive_weeks, archive_url=archive_url,
+                calendar_url=calendar_url,
             )
             success = sender.send(email, f"[TEST] {subject}", html)
             if success:
@@ -515,6 +589,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
                     map_url=pfas_map_url, epr_map_url=epr_map_url, reach_map_url=reach_map_url,
                     exec_summary_url=weekly_briefing_url,
                     week_context=week_context, archive_weeks=archive_weeks, archive_url=archive_url,
+                    calendar_url=calendar_url,
                 )
                 success = sender.send(sub.email, subject, html)
                 if success:

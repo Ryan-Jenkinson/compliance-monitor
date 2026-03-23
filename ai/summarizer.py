@@ -13,6 +13,7 @@ from .prompts import (
     stage1_filter_prompt,
     stage2_summarize_prompt,
     stage3_exec_summary_prompt,
+    deadline_extraction_prompt,
 )
 from processors.article import RawArticle
 
@@ -71,6 +72,10 @@ class Summarizer:
 
         # Stage 3: weekly briefing (day-aware)
         exec_summary = self._stage3_exec_summary(topic_summaries, week_context=week_context)
+
+        # Extract and store deadlines
+        if week_context:
+            self._extract_deadlines(topic_summaries, week_context.get("week_start", ""))
 
         return {
             "exec_summary": exec_summary,
@@ -141,6 +146,50 @@ class Summarizer:
                 },
                 "has_news": False,
             }
+
+    def _extract_deadlines(self, topic_summaries: list, week_start: str) -> int:
+        """Extract and store regulatory deadlines from topic summaries. Returns count saved."""
+        from subscribers.db import upsert_deadline
+
+        prompt = deadline_extraction_prompt(topic_summaries)
+        if not prompt:
+            return 0
+
+        try:
+            response = self.client.complete_haiku(
+                prompt,
+                system="You extract structured data. Return valid JSON only.",
+                cache_key=f"deadlines_{week_start}",
+            )
+            text = response.strip()
+            if text.startswith("```"):
+                text = text.split("```")[1]
+                if text.startswith("json"):
+                    text = text[4:]
+            deadlines = json.loads(text.strip())
+            if not isinstance(deadlines, list):
+                return 0
+            count = 0
+            for dl in deadlines:
+                try:
+                    upsert_deadline(
+                        topic=dl.get("topic", ""),
+                        title=dl.get("title", ""),
+                        deadline_date=dl.get("deadline_date", ""),
+                        description=dl.get("description", ""),
+                        jurisdiction=dl.get("jurisdiction", ""),
+                        source_url=dl.get("source_url", ""),
+                        urgency=dl.get("urgency", "MEDIUM"),
+                        week_start=week_start,
+                    )
+                    count += 1
+                except Exception:
+                    pass
+            logger.info(f"Extracted {count} deadlines.")
+            return count
+        except Exception as e:
+            logger.warning(f"Deadline extraction failed: {e}")
+            return 0
 
     def _stage3_exec_summary(self, topic_summaries: list[dict], week_context: dict | None = None) -> str:
         today = (week_context or {}).get("today", "")

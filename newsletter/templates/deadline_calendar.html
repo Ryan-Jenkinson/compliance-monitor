@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compliance Intelligence — Deadline Calendar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #FAF7F2;
+      --header: #2C2C2C;
+      --text: #1A1A1A;
+      --text-secondary: #4A4740;
+      --text-muted: #9A9590;
+      --border: #E5E1DA;
+      --border-light: #ECEAE5;
+      --accent: #D64045;
+      --mono: 'IBM Plex Mono', 'Courier New', monospace;
+      --serif: 'Libre Baskerville', Georgia, serif;
+      --sans: 'Source Sans 3', 'Trebuchet MS', Helvetica, sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: var(--bg);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .header {
+      background-color: var(--header);
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-brand {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #9A9590;
+    }
+    .header-right {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: #6E6A63;
+      letter-spacing: 1px;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 28px 64px;
+    }
+
+    .page-title {
+      padding: 48px 0 8px;
+    }
+    .page-eyebrow {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .page-heading {
+      font-family: var(--serif);
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+    .page-subtitle {
+      font-family: var(--sans);
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+
+    .ics-button {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      background-color: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 3px;
+    }
+    .ics-button:hover { opacity: 0.88; }
+
+    .divider {
+      height: 1px;
+      background-color: var(--border);
+      margin: 28px 0 32px;
+    }
+
+    /* Quarter groups */
+    .quarter-group { margin-bottom: 40px; }
+    .quarter-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    /* Deadline row */
+    .deadline-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .deadline-row:last-child { border-bottom: none; }
+
+    .urgency-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+    .urgency-HIGH  { background: #D64045; }
+    .urgency-MEDIUM { background: #D69E2E; }
+    .urgency-LOW   { background: #3182CE; }
+
+    .deadline-date {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      min-width: 84px;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    .deadline-content { flex: 1; min-width: 0; }
+
+    .deadline-title {
+      font-family: var(--serif);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .deadline-meta {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+    .badge-topic-pfas  { background: #FFF5F5; color: #C53030; }
+    .badge-topic-epr   { background: #F0FFF4; color: #276749; }
+    .badge-topic-reach { background: #EBF8FF; color: #2B6CB0; }
+    .badge-topic-tsca  { background: #FFFFF0; color: #744210; }
+    .badge-jurisdiction { background: var(--border-light); color: var(--text-muted); }
+
+    .deadline-description {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .deadline-link {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--accent);
+      text-decoration: none;
+      margin-top: 4px;
+      display: inline-block;
+    }
+    .deadline-link:hover { text-decoration: underline; }
+
+    .legend {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+
+    .empty-state {
+      padding: 48px 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+
+    .bottom-bar {
+      background-color: var(--header);
+      padding: 18px 32px;
+      text-align: center;
+    }
+    .bottom-bar-text {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: #6E6A63;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 520px) {
+      .header { padding: 14px 20px; }
+      .container { padding: 0 20px 48px; }
+      .page-heading { font-size: 22px; }
+      .deadline-row { flex-wrap: wrap; }
+      .deadline-date { min-width: auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <span class="header-brand">Compliance Intelligence</span>
+    <span class="header-right">Deadline Calendar</span>
+  </div>
+
+  <div class="container">
+    <div class="page-title">
+      <p class="page-eyebrow">Regulatory Deadlines</p>
+      <h1 class="page-heading">Deadline Calendar</h1>
+      <p class="page-subtitle">Upcoming compliance deadlines extracted from weekly briefings. Updated each Friday.</p>
+      {% if ics_url %}
+      <a href="{{ ics_url }}" class="ics-button">Subscribe to Calendar (.ics)</a>
+      {% endif %}
+    </div>
+
+    <div class="divider"></div>
+
+    {% if deadlines %}
+      <div class="legend">
+        <div class="legend-item"><span class="urgency-dot urgency-HIGH"></span> High — within 90 days</div>
+        <div class="legend-item"><span class="urgency-dot urgency-MEDIUM"></span> Medium — 90–365 days</div>
+        <div class="legend-item"><span class="urgency-dot urgency-LOW"></span> Low — beyond 365 days</div>
+      </div>
+
+      {# Group deadlines by quarter #}
+      {% set ns = namespace(current_quarter='') %}
+      {% for dl in deadlines %}
+        {% set dl_year = dl.deadline_date[:4] %}
+        {% set dl_month = dl.deadline_date[5:7]|int %}
+        {% if dl_month <= 3 %}
+          {% set dl_quarter = 'Q1 ' ~ dl_year %}
+        {% elif dl_month <= 6 %}
+          {% set dl_quarter = 'Q2 ' ~ dl_year %}
+        {% elif dl_month <= 9 %}
+          {% set dl_quarter = 'Q3 ' ~ dl_year %}
+        {% else %}
+          {% set dl_quarter = 'Q4 ' ~ dl_year %}
+        {% endif %}
+
+        {% if dl_quarter != ns.current_quarter %}
+          {% if not loop.first %}</div>{% endif %}
+          {% set ns.current_quarter = dl_quarter %}
+          <div class="quarter-group">
+          <p class="quarter-label">{{ dl_quarter }}</p>
+        {% endif %}
+
+        <div class="deadline-row">
+          <span class="urgency-dot urgency-{{ dl.urgency or 'MEDIUM' }}"></span>
+          <span class="deadline-date">{{ dl.deadline_date }}</span>
+          <div class="deadline-content">
+            <div class="deadline-title">{{ dl.title }}</div>
+            <div class="deadline-meta">
+              {% if dl.topic %}
+              <span class="badge badge-topic-{{ dl.topic|lower }}">{{ dl.topic|upper }}</span>
+              {% endif %}
+              {% if dl.jurisdiction %}
+              <span class="badge badge-jurisdiction">{{ dl.jurisdiction }}</span>
+              {% endif %}
+            </div>
+            {% if dl.description %}
+            <div class="deadline-description">{{ dl.description }}</div>
+            {% endif %}
+            {% if dl.source_url %}
+            <a href="{{ dl.source_url }}" class="deadline-link" target="_blank">Source &rarr;</a>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if loop.last %}</div>{% endif %}
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">No upcoming deadlines tracked yet.</div>
+    {% endif %}
+  </div>
+
+  <div class="bottom-bar">
+    <span class="bottom-bar-text">Compliance Intelligence &mdash; {{ date_display }}</span>
+  </div>
+
+</body>
+</html>

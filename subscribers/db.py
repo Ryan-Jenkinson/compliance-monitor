@@ -74,6 +74,20 @@ CREATE TABLE IF NOT EXISTS archive_weeks (
     archived_at          TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Regulatory deadlines extracted by AI pipeline
+CREATE TABLE IF NOT EXISTS regulatory_deadlines (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    topic           TEXT NOT NULL,
+    title           TEXT NOT NULL,
+    deadline_date   TEXT NOT NULL,  -- YYYY-MM-DD
+    description     TEXT,
+    jurisdiction    TEXT,           -- e.g. "Minnesota", "EU", "Federal"
+    source_url      TEXT,
+    urgency         TEXT,           -- HIGH/MEDIUM/LOW
+    extracted_at    TEXT NOT NULL DEFAULT (datetime('now')),
+    week_start      TEXT            -- which week's pipeline extracted this
+);
+
 -- PowerBI export view
 CREATE VIEW IF NOT EXISTS powerbi_export AS
 SELECT
@@ -110,6 +124,24 @@ def init_db() -> None:
         conn.commit()
     except Exception:
         pass  # Column already exists
+    # Migration: add regulatory_deadlines table if it doesn't exist
+    try:
+        conn.execute("""CREATE TABLE IF NOT EXISTS regulatory_deadlines (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            topic TEXT NOT NULL,
+            title TEXT NOT NULL,
+            deadline_date TEXT NOT NULL,
+            description TEXT,
+            jurisdiction TEXT,
+            source_url TEXT,
+            urgency TEXT,
+            extracted_at TEXT NOT NULL DEFAULT (datetime('now')),
+            week_start TEXT,
+            UNIQUE(topic, title, deadline_date)
+        )""")
+        conn.commit()
+    except Exception:
+        pass
     conn.close()
 
 
@@ -135,3 +167,34 @@ def save_archive_week(week_start: str, week_end: str, label: str, year: str,
     )
     conn.commit()
     conn.close()
+
+
+def upsert_deadline(topic: str, title: str, deadline_date: str,
+                    description: str, jurisdiction: str, source_url: str,
+                    urgency: str, week_start: str) -> None:
+    """Insert or update a deadline. Dedupes on (topic, title, deadline_date)."""
+    conn = get_connection()
+    conn.execute("""
+        INSERT INTO regulatory_deadlines
+            (topic, title, deadline_date, description, jurisdiction, source_url, urgency, week_start)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT DO NOTHING
+    """, (topic, title, deadline_date, description, jurisdiction, source_url, urgency, week_start))
+    conn.commit()
+    conn.close()
+
+
+def get_upcoming_deadlines(days_ahead: int = 365) -> list[dict]:
+    """Return deadlines from today through days_ahead, ordered by date."""
+    from datetime import date, timedelta
+    today = date.today().isoformat()
+    cutoff = (date.today() + timedelta(days=days_ahead)).isoformat()
+    conn = get_connection()
+    rows = conn.execute(
+        """SELECT * FROM regulatory_deadlines
+           WHERE deadline_date >= ? AND deadline_date <= ?
+           ORDER BY deadline_date ASC""",
+        (today, cutoff)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]

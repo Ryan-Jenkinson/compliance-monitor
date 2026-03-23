@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from datetime import date
 from pathlib import Path
+from typing import Optional, Dict
 
 from config.settings import Config
 
@@ -455,7 +456,22 @@ def _escape_js(text: str) -> str:
     )
 
 
-def _build_country_cells() -> str:
+def _activity_class(code: str, activity_counts: Optional[Dict[str, int]]) -> str:
+    """Return an activity CSS class based on article count."""
+    if not activity_counts:
+        return ""
+    count = activity_counts.get(code, 0)
+    if count == 0:
+        return ""
+    elif count <= 2:
+        return " activity-1"
+    elif count <= 5:
+        return " activity-2"
+    else:
+        return " activity-3"
+
+
+def _build_country_cells(activity_counts: Optional[Dict[str, int]] = None) -> str:
     """Return HTML div elements for every country cell."""
     cells = []
     for code, (row, col) in _COUNTRY_GRID.items():
@@ -465,8 +481,9 @@ def _build_country_cells() -> str:
         status = country.get("status", "standard")
         color = _STATUS_COLORS.get(status, _STATUS_COLORS["standard"])
         text_color = "#fff" if status in ("priority", "high", "monitor") else "#2D5A3D"
+        act_class = _activity_class(code, activity_counts)
         cells.append(
-            f'<div class="country-cell status-{status}" '
+            f'<div class="country-cell status-{status}{act_class}" '
             f'style="grid-row:{row};grid-column:{col};background-color:{color};color:{text_color};" '
             f'data-code="{code}" '
             f'onclick="showDetail(\'{code}\')" '
@@ -475,6 +492,10 @@ def _build_country_cells() -> str:
             f'</div>'
         )
     return "\n".join(cells)
+
+
+# Export for excel_exporter.py
+_REACH_COUNTRY_DATA = _COUNTRY_DATA
 
 
 def _build_country_js_data() -> str:
@@ -500,13 +521,13 @@ def _build_country_js_data() -> str:
 # Main generator
 # ---------------------------------------------------------------------------
 
-def generate_reach_map() -> Path:
+def generate_reach_map(activity_counts: Optional[Dict[str, int]] = None) -> Path:
     """Generate the interactive EU REACH country map HTML. Returns the output path."""
     today = date.today().strftime("%Y-%m-%d")
     output_path = Config.DATA_DIR / f"reach_map_{today}.html"
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    country_cells_html = _build_country_cells()
+    country_cells_html = _build_country_cells(activity_counts=activity_counts)
     country_js_data = _build_country_js_data()
 
     # Build legend items
@@ -781,6 +802,27 @@ def generate_reach_map() -> Path:
       font-size: 11px;
       color: #A0AEC0;
     }}
+
+    /* ---- Activity heat layer ---- */
+    .activity-1 {{ box-shadow: inset 0 -3px 0 #DD6B20; }}
+    .activity-2 {{ box-shadow: inset 0 -3px 0 #C05621; }}
+    .activity-3 {{ box-shadow: inset 0 -3px 0 #9C4221; }}
+
+    /* ---- Download button ---- */
+    .download-btn {{
+      display: inline-block;
+      background: #0D2318;
+      color: #fff;
+      font-family: -apple-system, sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 7px 14px;
+      text-decoration: none;
+      border-radius: 3px;
+      margin-top: 8px;
+    }}
   </style>
 </head>
 <body>
@@ -789,6 +831,7 @@ def generate_reach_map() -> Path:
   <p class="brand">Compliance Intelligence</p>
   <h1>EU REACH Tracker</h1>
   <p class="sub">Enforcement intensity &amp; supplier exposure by country &nbsp;&middot;&nbsp; Generated: {today}</p>
+  <a class="download-btn" href="./reach-tracker.xlsx" download>&#8595; Download Excel</a>
 </div>
 
 <div class="page-body">

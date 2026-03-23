@@ -4,6 +4,7 @@ import json
 import logging
 from datetime import date
 from pathlib import Path
+from typing import Optional, Dict
 
 from config.settings import Config
 
@@ -583,6 +584,10 @@ _EPR_STATES: dict[str, dict] = {
 }
 
 
+# Public export alias for use by excel_exporter and other modules
+_EPR_STATE_DATA = _EPR_STATES
+
+
 def _escape_js(text: str) -> str:
     """Escape a string for safe embedding in a JS string literal."""
     return (
@@ -594,7 +599,22 @@ def _escape_js(text: str) -> str:
     )
 
 
-def _build_state_cells(states: dict) -> str:
+def _activity_class(abbr: str, activity_counts: Optional[Dict[str, int]]) -> str:
+    """Return an activity CSS class based on article count for this jurisdiction."""
+    if not activity_counts:
+        return ""
+    count = activity_counts.get(abbr, 0)
+    if count == 0:
+        return ""
+    elif count <= 2:
+        return " activity-1"
+    elif count <= 5:
+        return " activity-2"
+    else:
+        return " activity-3"
+
+
+def _build_state_cells(states: dict, activity_counts: Optional[Dict[str, int]] = None) -> str:
     """Return HTML div elements for every state cell."""
     cells = []
     for abbr, (row, col) in _STATE_GRID.items():
@@ -603,9 +623,10 @@ def _build_state_cells(states: dict) -> str:
             continue
         status = state.get("status", "none")
         color = _STATUS_COLORS.get(status, _STATUS_COLORS["none"])
+        act_class = _activity_class(abbr, activity_counts)
 
         cells.append(
-            f'<div class="state-cell status-{status}" '
+            f'<div class="state-cell status-{status}{act_class}" '
             f'style="grid-row:{row + 1};grid-column:{col + 1};background-color:{color};" '
             f'data-abbr="{abbr}" '
             f'onclick="showDetail(\'{abbr}\')" '
@@ -634,7 +655,7 @@ def _build_state_js_data(states: dict) -> str:
     return "{\n" + ",\n".join(entries) + "\n}"
 
 
-def generate_epr_map(output_path: Path = None) -> Path:
+def generate_epr_map(output_path: Path = None, activity_counts: Optional[Dict[str, int]] = None) -> Path:
     """Generate the interactive EPR state map HTML. Returns the output path."""
     today = date.today().strftime("%Y-%m-%d")
 
@@ -647,7 +668,7 @@ def generate_epr_map(output_path: Path = None) -> Path:
     states = _EPR_STATES
     last_updated = today
 
-    state_cells_html = _build_state_cells(states)
+    state_cells_html = _build_state_cells(states, activity_counts=activity_counts)
     state_js_data = _build_state_js_data(states)
 
     # Build legend items
@@ -766,6 +787,27 @@ def generate_epr_map(output_path: Path = None) -> Path:
     }}
     .status-proposed {{
       color: #1B4B82;
+    }}
+
+    /* ---- Activity heat layer ---- */
+    .activity-1 {{ box-shadow: inset 0 -3px 0 #DD6B20; }}
+    .activity-2 {{ box-shadow: inset 0 -3px 0 #C05621; }}
+    .activity-3 {{ box-shadow: inset 0 -3px 0 #9C4221; }}
+
+    /* ---- Download button ---- */
+    .download-btn {{
+      display: inline-block;
+      background: #2C2C2C;
+      color: white;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 2px;
+      margin-bottom: 16px;
     }}
 
     /* ---- Legend ---- */
@@ -915,6 +957,7 @@ def generate_epr_map(output_path: Path = None) -> Path:
 
   <!-- Map -->
   <div class="map-panel">
+    <a class="download-btn" href="./epr-tracker.xlsx" download>&#8595; Download Excel</a>
     <p class="map-title">Click any state for details</p>
     <div class="state-grid" id="stateGrid">
 {state_cells_html}
@@ -922,6 +965,10 @@ def generate_epr_map(output_path: Path = None) -> Path:
 
     <div class="legend">
 {legend_html}
+      <div class="legend-item">
+        <span class="legend-swatch" style="background:#E8EDF0;box-shadow:inset 0 -3px 0 #DD6B20;"></span>
+        <span class="legend-label">Activity this week (amber = articles mentioning this state)</span>
+      </div>
     </div>
   </div>
 

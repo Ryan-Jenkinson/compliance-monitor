@@ -521,6 +521,12 @@
               </div>
               {% endif %}
 
+              {% if calendar_url %}
+              <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-light);">
+                <a href="{{ calendar_url }}" style="font-family: var(--mono); font-size: 11px; color: var(--accent); text-decoration: none;">Deadline Calendar &rarr;</a>
+              </div>
+              {% endif %}
+
               {% for topic in topics %}
               {% include 'topic_section.html' %}
               {% if not loop.last %}<div class="section-divider"></div>{% endif %}

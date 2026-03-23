@@ -71,6 +71,7 @@ class NewsletterRenderer:
         week_context: Optional[dict] = None,
         archive_weeks: Optional[List[dict]] = None,
         archive_url: Optional[str] = None,
+        calendar_url: Optional[str] = None,
     ) -> str:
         now = datetime.now()
         ctx = week_context or {}
@@ -101,6 +102,7 @@ class NewsletterRenderer:
             archive_weeks=archive_weeks or [],
             archive_url=archive_url,
             is_web_version=is_web_version,
+            calendar_url=calendar_url,
         )
 
         if inline_css:
@@ -141,6 +143,16 @@ class NewsletterRenderer:
         return template.render(
             date_display=now.strftime("%B %-d, %Y"),
             archive_weeks=archive_weeks,
+        )
+
+    def render_deadline_calendar(self, deadlines: List[dict], ics_url: Optional[str] = None) -> str:
+        """Render the standalone deadline calendar page."""
+        now = datetime.now()
+        template = self.env.get_template("deadline_calendar.html")
+        return template.render(
+            date_display=now.strftime("%B %-d, %Y"),
+            deadlines=deadlines,
+            ics_url=ics_url,
         )
 
     # Keep old name as alias for any callers

@@ -233,3 +233,52 @@ Writing rules:
 
 Return plain text only. Section markers on their own lines. No JSON, no markdown beyond the markers.
 """
+
+
+def deadline_extraction_prompt(topic_summaries: list[dict]) -> str:
+    """Extract structured regulatory deadlines from all topic summaries."""
+    lines = []
+    for ts in topic_summaries:
+        for d in ts.get("developments", []):
+            if d.get("deadline"):
+                lines.append(
+                    f"TOPIC: {ts['topic']} | TITLE: {d.get('headline','')} | "
+                    f"DEADLINE: {d.get('deadline','')} | SUMMARY: {d.get('summary','')[:200]} | "
+                    f"URL: {d.get('url','')} | URGENCY: {d.get('urgency','MEDIUM')}"
+                )
+
+    if not lines:
+        return ""
+
+    content = "\n".join(lines)
+    from datetime import date
+    today = date.today().isoformat()
+
+    return f"""\
+Today is {today}. Extract structured regulatory deadlines from the following compliance developments.
+Only extract SPECIFIC deadlines with a known or strongly implied date (not vague "upcoming" references).
+
+{content}
+
+Return a JSON array of deadline objects:
+[
+  {{
+    "topic": "pfas|epr|reach|tsca",
+    "title": "Short deadline title (max 12 words)",
+    "deadline_date": "YYYY-MM-DD",
+    "description": "One sentence explaining what must be done by this date",
+    "jurisdiction": "e.g. Minnesota, Federal, EU, California",
+    "source_url": "URL",
+    "urgency": "HIGH|MEDIUM|LOW"
+  }}
+]
+
+Rules:
+- Only include deadlines with a specific date you can express as YYYY-MM-DD
+- If only month/year known, use the last day of that month
+- HIGH = deadline within 90 days, MEDIUM = 90-365 days, LOW = beyond 365 days
+- Skip vague or speculative deadlines
+- Return [] if no concrete deadlines found
+
+Return JSON only.
+"""
