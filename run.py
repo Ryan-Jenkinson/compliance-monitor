@@ -428,9 +428,10 @@ def run_pipeline(args: argparse.Namespace) -> None:
         return
 
     # Step 3b: Generate maps (Fridays and --finalize-week only)
-    pfas_map_url = f"{_PAGES_BASE}/"
-    epr_map_url = f"{_PAGES_BASE}/epr-map.html"
-    reach_map_url = f"{_PAGES_BASE}/reach-map.html"
+    # Default to URL only if the file already exists in the GitHub Pages repo
+    pfas_map_url = f"{_PAGES_BASE}/" if (_GITHUB_REPO_DIR / "index.html").exists() else None
+    epr_map_url = f"{_PAGES_BASE}/epr-map.html" if (_GITHUB_REPO_DIR / "epr-map.html").exists() else None
+    reach_map_url = f"{_PAGES_BASE}/reach-map.html" if (_GITHUB_REPO_DIR / "reach-map.html").exists() else None
     if is_friday or is_finalize:
         logger.info("Step 3b: Generating and pushing state maps…")
         pfas_map_url, epr_map_url, reach_map_url = _generate_maps(_GITHUB_REPO_DIR)
