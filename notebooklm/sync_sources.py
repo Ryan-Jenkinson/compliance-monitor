@@ -100,7 +100,7 @@ async def _sync(weekly_url: str | None, digest_text: str | None) -> None:
                 source = await client.sources.add_text(
                     notebook_id,
                     title="Historical Compliance Digest",
-                    text=digest_text,
+                    content=digest_text,
                 )
                 state["digest_source_id"] = source.id
                 logger.info(f"Uploaded historical digest (source {source.id})")
