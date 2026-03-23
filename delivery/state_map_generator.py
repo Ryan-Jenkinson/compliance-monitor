@@ -320,6 +320,48 @@ def generate_pfas_map(output_path: Path = None, activity_counts: Optional[Dict[s
       transition: opacity 0.2s ease;
       position: sticky;
       top: 24px;
+      position: relative;
+    }}
+    .detail-close {{ display: none; }}
+    .detail-overlay {{ display: none; }}
+
+    @media (max-width: 768px) {{
+      .page-body {{ flex-direction: column; }}
+      .detail-overlay {{
+        display: block;
+        visibility: hidden;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }}
+      .detail-overlay.open {{ visibility: visible; opacity: 1; }}
+      .detail-panel {{
+        display: none !important;
+        position: fixed !important;
+        bottom: 0 !important; left: 0 !important; right: 0 !important;
+        top: auto !important;
+        width: 100% !important;
+        max-height: 65vh;
+        overflow-y: auto;
+        z-index: 1000;
+        border-radius: 12px 12px 0 0 !important;
+        box-shadow: 0 -4px 24px rgba(0,0,0,0.2);
+        padding: 20px 20px 32px;
+      }}
+      .detail-panel.open {{ display: block !important; }}
+      .detail-close {{
+        display: block;
+        position: absolute;
+        top: 12px; right: 14px;
+        font-size: 22px; line-height: 1;
+        cursor: pointer;
+        color: #718096;
+        background: none; border: none; padding: 4px;
+        z-index: 1001;
+      }}
     }}
 
     .detail-empty {{
@@ -474,7 +516,9 @@ def generate_pfas_map(output_path: Path = None, activity_counts: Optional[Dict[s
   </div>
 
   <!-- Detail panel -->
+  <div class="detail-overlay" id="detailOverlay" onclick="closeDetail()"></div>
   <div class="detail-panel" id="detailPanel">
+    <button class="detail-close" onclick="closeDetail()" aria-label="Close">&#x2715;</button>
     <div class="detail-empty" id="detailEmpty">Select a state to see details</div>
     <div id="detailContent" style="display:none;"></div>
   </div>
@@ -564,6 +608,16 @@ function showDetail(abbr) {{
   var content = document.getElementById('detailContent');
   content.style.display = 'block';
   content.innerHTML = html;
+
+  if (window.innerWidth <= 768) {{
+    document.getElementById('detailPanel').classList.add('open');
+    document.getElementById('detailOverlay').classList.add('open');
+  }}
+}}
+
+function closeDetail() {{
+  document.getElementById('detailPanel').classList.remove('open');
+  document.getElementById('detailOverlay').classList.remove('open');
 }}
 
 function escapeHtml(str) {{
