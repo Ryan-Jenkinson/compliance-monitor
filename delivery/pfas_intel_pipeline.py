@@ -183,15 +183,17 @@ Return ONLY a JSON array (no markdown fences), where each entry is:
   ]
 }}
 
-Include ALL 50 states + DC. For states with no signals, include them with an empty signals array.
+ONLY include states that have at least one signal. Do NOT include states with empty signals arrays — omit them entirely to save space.
 Be thorough — capture every hint of PFAS legislative activity. It is better to include a low-confidence signal than to miss it entirely.
 """
 
     logger.info("Pass 1: Extracting state-level PFAS signals from articles...")
-    pass1_raw = client.complete_sonnet(
+    pass1_raw = client.complete(
         pass1_prompt,
         system="You are a legislative intelligence analyst. Return only valid JSON, no markdown fences or commentary.",
-        cache_key="pfas_intel_pass1_2026-03-23_v3",
+        model="claude-sonnet-4-6",
+        max_tokens=32000,
+        cache_key="pfas_intel_pass1_2026-03-23_v5_compact",
     )
 
     # Parse pass 1 result
@@ -214,7 +216,14 @@ Be thorough — capture every hint of PFAS legislative activity. It is better to
     # Summarize pass 1 for pass 2 context
     pass1_summary = json.dumps(pass1_data, indent=1)
 
-    pass2_prompt = f"""You are a senior regulatory strategist advising a US manufacturer (window/door products with fluoropolymer PFAS-containing coatings) on state PFAS legislative engagement opportunities. Today is March 23, 2026.
+    pass2_prompt = f"""You are a senior regulatory strategist advising a US windows and doors manufacturer on state PFAS legislative engagement opportunities. Today is March 23, 2026.
+
+COMPANY PROFILE — critical for relevance scoring:
+This company manufactures windows, doors, and related products. Two material categories matter:
+1. DIRECT MATERIALS (go into products): vinyl (window frames), wood, glass, coatings (fluoropolymer PFAS-containing coatings on products — primary exposure), weatherstripping, sealants, adhesives, hardware (hinges, door knobs, handles, locks), screen doors/materials
+2. INDIRECT / MRO (manufacturing support): equipment, O-rings/gaskets/seals (often PTFE/fluoropolymers), lubricants, greases, motors, electronics, janitorial supplies, maintenance chemicals
+
+LOW RELEVANCE to this company: food packaging, firefighting foam (AFFF), textiles/apparel, cosmetics, carpeting. If a bill ONLY targets these categories, mark it as low relevance.
 
 Below is raw intelligence about PFAS legislative activity in each US state. Your job is to synthesize this into a final map dataset that will help the legal team prioritize which states to engage with.
 
@@ -234,16 +243,18 @@ For each state that has ANY signal (even low-confidence), produce a final entry 
    - "enacted_watching": Recently enacted, implementation phase with open rulemaking or comment periods
 
 2. **bills**: Array of bill numbers/names
-3. **summary**: 2-4 sentence description covering what's proposed, current status, and trajectory
-4. **scope**: What the legislation covers (product restrictions, reporting, drinking water, foam, contamination liability, broad ban, multiple)
-5. **session**: Legislative session year
-6. **engagement_note**: Specific guidance for the legal engagement team:
+3. **summary**: 2-4 sentence description covering what's proposed, current status, and trajectory. IMPORTANT: note whether the bill/action specifically affects building products, industrial coatings, manufacturing materials, or is a broad ban that would catch these uses.
+4. **scope**: What the legislation covers (product restrictions, reporting, drinking water, foam, contamination liability, broad ban, building products, industrial coatings, multiple)
+5. **company_relevance**: "high" (directly targets building products, industrial coatings, manufacturing materials, or is a broad ban), "medium" (broad scope that could catch our products/materials), "low" (targets food packaging, textiles, cosmetics only)
+6. **company_impact**: 1-2 sentences on how this specifically affects a windows/doors manufacturer — e.g. "Broad product ban would cover fluoropolymer coatings on vinyl window frames and PTFE-containing O-rings in manufacturing equipment"
+7. **session**: Legislative session year
+8. **engagement_note**: Specific guidance for the legal engagement team:
    - What action to take at this stage
    - Who to engage (committee chair, bill sponsor, governor's office, rulemaking docket)
-   - What the company's angle should be (as a fluoropolymer user with legitimate industrial applications)
+   - What the company's angle should be (industrial fluoropolymer applications in building products — no consumer exposure pathway like food contact)
    - Time urgency (session end dates, comment deadlines, hearing dates)
-7. **confidence**: "high" (direct evidence in articles), "medium" (partial evidence + inference), "low" (training knowledge or weak signals)
-8. **evidence_sources**: Array of source names that support this assessment
+9. **confidence**: "high" (direct evidence in articles or LegiScan data), "medium" (partial evidence + inference), "low" (training knowledge or weak signals)
+10. **evidence_sources**: Array of source names that support this assessment
 
 For states with NO signals at all, set stage to "none" and include minimal fields.
 
@@ -252,7 +263,7 @@ IMPORTANT: Be aggressive about including states. If there's even a hint of poten
 Return ONLY a JSON object (no markdown):
 {{
   "generated": "2026-03-23",
-  "pipeline_version": "v2_deep_scrape",
+  "pipeline_version": "v3_legiscan",
   "total_signals": <count>,
   "states": {{
     "XX": {{
@@ -261,6 +272,8 @@ Return ONLY a JSON object (no markdown):
       "bills": ["..."],
       "summary": "...",
       "scope": "...",
+      "company_relevance": "high|medium|low",
+      "company_impact": "...",
       "session": "...",
       "engagement_note": "...",
       "confidence": "high|medium|low",
@@ -275,8 +288,8 @@ Return ONLY a JSON object (no markdown):
         pass2_prompt,
         system="You are a regulatory strategist. Return only valid JSON, no markdown fences.",
         model="claude-sonnet-4-6",
-        max_tokens=12000,
-        cache_key="pfas_intel_pass2_2026-03-23_v3",
+        max_tokens=32000,
+        cache_key="pfas_intel_pass2_2026-03-23_v5_compact",
     )
 
     pass2_raw = pass2_raw.strip()

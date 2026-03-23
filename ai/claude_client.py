@@ -45,8 +45,15 @@ class ClaudeClient:
         if system:
             kwargs["system"] = system
 
-        response = self._client.messages.create(**kwargs)
-        text = response.content[0].text
+        # Use streaming for large requests to avoid timeout
+        if max_tokens > 8192:
+            text = ""
+            with self._client.messages.stream(**kwargs) as stream:
+                for chunk in stream.text_stream:
+                    text += chunk
+        else:
+            response = self._client.messages.create(**kwargs)
+            text = response.content[0].text
 
         if cache_key:
             self._save_cache(cache_key, text)

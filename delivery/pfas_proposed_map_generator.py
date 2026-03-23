@@ -138,6 +138,8 @@ def _build_js_data(states: dict) -> str:
             f'"bills": {bills_js}, '
             f'"summary": "{_escape_js(state.get("summary", ""))}", '
             f'"scope": "{_escape_js(state.get("scope", ""))}", '
+            f'"company_relevance": "{_escape_js(state.get("company_relevance", ""))}", '
+            f'"company_impact": "{_escape_js(state.get("company_impact", ""))}", '
             f'"session": "{_escape_js(state.get("session", ""))}", '
             f'"engagement_note": "{_escape_js(state.get("engagement_note", ""))}", '
             f'"confidence": "{state.get("confidence", "")}", '
@@ -195,6 +197,7 @@ def generate_pfas_proposed_map(output_path: Path = None) -> Path:
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PFAS Legislative Intelligence — Preview</title>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <style>
     *, *::before, *::after {{ box-sizing: border-box; }}
 
@@ -228,6 +231,11 @@ def generate_pfas_proposed_map(output_path: Path = None) -> Path:
       background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #172554 100%);
       padding: 24px 32px 20px;
     }}
+    .page-header .header-top {{
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }}
     .page-header .brand {{
       font-size: 10px;
       font-weight: 700;
@@ -242,6 +250,24 @@ def generate_pfas_proposed_map(output_path: Path = None) -> Path:
       color: #fff;
       margin: 0 0 6px;
     }}
+    .export-btn {{
+      background: #2563EB;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }}
+    .export-btn:hover {{ background: #1D4ED8; }}
+    .export-btn svg {{ width: 16px; height: 16px; fill: currentColor; }}
     .page-header .sub {{
       font-size: 13px;
       color: #93C5FD;
@@ -508,6 +534,26 @@ def generate_pfas_proposed_map(output_path: Path = None) -> Path:
       content: "\\2022  "; color: #A0AEC0;
     }}
 
+    /* Company relevance badges */
+    .relevance-badge {{
+      display: inline-block; padding: 3px 8px; border-radius: 4px;
+      font-size: 9px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; border: 1px solid;
+    }}
+    .relevance-high {{ color: #DC2626; border-color: #DC2626; background: #FEF2F2; }}
+    .relevance-medium {{ color: #D97706; border-color: #D97706; background: #FFFBEB; }}
+    .relevance-low {{ color: #6B7280; border-color: #D1D5DB; background: #F9FAFB; }}
+    .company-impact-box {{
+      background: #FFF7ED; border-left: 3px solid #EA580C;
+      border-radius: 0 4px 4px 0; padding: 10px 12px;
+      font-size: 12px; color: #9A3412; line-height: 1.6; margin-top: 4px;
+    }}
+    .company-impact-box strong {{
+      display: block; font-size: 10px; font-weight: 800;
+      letter-spacing: 1px; text-transform: uppercase;
+      color: #C2410C; margin-bottom: 4px;
+    }}
+
     /* ---- Footer ---- */
     .page-footer {{
       padding: 14px 32px; border-top: 1px solid #E2E8F0;
@@ -522,14 +568,23 @@ def generate_pfas_proposed_map(output_path: Path = None) -> Path:
 </div>
 
 <div class="page-header">
-  <p class="brand">PFAS Legislative Intelligence</p>
-  <h1>State PFAS Activity &amp; Engagement Map</h1>
-  <p class="sub">{active_count} states with detected PFAS activity &nbsp;&middot;&nbsp; From early advocacy signals through active legislation</p>
+  <div class="header-top">
+    <div>
+      <p class="brand">PFAS Legislative Intelligence</p>
+      <h1>State PFAS Activity &amp; Engagement Map</h1>
+      <p class="sub">{active_count} states with detected PFAS activity &nbsp;&middot;&nbsp; From early advocacy signals through active legislation</p>
+    </div>
+    <button class="export-btn" onclick="exportToExcel()">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8 15.01l1.41 1.41L11 14.84V20h2v-5.16l1.59 1.59L16 15.01 12.01 11 8 15.01z"/></svg>
+      Export to Excel
+    </button>
+  </div>
   <p class="intent-note">
     This map captures the full spectrum of PFAS legislative activity — not just introduced bills,
     but also pre-discussion signals like advocacy campaigns, AG investigations, study commissions,
     and rulemaking proceedings. States are color-coded by their most advanced stage of activity.
     Corner dots indicate evidence confidence (green = high, amber = medium, gray = low).
+    Company relevance is scored against windows/doors manufacturing (direct materials + MRO).
   </p>
 </div>
 
@@ -605,6 +660,10 @@ function showDetail(abbr) {{
     badgesHtml += '<span class="confidence-badge" style="color:' + confColor + ';border-color:' + confColor + ';">'
       + esc(state.confidence) + ' confidence</span>';
   }}
+  if (state.company_relevance) {{
+    badgesHtml += '<span class="relevance-badge relevance-' + state.company_relevance + '">'
+      + esc(state.company_relevance) + ' relevance</span>';
+  }}
   badgesHtml += '</div>';
 
   if (state.stage === 'none') {{
@@ -638,6 +697,12 @@ function showDetail(abbr) {{
     scopeHtml += '</div>';
   }}
 
+  var companyHtml = '';
+  if (state.company_impact) {{
+    companyHtml = '<p class="detail-section-label">Impact on Our Business</p>'
+      + '<div class="company-impact-box"><strong>Windows &amp; Doors Mfg Impact</strong>' + esc(state.company_impact) + '</div>';
+  }}
+
   var engageHtml = '';
   if (state.engagement_note) {{
     engageHtml = '<p class="detail-section-label">Engagement Guidance</p>'
@@ -653,7 +718,7 @@ function showDetail(abbr) {{
 
   var html = '<div class="detail-abbr">' + abbr + '</div>'
     + '<div class="detail-name">' + esc(state.name || abbr) + '</div>'
-    + badgesHtml + summaryHtml + billsHtml + scopeHtml + engageHtml + evidenceHtml;
+    + badgesHtml + summaryHtml + billsHtml + scopeHtml + companyHtml + engageHtml + evidenceHtml;
 
   setContent(html);
 }}
@@ -677,6 +742,125 @@ function closeDetail() {{
 function esc(str) {{
   if (!str) return '';
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}}
+
+function exportToExcel() {{
+  // Build flat rows for pivot table / PowerBI
+  var rows = [];
+  var stageOrder = ['enacted_watching','advanced','passed_one','committee','introduced','rulemaking','discussion','pre_discussion','none'];
+
+  Object.keys(STATE_DATA).sort().forEach(function(abbr) {{
+    var s = STATE_DATA[abbr];
+    var bills = (s.bills || []);
+
+    if (bills.length === 0) {{
+      // One row per state even if no bills
+      rows.push({{
+        'State': abbr,
+        'State Name': s.name || abbr,
+        'Stage': STAGE_LABELS[s.stage] || s.stage || 'None',
+        'Stage Code': s.stage || 'none',
+        'Stage Sort Order': stageOrder.indexOf(s.stage || 'none'),
+        'Bill Number': '',
+        'Scope': s.scope || '',
+        'Company Relevance': s.company_relevance || '',
+        'Company Impact': (s.company_impact || '').replace(/\\n/g, ' '),
+        'Confidence': s.confidence || '',
+        'Session': s.session || '',
+        'Summary': (s.summary || '').replace(/\\n/g, ' '),
+        'Engagement Guidance': (s.engagement_note || '').replace(/\\n/g, ' '),
+        'Evidence Sources': (s.evidence_sources || []).join('; '),
+        'Generated Date': '{generated}',
+      }});
+    }} else {{
+      // One row per bill for granular pivot
+      bills.forEach(function(bill) {{
+        rows.push({{
+          'State': abbr,
+          'State Name': s.name || abbr,
+          'Stage': STAGE_LABELS[s.stage] || s.stage || 'None',
+          'Stage Code': s.stage || 'none',
+          'Stage Sort Order': stageOrder.indexOf(s.stage || 'none'),
+          'Bill Number': bill,
+          'Scope': s.scope || '',
+          'Company Relevance': s.company_relevance || '',
+          'Company Impact': (s.company_impact || '').replace(/\\n/g, ' '),
+          'Confidence': s.confidence || '',
+          'Session': s.session || '',
+          'Summary': (s.summary || '').replace(/\\n/g, ' '),
+          'Engagement Guidance': (s.engagement_note || '').replace(/\\n/g, ' '),
+          'Evidence Sources': (s.evidence_sources || []).join('; '),
+          'Generated Date': '{generated}',
+        }});
+      }});
+    }}
+  }});
+
+  // Summary sheet — one row per state
+  var summaryRows = [];
+  Object.keys(STATE_DATA).sort().forEach(function(abbr) {{
+    var s = STATE_DATA[abbr];
+    summaryRows.push({{
+      'State': abbr,
+      'State Name': s.name || abbr,
+      'Stage': STAGE_LABELS[s.stage] || s.stage || 'None',
+      'Stage Code': s.stage || 'none',
+      'Number of Bills': (s.bills || []).length,
+      'Bills': (s.bills || []).join(', '),
+      'Scope': s.scope || '',
+      'Company Relevance': s.company_relevance || '',
+      'Company Impact': (s.company_impact || '').replace(/\\n/g, ' '),
+      'Confidence': s.confidence || '',
+      'Session': s.session || '',
+      'Summary': (s.summary || '').replace(/\\n/g, ' '),
+      'Engagement Guidance': (s.engagement_note || '').replace(/\\n/g, ' '),
+      'Evidence Sources': (s.evidence_sources || []).join('; '),
+    }});
+  }});
+
+  var wb = XLSX.utils.book_new();
+
+  // Sheet 1: State Summary (one row per state)
+  var ws1 = XLSX.utils.json_to_sheet(summaryRows);
+  // Set column widths
+  ws1['!cols'] = [
+    {{wch:6}}, {{wch:18}}, {{wch:28}}, {{wch:18}}, {{wch:10}}, {{wch:40}},
+    {{wch:25}}, {{wch:15}}, {{wch:50}}, {{wch:12}}, {{wch:10}},
+    {{wch:60}}, {{wch:60}}, {{wch:40}},
+  ];
+  XLSX.utils.book_append_sheet(wb, ws1, 'State Summary');
+
+  // Sheet 2: Bill Detail (one row per bill — pivot table ready)
+  var ws2 = XLSX.utils.json_to_sheet(rows);
+  ws2['!cols'] = [
+    {{wch:6}}, {{wch:18}}, {{wch:28}}, {{wch:18}}, {{wch:6}}, {{wch:18}},
+    {{wch:25}}, {{wch:15}}, {{wch:50}}, {{wch:12}}, {{wch:10}},
+    {{wch:60}}, {{wch:60}}, {{wch:40}}, {{wch:12}},
+  ];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Bill Detail');
+
+  // Sheet 3: Pivot-ready fields reference
+  var pivotRef = [
+    {{ 'Field': 'State', 'Type': 'Dimension', 'Description': 'Two-letter state abbreviation', 'Pivot Use': 'Row label or filter' }},
+    {{ 'Field': 'State Name', 'Type': 'Dimension', 'Description': 'Full state name', 'Pivot Use': 'Row label' }},
+    {{ 'Field': 'Stage', 'Type': 'Dimension', 'Description': 'Legislative stage (human-readable)', 'Pivot Use': 'Column label or filter' }},
+    {{ 'Field': 'Stage Code', 'Type': 'Dimension', 'Description': 'Stage machine code', 'Pivot Use': 'For programmatic sorting' }},
+    {{ 'Field': 'Stage Sort Order', 'Type': 'Measure', 'Description': 'Sort order: 0=enacted to 8=none', 'Pivot Use': 'Sort by this for stage progression' }},
+    {{ 'Field': 'Bill Number', 'Type': 'Dimension', 'Description': 'Bill identifier (e.g. HB 123)', 'Pivot Use': 'Row label for bill-level analysis' }},
+    {{ 'Field': 'Scope', 'Type': 'Dimension', 'Description': 'What the legislation covers', 'Pivot Use': 'Filter by scope category' }},
+    {{ 'Field': 'Company Relevance', 'Type': 'Dimension', 'Description': 'high/medium/low relevance to windows/doors mfg', 'Pivot Use': 'Filter or color code' }},
+    {{ 'Field': 'Company Impact', 'Type': 'Text', 'Description': 'How this affects our business specifically', 'Pivot Use': 'Detail text' }},
+    {{ 'Field': 'Confidence', 'Type': 'Dimension', 'Description': 'Evidence confidence level', 'Pivot Use': 'Filter or color code' }},
+    {{ 'Field': 'Session', 'Type': 'Dimension', 'Description': 'Legislative session year', 'Pivot Use': 'Filter by session' }},
+    {{ 'Field': 'Summary', 'Type': 'Text', 'Description': 'Intelligence summary', 'Pivot Use': 'Detail text' }},
+    {{ 'Field': 'Engagement Guidance', 'Type': 'Text', 'Description': 'What action to take', 'Pivot Use': 'Detail text' }},
+    {{ 'Field': 'Evidence Sources', 'Type': 'Text', 'Description': 'Semicolon-separated source list', 'Pivot Use': 'Reference' }},
+  ];
+  var ws3 = XLSX.utils.json_to_sheet(pivotRef);
+  ws3['!cols'] = [{{wch:22}}, {{wch:12}}, {{wch:50}}, {{wch:40}}];
+  XLSX.utils.book_append_sheet(wb, ws3, 'Field Reference');
+
+  XLSX.writeFile(wb, 'PFAS_Legislative_Intel_{generated}.xlsx');
 }}
 </script>
 
