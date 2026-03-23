@@ -644,7 +644,7 @@ def generate_deadline_timeline(topic: Optional[str] = None, output_path: Optiona
     .dl-date {{
       font-family: 'IBM Plex Mono', monospace;
       font-size: 9px;
-      color: #4A5060;
+      color: #8A929E;
       letter-spacing: 0.5px;
     }}
     .dl-badge {{

@@ -203,25 +203,36 @@
       color: #696D73; margin: 0;
     }
 
-    /* ── Utility bar ──────────────────────────────────────── */
-    .utility-bar {
-      padding: 12px 40px;
-      background-color: #141618;
-      border-bottom: 1px solid #232830;
+    /* ── Site nav bar ─────────────────────────────────────── */
+    .site-nav-bar {
+      padding: 8px 40px;
+      background-color: #0D0F11;
+      border-bottom: 1px solid #1E2226;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
     }
-    .utility-label {
-      font-family: 'Source Sans 3', 'Trebuchet MS', Helvetica, sans-serif;
-      font-size: 14px; font-weight: 600;
-      color: #858890; margin-right: 16px;
+    .nav-section-label {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 9px; font-weight: 600;
+      letter-spacing: 3px; text-transform: uppercase;
+      color: #5A6270; padding: 0 6px 0 2px;
     }
-    .utility-bar a {
-      font-family: 'Source Sans 3', 'Trebuchet MS', Helvetica, sans-serif;
-      font-size: 14px; font-weight: 500;
-      color: #7A9EB5; text-decoration: underline;
-      text-decoration-color: rgba(122, 158, 181, 0.35);
-      text-underline-offset: 2px;
-      margin-right: 12px;
+    .nav-divider {
+      display: inline-block;
+      width: 1px; height: 12px;
+      background: #2E3440; margin: 0 8px;
+      vertical-align: middle;
     }
+    .site-nav-bar a {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 1px;
+      color: #E8EBF0; text-decoration: none;
+      padding: 3px 9px; border-radius: 2px;
+    }
+    .site-nav-bar a:hover { color: #ECEEF2; }
 
     /* ── Executive summary link ────────────────────────────── */
     .exec-link-bar {
@@ -424,7 +435,7 @@
       .masthead       { padding: 24px 20px 22px; }
       .masthead-title { font-size: 24px !important; }
       .greeting       { padding: 24px 16px 18px; }
-      .utility-bar    { padding: 10px 16px; }
+      .site-nav-bar   { padding: 7px 16px; }
       .exec-section   { padding: 24px 16px 26px; }
       .topic-header   { padding: 14px 16px 14px 14px; }
       .topic-body     { padding: 8px 16px 22px 16px; }
@@ -444,8 +455,8 @@
       <tr><td>
         <div class="masthead-rule-top"></div>
         <div class="masthead">
-          <p class="masthead-kicker">Regulatory Intelligence</p>
-          <h1 class="masthead-title">Compliance Intelligence</h1>
+          <p class="masthead-kicker">Compliance Intelligence</p>
+          <h1 class="masthead-title">Regulatory News Dashboard</h1>
           <p class="masthead-dateline">
             {{ date_display }}<span class="sep">&#8212;</span>Daily Briefing
           </p>
@@ -504,28 +515,23 @@
                 <p class="greeting-sub">Your compliance briefing for {{ date_long }}.</p>
               </div>
 
-              <div class="utility-bar">
-                <span class="utility-label">State Maps:</span>
-                {% if pfas_map_url %}
-                <a href="{{ pfas_map_url }}">PFAS State Tracker &rarr;</a>
-                {% endif %}
-                {% if epr_map_url %}
-                <a href="{{ epr_map_url }}">EPR State Tracker &rarr;</a>
-                {% endif %}
-                {% if reach_map_url %}
-                <a href="{{ reach_map_url }}">EU REACH Map &rarr;</a>
-                {% endif %}
+              <div class="site-nav-bar">
+                <span class="nav-section-label">Maps</span>
+                <a href="https://ryan-jenkinson.github.io/compliance-maps/">PFAS</a>
+                <a href="https://ryan-jenkinson.github.io/compliance-maps/epr-map.html">EPR</a>
+                <a href="https://ryan-jenkinson.github.io/compliance-maps/reach-map.html">REACH</a>
+                <span class="nav-divider"></span>
+                <span class="nav-section-label">Timelines</span>
+                <a href="https://ryan-jenkinson.github.io/compliance-maps/pfas-timeline.html">PFAS</a>
+                <a href="https://ryan-jenkinson.github.io/compliance-maps/epr-timeline.html">EPR</a>
+                <a href="https://ryan-jenkinson.github.io/compliance-maps/reach-timeline.html">REACH</a>
+                <a href="https://ryan-jenkinson.github.io/compliance-maps/tsca-timeline.html">TSCA</a>
+                <a href="https://ryan-jenkinson.github.io/compliance-maps/deadline-timeline.html">All Topics</a>
               </div>
 
               {% if exec_summary_url %}
               <div class="exec-link-bar">
                 <a href="{{ exec_summary_url }}" class="exec-link" target="_blank">&rarr; Executive Summary</a>
-              </div>
-              {% endif %}
-
-              {% if calendar_url %}
-              <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-light);">
-                <a href="{{ calendar_url }}" style="font-family: var(--mono); font-size: 11px; color: var(--accent); text-decoration: none;">Deadline Calendar &rarr;</a>
               </div>
               {% endif %}
 
