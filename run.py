@@ -72,6 +72,8 @@ def parse_args() -> argparse.Namespace:
                         help="Render HTML and open in browser, no email sent")
     parser.add_argument("--force", action="store_true",
                         help="Send even if already sent today")
+    parser.add_argument("--test-email", action="append", default=[],
+                        help="Send only to these addresses (repeatable, skips subscriber list)")
     return parser.parse_args()
 
 
@@ -149,6 +151,42 @@ def _push_map_to_github(map_path: Path, repo_dir: Path) -> None:
         logger.info("PFAS map pushed to GitHub Pages.")
     except Exception as e:
         logger.warning(f"Failed to push map to GitHub: {e}")
+
+
+def _push_newsletter_to_github(html: str, repo_dir: Path):
+    """Save the web version HTML to the GitHub Pages repo and push. Returns the URL."""
+    logger = logging.getLogger("github_newsletter")
+    try:
+        import shutil
+
+        # Create newsletter directory if needed
+        newsletter_dir = repo_dir / "newsletter"
+        newsletter_dir.mkdir(exist_ok=True)
+
+        # Save date-based version and latest copy
+        date_str = datetime.now().strftime("%Y-%m-%d")
+        dated_path = newsletter_dir / f"{date_str}.html"
+        latest_path = newsletter_dir / "latest.html"
+
+        dated_path.write_text(html, encoding="utf-8")
+        shutil.copy2(dated_path, latest_path)
+
+        cmds = [
+            ["git", "-C", str(repo_dir), "add", f"newsletter/{date_str}.html", "newsletter/latest.html"],
+            ["git", "-C", str(repo_dir), "commit", "-m", f"Update newsletter {date_str}"],
+            ["git", "-C", str(repo_dir), "push"],
+        ]
+        for cmd in cmds:
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0 and "nothing to commit" not in result.stdout:
+                logger.warning(f"Git command failed: {' '.join(cmd)}: {result.stderr.strip()}")
+                # Still return URL even if push fails — the file exists locally
+                return f"https://ryan-jenkinson.github.io/compliance-maps/newsletter/{date_str}.html"
+        logger.info("Newsletter web version pushed to GitHub Pages.")
+        return f"https://ryan-jenkinson.github.io/compliance-maps/newsletter/{date_str}.html"
+    except Exception as e:
+        logger.warning(f"Failed to push newsletter to GitHub: {e}")
+        return None
 
 
 def _sync_notebooklm(urls: list) -> None:
@@ -273,44 +311,84 @@ def main() -> None:
     renderer = NewsletterRenderer()
 
     if args.preview:
-        # Render with default subscriber name and open in browser
-        html = renderer.render(pipeline_output, subscriber_name="Ryan", map_url=pfas_map_url)
-        preview_path = open_preview(html)
-        logger.info(f"Preview saved to: {preview_path}")
-        print(f"Preview opened: {preview_path}")
+        from delivery.preview import save_preview
+        d = datetime.now()
+
+        # Render web preview (interactive, with JS)
+        web_html = renderer.render(pipeline_output, map_url=pfas_map_url, is_web_version=True)
+        web_filename = f"preview_web_{d.strftime('%Y-%m-%d_%H%M%S')}.html"
+        web_preview_path = Config.DATA_DIR / web_filename
+        web_preview_path.write_text(web_html, encoding="utf-8")
+
+        # Render email preview (full content, no JS)
+        email_html = renderer.render(
+            pipeline_output, subscriber_name="Ryan", map_url=pfas_map_url,
+        )
+        email_filename = f"preview_email_{d.strftime('%Y-%m-%d_%H%M%S')}.html"
+        email_preview_path = Config.DATA_DIR / email_filename
+        email_preview_path.write_text(email_html, encoding="utf-8")
+
+        import webbrowser
+        webbrowser.open(f"file://{web_preview_path.resolve()}")
+
+        logger.info(f"Web version preview: {web_preview_path}")
+        logger.info(f"Email version preview: {email_preview_path}")
+        print(f"Web version (interactive): {web_preview_path}")
+        print(f"Email version (full content): {email_preview_path}")
         return
 
-    # Step 4: Send to all active subscribers
-    logger.info("Step 4: Sending emails…")
-    repo = SubscriberRepository()
+    # Step 3b: Render and push web version to GitHub Pages
+    logger.info("Step 3b: Publishing web version to GitHub Pages…")
+    web_html = renderer.render(pipeline_output, map_url=pfas_map_url, is_web_version=True)
+    _push_newsletter_to_github(web_html, _GITHUB_REPO_DIR)
+
+    # Step 4: Send emails
     sender = GmailSender()
-    # --force is a manual test send; exclude scheduled_only subscribers
-    subscribers = repo.list_active(include_scheduled_only=not args.force)
-
-    if not subscribers:
-        logger.warning("No active subscribers. Add one with: python subscribers/cli.py add")
-        return
-
     subject = GmailSender.subject_for_date()
     sent_count = 0
     skip_count = 0
 
-    for sub in subscribers:
-        if not args.force and repo.already_sent_today(sub.id):
-            logger.info(f"Skipping {sub.email} — already sent today")
-            skip_count += 1
-            continue
+    if args.test_email:
+        # --test-email mode: send to specific addresses, skip subscriber list entirely
+        logger.info(f"Step 4: Sending TEST emails to {args.test_email}…")
+        for email in args.test_email:
+            name = email.split("@")[0].split(".")[0].title()
+            html = renderer.render(
+                pipeline_output, subscriber_name=name, map_url=pfas_map_url,
+            )
+            success = sender.send(email, f"[TEST] {subject}", html)
+            if success:
+                sent_count += 1
+                logger.info(f"Test sent to {email}")
+            else:
+                logger.error(f"Failed to send test to {email}")
+    else:
+        logger.info("Step 4: Sending emails to subscribers…")
+        repo = SubscriberRepository()
+        subscribers = repo.list_active(include_scheduled_only=not args.force)
 
-        html = renderer.render(pipeline_output, subscriber_name=sub.first_name, map_url=pfas_map_url)
-        success = sender.send(sub.email, subject, html)
+        if not subscribers:
+            logger.warning("No active subscribers. Add one with: python subscribers/cli.py add")
+            return
 
-        if success:
-            repo.log_send(sub.id, "success")
-            sent_count += 1
-            logger.info(f"Sent to {sub.email}")
-        else:
-            repo.log_send(sub.id, "failure", "Gmail send failed")
-            logger.error(f"Failed to send to {sub.email}")
+        for sub in subscribers:
+            if not args.force and repo.already_sent_today(sub.id):
+                logger.info(f"Skipping {sub.email} — already sent today")
+                skip_count += 1
+                continue
+
+            html = renderer.render(
+                pipeline_output, subscriber_name=sub.first_name, map_url=pfas_map_url,
+            )
+            success = sender.send(sub.email, subject, html)
+
+            if success:
+                repo.log_send(sub.id, "success")
+                sent_count += 1
+                logger.info(f"Sent to {sub.email}")
+            else:
+                repo.log_send(sub.id, "failure", "Gmail send failed")
+                logger.error(f"Failed to send to {sub.email}")
 
     logger.info(f"Done. Sent: {sent_count}, Skipped (already sent): {skip_count}")
 

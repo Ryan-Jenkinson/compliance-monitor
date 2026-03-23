@@ -41,7 +41,7 @@
     <span class="impact-label">Direct Actions</span>
     <div class="impact-content">
       <ul class="action-items">
-        {% for item in direct_actions %}<li>{{ item }}</li>{% endfor %}
+        {% for item in direct_actions %}<li><span style="color:#D64045;margin-right:6px;">&#8212;</span>{{ item }}</li>{% endfor %}
       </ul>
     </div>
   </div>
@@ -52,7 +52,7 @@
     <span class="impact-label supplier">Supplier Actions</span>
     <div class="impact-content">
       <ul class="action-items supplier">
-        {% for item in impact.supplier_actions %}<li>{{ item }}</li>{% endfor %}
+        {% for item in impact.supplier_actions %}<li><span style="color:#2B5EA7;margin-right:6px;">&#8212;</span>{{ item }}</li>{% endfor %}
       </ul>
     </div>
   </div>

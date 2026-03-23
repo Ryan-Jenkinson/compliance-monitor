@@ -1,18 +1,24 @@
 <!-- Topic: {{ topic.topic }} -->
 <div class="topic-section" id="section-{{ topic.topic | lower }}">
 
-  <input type="checkbox" id="toggle-{{ topic.topic | lower }}" class="topic-toggle" checked>
+  <input type="checkbox" id="toggle-{{ topic.topic | lower }}" class="topic-toggle">
 
   <label for="toggle-{{ topic.topic | lower }}" class="topic-label">
     <div class="topic-header" style="border-left-color: {{ topic.color }};">
-      <span class="topic-tag" style="color: {{ topic.color }};">{{ topic.topic }}</span>
-      <span class="topic-name">{{ topic.label }}</span>
-      {% if topic.developments %}
-      <span class="topic-tally">{{ topic.developments | length }}&nbsp;update{{ 's' if topic.developments | length != 1 }}</span>
-      {% else %}
-      <span class="topic-tally topic-tally-none">no updates</span>
-      {% endif %}
-      <i class="topic-chevron"></i>
+      <table class="topic-header-table" cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+          <td class="topic-tag-cell" valign="middle"><span class="topic-tag" style="color: {{ topic.color }}; border-color: {{ topic.color }};">{{ topic.topic }}</span></td>
+          <td class="topic-name-cell" valign="middle"><span class="topic-name">{{ topic.label }}</span></td>
+          <td class="topic-tally-cell" valign="middle" align="right">
+            {% if topic.developments %}
+            <span class="topic-tally">{{ topic.developments | length }}&nbsp;update{{ 's' if topic.developments | length != 1 }}</span>
+            {% else %}
+            <span class="topic-tally topic-tally-none">no updates</span>
+            {% endif %}
+          </td>
+          <td class="topic-chevron-cell" valign="middle" align="right" width="30"><i class="topic-chevron"><span class="chev-closed">&#8250;</span><span class="chev-open">&#8595;</span></i></td>
+        </tr>
+      </table>
     </div>
   </label>
 
@@ -23,10 +29,10 @@
       <div class="dev-item">
 
         <div class="dev-head">
-          {% if dev.is_new %}<span class="new-badge">New</span>{% endif %}
-          <p class="dev-headline">
-            <a href="{{ dev.url }}" target="_blank">{{ dev.headline }}</a>
-          </p>
+          <table cellpadding="0" cellspacing="0"><tr>
+            {% if dev.is_new %}<td valign="top" style="padding-right:9px;padding-top:2px;"><span class="new-badge">New</span></td>{% endif %}
+            <td valign="top"><p class="dev-headline"><a href="{{ dev.url }}" target="_blank">{{ dev.headline }}</a></p></td>
+          </tr></table>
         </div>
 
         <p class="dev-meta">
@@ -48,11 +54,13 @@
       {% set impact = topic.company_impact %}
       {% if impact and (impact.direct_products or impact.direct_materials or impact.supply_chain or impact.direct_actions or impact.action_items) %}
       <div class="impact-accordion">
-        <input type="checkbox" id="toggle-impact-{{ topic.topic | lower }}" class="impact-ck" checked>
+        <input type="checkbox" id="toggle-impact-{{ topic.topic | lower }}" class="impact-ck">
         <label for="toggle-impact-{{ topic.topic | lower }}" class="impact-ck-label">
           <div class="impact-toggle">
-            <span class="impact-toggle-label">Company Impact &amp; Actions</span>
-            <i class="impact-chevron"></i>
+            <table cellpadding="0" cellspacing="0" width="100%"><tr>
+              <td valign="middle"><span class="impact-toggle-label">Company Impact &amp; Actions</span></td>
+              <td valign="middle" align="right" width="30"><i class="impact-chevron"><span class="chev-closed">&#8250;</span><span class="chev-open">&#8595;</span></i></td>
+            </tr></table>
           </div>
         </label>
         {% include 'impact_callout.html' %}

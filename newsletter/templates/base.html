@@ -5,7 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Compliance Intelligence — {{ date_display }}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=DM+Mono:wght@300;400;500&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!--[if mso]>
+  <style>
+    .topic-body, .impact-callout { display: block !important; }
+    .topic-chevron .chev-closed { display: none !important; }
+    .topic-chevron .chev-open { display: inline !important; }
+    .impact-chevron .chev-closed { display: none !important; }
+    .impact-chevron .chev-open { display: inline !important; }
+  </style>
+  <![endif]-->
   <style>
 
     /* ── Reset ────────────────────────────────────────────── */
@@ -19,363 +28,368 @@
     /* ── Base ─────────────────────────────────────────────── */
     body {
       margin: 0; padding: 0;
-      background-color: #E8E5DF;
-      font-family: Lora, Georgia, 'Times New Roman', serif;
-      font-size: 15px; line-height: 1.7;
-      color: #18140F;
+      background-color: #FAF7F2;
+      font-family: 'Source Sans 3', 'Trebuchet MS', Helvetica, sans-serif;
+      font-size: 15px; line-height: 1.75;
+      color: #1A1A1A;
     }
     .email-wrapper {
       max-width: 680px;
       margin: 0 auto;
-      background-color: #E8E5DF;
+      background-color: #FAF7F2;
     }
 
     /* ── Masthead ─────────────────────────────────────────── */
     .masthead-rule-top {
       height: 3px;
-      background: linear-gradient(90deg, #7A5E20 0%, #C4A55A 30%, #E2C878 58%, #C4A55A 82%, #8A6E30 100%);
+      background-color: #D64045;
       font-size: 0; line-height: 0;
     }
     .masthead {
-      background-color: #09111C;
-      padding: 36px 52px 30px;
+      background-color: #2C2C2C;
+      padding: 32px 40px 28px;
     }
     .masthead-kicker {
-      font-family: 'DM Mono', 'Courier New', Courier, monospace;
-      font-size: 9px; font-weight: 500;
-      letter-spacing: 5px; text-transform: uppercase;
-      color: #C4A55A; margin: 0 0 20px; opacity: 0.8;
-    }
-    .masthead-hairline {
-      height: 1px;
-      background-color: rgba(196, 165, 90, 0.18);
-      margin: 0 0 20px;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 4px; text-transform: uppercase;
+      color: #D64045; margin: 0 0 18px;
     }
     .masthead-title {
-      font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
-      font-size: 34px; font-weight: 700;
-      color: #F4F0E8; margin: 0 0 10px;
-      letter-spacing: -0.5px; line-height: 1.08;
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 30px; font-weight: 700;
+      color: #F0EDE8; margin: 0 0 10px;
+      line-height: 1.15;
     }
     .masthead-dateline {
-      font-family: 'DM Mono', 'Courier New', Courier, monospace;
-      font-size: 10px; font-weight: 300;
-      color: #6A90AE; letter-spacing: 2px;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 10px; font-weight: 400;
+      color: #9A9590; letter-spacing: 2px;
       text-transform: uppercase; margin: 0;
     }
-    .masthead-dateline .sep { color: #3A5870; margin: 0 10px; }
+    .masthead-dateline .sep { color: #6E6A63; margin: 0 10px; }
 
     /* ── Sidebar ──────────────────────────────────────────── */
-    /* No position/flex/min-height here — sticky added by JS  */
-    /* in browser only; email clients never see sticky.        */
     .sidebar-cell {
       width: 156px;
-      background-color: #09111C;
+      background-color: #2C2C2C;
       vertical-align: top;
-      border-right: 1px solid rgba(196, 165, 90, 0.16);
     }
     .sidebar-nav {
       width: 156px;
-      background-color: #09111C;
-    }
-    .sidebar-top-rule {
-      height: 2px;
-      background: linear-gradient(90deg, rgba(196,165,90,0.6) 0%, rgba(196,165,90,0.08) 100%);
+      background-color: #2C2C2C;
     }
     .sidebar-header {
-      padding: 20px 16px 14px;
-      border-bottom: 1px solid rgba(196, 165, 90, 0.09);
+      padding: 22px 14px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
     .sidebar-eyebrow {
-      font-family: 'DM Mono', 'Courier New', Courier, monospace;
-      font-size: 7px; font-weight: 500;
-      letter-spacing: 4.5px; text-transform: uppercase;
-      color: rgba(196, 165, 90, 0.72);
-      display: block; margin: 0 0 8px;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 9px; font-weight: 600;
+      letter-spacing: 4px; text-transform: uppercase;
+      color: #D64045;
+      display: block; margin: 0;
     }
-    .sidebar-rule {
-      width: 18px; height: 1px;
-      background: linear-gradient(90deg, rgba(196,165,90,0.4) 0%, transparent 100%);
-      display: block;
-    }
-    .sidebar-links {
-      padding: 4px 0;
-      list-style: none;
-      margin: 0;
-    }
+    .sidebar-links-table { border-collapse: collapse; }
     .sidebar-link {
-      display: block;
-      padding: 11px 16px;
-      text-decoration: none;
-      border-left: 2px solid transparent;
-      border-bottom: 1px solid rgba(196, 165, 90, 0.06);
+      padding: 14px;
+      border-left: 4px solid transparent;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background-color: #2C2C2C;
     }
     .sidebar-link:hover {
-      background-color: rgba(196, 165, 90, 0.06);
-      border-left-color: rgba(196, 165, 90, 0.55);
+      background-color: rgba(255, 255, 255, 0.06);
     }
-    .sidebar-link-inner {
-      display: flex;
-      align-items: center;
-      gap: 9px;
+    .sidebar-link-anchor {
+      text-decoration: none;
+      color: inherit;
+      display: block;
     }
     .sidebar-pip {
-      width: 5px; height: 5px;
+      width: 10px; height: 10px;
       display: inline-block;
-      flex-shrink: 0;
+      vertical-align: middle;
+      margin-right: 8px;
     }
     .sidebar-code {
-      font-family: 'DM Mono', 'Courier New', Courier, monospace;
-      font-size: 9px; font-weight: 500;
-      letter-spacing: 2px; text-transform: uppercase;
-      color: #C4A55A; flex: 1;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 13px; font-weight: 600;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: #F0EDE8;
+      vertical-align: middle;
     }
     .sidebar-count {
-      font-family: 'DM Mono', 'Courier New', Courier, monospace;
-      font-size: 8px; font-weight: 400;
-      color: rgba(196, 165, 90, 0.65);
-      letter-spacing: 0.3px;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 11px; font-weight: 400;
+      color: #B0ACA5;
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 2px 7px;
+      float: right;
     }
     .sidebar-footer {
-      padding: 12px 16px 18px;
-      border-top: 1px solid rgba(196, 165, 90, 0.08);
+      padding: 14px 14px 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
     }
     .sidebar-date {
-      font-family: 'DM Mono', 'Courier New', Courier, monospace;
-      font-size: 7px; font-weight: 300;
-      color: rgba(196, 165, 90, 0.55);
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 8px; font-weight: 400;
+      color: #7A7570;
       letter-spacing: 1px; text-transform: uppercase;
-      margin: 0; line-height: 2;
+      margin: 0; line-height: 2.2;
     }
 
     /* ── Body shell ───────────────────────────────────────── */
     .content-cell { vertical-align: top; }
     .email-body {
       background-color: #FFFFFF;
-      border-right: 1px solid #D5D0C8;
     }
 
     /* ── Greeting ─────────────────────────────────────────── */
-    .greeting { padding: 32px 44px 24px; border-bottom: 1px solid #EAE6DE; }
+    .greeting {
+      padding: 32px 40px 24px;
+      background-color: #FAF7F2;
+      border-bottom: 1px solid #D4CFC7;
+    }
     .greeting-name {
-      font-family: 'Playfair Display', Georgia, serif;
-      font-size: 22px; font-weight: 400; font-style: italic;
-      color: #09111C; margin: 0 0 6px;
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 20px; font-weight: 400; font-style: italic;
+      color: #1A1A1A; margin: 0 0 6px;
     }
     .greeting-sub {
-      font-family: 'DM Mono', 'Courier New', Courier, monospace;
-      font-size: 11px; font-weight: 300;
-      color: #5E5850; letter-spacing: 0.3px; margin: 0;
+      font-family: 'Source Sans 3', 'Trebuchet MS', Helvetica, sans-serif;
+      font-size: 13px; font-weight: 400;
+      color: #6E6A63; margin: 0;
     }
 
     /* ── Utility bar ──────────────────────────────────────── */
     .utility-bar {
-      padding: 10px 44px;
-      background-color: #F6F3EE;
-      border-bottom: 1px solid #EAE6DE;
+      padding: 10px 40px;
+      background-color: #FAF7F2;
+      border-bottom: 1px solid #D4CFC7;
     }
     .utility-label {
-      font-family: 'DM Mono', 'Courier New', Courier, monospace;
-      font-size: 9px; font-weight: 500;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 10px; font-weight: 600;
       letter-spacing: 3px; text-transform: uppercase;
-      color: #7A7268; margin-right: 16px;
+      color: #6E6A63; margin-right: 16px;
     }
     .utility-bar a {
-      font-family: 'DM Mono', 'Courier New', Courier, monospace;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
       font-size: 10px; font-weight: 400;
-      color: #1C4A8A; text-decoration: none;
-      letter-spacing: 0.2px;
-      border-bottom: 1px solid rgba(28, 74, 138, 0.25);
+      color: #2B5EA7; text-decoration: none;
+      border-bottom: 1px solid rgba(43, 94, 167, 0.3);
       padding-bottom: 1px;
     }
 
     /* ── Executive summary ────────────────────────────────── */
     .exec-section {
-      padding: 30px 44px 32px;
-      border-bottom: 1px solid #EAE6DE;
+      padding: 30px 40px 32px;
+      border-bottom: 2px solid #ECEAE5;
       background-color: #FFFFFF;
     }
     .section-eyebrow {
-      font-family: 'DM Mono', 'Courier New', Courier, monospace;
-      font-size: 9px; font-weight: 500;
-      letter-spacing: 4px; text-transform: uppercase;
-      color: #C4A55A; margin: 0 0 16px; display: block;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 3px; text-transform: uppercase;
+      color: #D64045; margin: 0 0 16px; display: block;
     }
     .exec-pull {
-      border-left: 2px solid #C4A55A;
+      border-left: 3px solid #D64045;
       padding: 3px 0 3px 22px; margin: 0;
     }
     .exec-pull p {
-      font-family: Lora, Georgia, serif;
-      font-size: 15px; line-height: 1.88;
-      color: #1A1510; margin: 0; font-style: italic;
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 15px; line-height: 1.85;
+      color: #2A2A2A; margin: 0; font-style: italic;
     }
 
-    /* ── Checkbox collapse (topic) ────────────────────────── */
+    /* ── Topic collapse (JS-only, see script at bottom) ──── */
     .topic-toggle { display: none; }
     .topic-label {
       display: block; cursor: pointer;
       user-select: none; -webkit-user-select: none;
     }
-    .topic-label:hover .topic-header { background-color: #FAF8F4; }
-    .topic-toggle:checked ~ .topic-body { display: none; }
+    .topic-label:hover .topic-header { background-color: #FBF9F5; }
+
+    /* Chevron + collapse states applied by JS */
+    .topic-chevron { font-style: normal; font-size: 18px; display: inline-block; color: #D64045; line-height: 1; }
+    .chev-open { display: inline; }
+    .chev-closed { display: none; }
 
     /* ── Topic section ────────────────────────────────────── */
     .topic-section { position: relative; }
     .topic-header {
-      padding: 19px 44px 19px 41px;
-      display: flex; align-items: center; gap: 14px;
+      padding: 18px 36px 18px 32px;
       background-color: #FFFFFF;
-      border-left: 3px solid transparent;
-      transition: background-color 0.12s ease;
+      border-left: 4px solid transparent;
     }
+    .topic-header-table { border-collapse: collapse; }
+    .topic-tag-cell { padding-right: 14px; }
     .topic-tag {
-      font-family: 'DM Mono', 'Courier New', Courier, monospace;
-      font-size: 8px; font-weight: 500;
-      letter-spacing: 2.5px; text-transform: uppercase;
-      padding: 4px 9px; border: 1px solid currentColor;
-      flex-shrink: 0; line-height: 1;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 2px; text-transform: uppercase;
+      padding: 4px 10px; border: 1.5px solid currentColor;
+      line-height: 1; white-space: nowrap;
+      display: inline-block;
     }
+    .topic-name-cell { width: 100%; padding-right: 14px; }
     .topic-name {
-      font-family: 'Playfair Display', Georgia, serif;
-      font-size: 15px; font-weight: 600;
-      color: #09111C; flex: 1; line-height: 1.3;
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 16px; font-weight: 700;
+      color: #1A1A1A; line-height: 1.3;
     }
+    .topic-tally-cell { padding-right: 10px; white-space: nowrap; }
     .topic-tally {
-      font-family: 'DM Mono', 'Courier New', Courier, monospace;
-      font-size: 9px; font-weight: 400;
-      color: #7A736A; background-color: #EDEAE4;
-      padding: 3px 10px; letter-spacing: 0.3px;
-      flex-shrink: 0; border: 1px solid #E0DCD4;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 10px; font-weight: 400;
+      color: #6E6A63; background-color: #F0EDE8;
+      padding: 4px 12px; letter-spacing: 0.3px;
+      border: 1px solid #D4CFC7; white-space: nowrap;
+      display: inline-block;
     }
-    .topic-tally-none { color: #B0A8A0; background: transparent; border-color: #E8E5DF; }
-    .topic-chevron { font-style: normal; font-size: 13px; flex-shrink: 0; display: inline-block; line-height: 1; }
-    .topic-chevron::before { content: "\2193"; color: #C4A55A; }
-    .topic-toggle:checked ~ .topic-label .topic-chevron::before { content: "\203A"; color: #B8B0A8; }
+    .topic-tally-none { color: #B0ACA5; background: transparent; border-color: #D4CFC7; }
 
-    .topic-body { padding: 8px 44px 28px 44px; background-color: #FDFCFA; }
+    .topic-body { padding: 12px 36px 28px; background-color: #FAFAF8; }
 
     /* ── Development item ─────────────────────────────────── */
-    .dev-item { padding: 20px 0; border-bottom: 1px solid #F0ECE8; }
+    .dev-item { padding: 20px 0; border-bottom: 1px solid #ECEAE5; }
     .dev-item:last-of-type { border-bottom: none; padding-bottom: 6px; }
-    .dev-head { display: flex; align-items: flex-start; gap: 9px; margin-bottom: 7px; }
+    .dev-head { margin-bottom: 7px; }
     .new-badge {
       display: inline-block;
-      background-color: #0A5233; color: #FFFFFF;
-      font-family: 'DM Mono', 'Courier New', Courier, monospace;
-      font-size: 7px; font-weight: 500;
-      letter-spacing: 2px; text-transform: uppercase;
-      padding: 3px 7px; flex-shrink: 0; margin-top: 2px;
+      background-color: #D64045; color: #FFFFFF;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 8px; font-weight: 600;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      padding: 3px 7px; margin-top: 2px;
     }
     .dev-headline {
-      font-family: 'Playfair Display', Georgia, serif;
-      font-size: 14px; font-weight: 600;
-      color: #09111C; line-height: 1.45; margin: 0;
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 15px; font-weight: 700;
+      color: #1A1A1A; line-height: 1.45; margin: 0;
     }
-    .dev-headline a { color: inherit; text-decoration: none; border-bottom: 1px solid rgba(196, 165, 90, 0.5); }
+    .dev-headline a { color: #2B5EA7; text-decoration: underline; text-decoration-color: rgba(43, 94, 167, 0.4); text-underline-offset: 2px; }
     .dev-meta {
-      font-family: 'DM Mono', 'Courier New', Courier, monospace;
-      font-size: 10px; font-weight: 300;
-      color: #A8A09A; margin: 0 0 10px; letter-spacing: 0.2px;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 11px; font-weight: 400;
+      color: #8A857E; margin: 0 0 10px; letter-spacing: 0.2px;
     }
-    .dev-sep { color: #D4CEC8; margin: 0 8px; }
-    .dev-summary { font-family: Lora, Georgia, serif; font-size: 13px; line-height: 1.78; color: #3A3028; margin: 0 0 12px; }
-    .dev-footer { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .dev-sep { color: #D4CFC7; margin: 0 8px; }
+    .dev-summary {
+      font-family: 'Source Sans 3', 'Trebuchet MS', Helvetica, sans-serif;
+      font-size: 14px; line-height: 1.75; color: #3A3632; margin: 0 0 12px;
+    }
+    .dev-footer { }
     .urgency-badge {
       display: inline-block;
-      font-family: 'DM Mono', 'Courier New', Courier, monospace;
-      font-size: 8px; font-weight: 500;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 8px; font-weight: 600;
       letter-spacing: 2px; text-transform: uppercase;
       padding: 3px 9px; border: 1px solid;
     }
-    .urgency-HIGH   { color: #7F1D1D; background-color: #FFF1F0; border-color: #FECACA; }
-    .urgency-MEDIUM { color: #78350F; background-color: #FFFCEB; border-color: #FDE68A; }
-    .urgency-LOW    { color: #14532D; background-color: #F0FDF6; border-color: #BBF7D0; }
+    .urgency-HIGH   { color: #7F1D1D; background-color: #FEE2E2; border-color: #FECACA; }
+    .urgency-MEDIUM { color: #78350F; background-color: #FEF3C7; border-color: #FDE68A; }
+    .urgency-LOW    { color: #14532D; background-color: #DCFCE7; border-color: #BBF7D0; }
     .deadline-note {
-      font-family: 'DM Mono', 'Courier New', Courier, monospace;
-      font-size: 9px; font-weight: 500; color: #9B1C1C; letter-spacing: 0.2px;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 10px; font-weight: 500; color: #B91C1C; letter-spacing: 0.2px;
+      display: inline-block; margin-left: 10px;
     }
 
     /* ── No-news state ────────────────────────────────────── */
     .no-news {
-      font-family: 'DM Mono', 'Courier New', Courier, monospace;
-      font-size: 11px; font-weight: 300; color: #B0A8A0;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 11px; font-weight: 400; color: #B0ACA5;
       letter-spacing: 0.5px; padding: 22px 0 4px; margin: 0;
     }
 
-    /* ── Checkbox collapse (impact) ───────────────────────── */
+    /* ── Impact collapse (JS-only) ──────────────────────── */
     .impact-ck { display: none; }
     .impact-ck-label { display: block; cursor: pointer; user-select: none; -webkit-user-select: none; }
-    .impact-ck:checked ~ .impact-callout { display: none; }
-    .impact-chevron { font-style: normal; font-size: 13px; display: inline-block; line-height: 1; }
-    .impact-chevron::before { content: "\2193"; color: #C4A55A; }
-    .impact-ck:checked ~ .impact-ck-label .impact-chevron::before { content: "\203A"; color: #2E4E68; }
+    .impact-chevron { font-style: normal; font-size: 18px; display: inline-block; color: #D64045; line-height: 1; }
 
     /* ── Impact accordion ─────────────────────────────────── */
-    .impact-accordion { margin-top: 20px; border: 1px solid #DAD5CE; }
-    .impact-toggle { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background-color: #09111C; }
+    .impact-accordion { margin-top: 20px; border: 1px solid #D4CFC7; }
+    .impact-toggle { padding: 12px 16px; background-color: #2C2C2C; }
     .impact-toggle-label {
-      font-family: 'DM Mono', 'Courier New', Courier, monospace;
-      font-size: 9px; font-weight: 500;
-      letter-spacing: 3.5px; text-transform: uppercase;
-      color: #C4A55A; flex: 1;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 3px; text-transform: uppercase;
+      color: #D64045;
     }
 
     /* ── Impact callout ───────────────────────────────────── */
-    .impact-callout { background-color: #F9F7F3; }
-    .impact-row { padding: 13px 18px; border-bottom: 1px solid #EDEBE5; display: flex; gap: 20px; align-items: flex-start; }
+    .impact-callout { background-color: #F7F5F0; }
+    .impact-row { padding: 13px 18px; border-bottom: 1px solid #ECEAE5; }
     .impact-row:last-child { border-bottom: none; }
     .impact-label {
-      font-family: 'DM Mono', 'Courier New', Courier, monospace;
-      font-size: 8px; font-weight: 500;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 9px; font-weight: 600;
       text-transform: uppercase; letter-spacing: 2px;
-      color: #8A7040; flex-shrink: 0; width: 100px; padding-top: 2px; line-height: 1.5;
+      color: #8A7D6B; width: 100px; padding-top: 2px; line-height: 1.5;
+      display: inline-block; vertical-align: top;
     }
-    .impact-label.supplier { color: #1C4A8A; }
-    .impact-content { flex: 1; }
-    .impact-text { font-family: Lora, Georgia, serif; font-size: 13px; line-height: 1.68; color: #2A2018; margin: 0; }
+    .impact-label.supplier { color: #2B5EA7; }
+    .impact-content { display: inline-block; vertical-align: top; width: calc(100% - 120px); }
+    .impact-text {
+      font-family: 'Source Sans 3', 'Trebuchet MS', Helvetica, sans-serif;
+      font-size: 14px; line-height: 1.75; color: #2A2A2A; margin: 0;
+    }
     .action-items { list-style: none; margin: 0; padding: 0; }
     .action-items li {
-      font-family: Lora, Georgia, serif; font-size: 13px; color: #2A2018;
-      line-height: 1.6; margin-bottom: 6px; padding-left: 16px; position: relative;
+      font-family: 'Source Sans 3', 'Trebuchet MS', Helvetica, sans-serif;
+      font-size: 14px; color: #2A2A2A;
+      line-height: 1.6; margin-bottom: 6px; padding-left: 0;
     }
-    .action-items li::before { content: '\2014'; position: absolute; left: 0; color: #C4A55A; font-size: 12px; }
     .action-items li:last-child { margin-bottom: 0; }
-    .action-items.supplier li { color: #18304C; }
-    .action-items.supplier li::before { color: #4A7AB5; }
+    .action-items.supplier li { color: #1A3A5C; }
 
     /* ── Section divider ──────────────────────────────────── */
-    .section-divider { height: 1px; background-color: #EAE6DE; }
+    .section-divider { height: 2px; background-color: #ECEAE5; }
 
     /* ── Footer ───────────────────────────────────────────── */
-    .email-footer { background-color: #09111C; padding: 22px 52px 28px; }
-    .footer-rule { height: 1px; background: linear-gradient(90deg, rgba(196,165,90,0.55) 0%, rgba(196,165,90,0.06) 100%); margin-bottom: 18px; }
-    .footer-meta { font-family: 'DM Mono', 'Courier New', Courier, monospace; font-size: 9px; font-weight: 300; color: #5888A8; letter-spacing: 0.4px; line-height: 1.9; margin: 0 0 8px; }
-    .footer-meta strong { color: #78A8C8; font-weight: 500; }
-    .footer-links { font-family: 'DM Mono', 'Courier New', Courier, monospace; font-size: 9px; font-weight: 300; color: #4A7090; letter-spacing: 0.4px; margin: 0; }
-    .footer-links a { color: #6898B8; text-decoration: none; }
+    .email-footer {
+      background-color: #2C2C2C;
+      padding: 22px 40px 28px;
+    }
+    .footer-rule { height: 2px; background-color: #D64045; margin-bottom: 18px; }
+    .footer-meta {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 10px; font-weight: 400;
+      color: #9A9590; letter-spacing: 0.4px; line-height: 1.9; margin: 0 0 8px;
+    }
+    .footer-meta strong { color: #F0EDE8; font-weight: 600; }
+    .footer-links {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 10px; font-weight: 400;
+      color: #9A9590; letter-spacing: 0.4px; margin: 0;
+    }
+    .footer-links a { color: #B0ACA5; text-decoration: none; }
+    .footer-links a:hover { text-decoration: underline; }
 
     /* ── Mobile: stack sidebar above content ──────────────── */
     @media screen and (max-width: 600px) {
-      .sidebar-cell   { display: block !important; width: 100% !important; border-right: none; border-bottom: 2px solid rgba(196,165,90,0.2); }
+      .sidebar-cell   { display: block !important; width: 100% !important; border-bottom: 2px solid rgba(255,255,255,0.1); }
       .sidebar-nav    { width: 100% !important; padding: 10px 0; }
-      .sidebar-header { display: none; }
-      .sidebar-top-rule { display: none; }
-      .sidebar-links  { display: flex !important; flex-direction: row; flex-wrap: wrap; padding: 4px 16px; gap: 6px; }
-      .sidebar-link   { display: inline-flex !important; padding: 5px 10px; border-bottom: none; border-left: none; border: 1px solid rgba(196,165,90,0.22); }
-      .sidebar-link-inner { gap: 6px; }
-      .sidebar-footer { display: none; }
+      .sidebar-header { display: none !important; }
+      .sidebar-links-table { width: 100% !important; }
+      .sidebar-links-table tr { display: inline-block !important; margin: 4px 3px; }
+      .sidebar-link   { display: inline-block !important; padding: 10px 16px !important; border-bottom: none !important; border-left: 3px solid !important; background-color: rgba(255,255,255,0.04) !important; }
+      .sidebar-code   { font-size: 12px !important; letter-spacing: 2px !important; color: #F0EDE8 !important; }
+      .sidebar-count  { font-size: 10px !important; float: none !important; margin-left: 8px; }
+      .sidebar-footer { display: none !important; }
       .content-cell   { display: block !important; width: 100% !important; }
-      .masthead       { padding: 26px 24px 22px; }
-      .masthead-title { font-size: 27px; }
-      .greeting       { padding: 24px 24px 18px; }
-      .utility-bar    { padding: 10px 24px; }
-      .exec-section   { padding: 24px 24px 26px; }
-      .topic-header   { padding: 16px 24px 16px 21px; }
-      .topic-body     { padding: 8px 24px 22px 24px; }
-      .email-footer   { padding: 18px 24px 24px; }
-      .impact-row     { flex-direction: column; gap: 5px; }
-      .impact-label   { width: auto; }
+      .masthead       { padding: 24px 20px 22px; }
+      .masthead-title { font-size: 24px !important; }
+      .greeting       { padding: 24px 20px 18px; }
+      .utility-bar    { padding: 10px 20px; }
+      .exec-section   { padding: 24px 20px 26px; }
+      .topic-header   { padding: 14px 20px 14px 18px; }
+      .topic-body     { padding: 8px 20px 22px 20px; }
+      .email-footer   { padding: 18px 20px 24px; }
+      .impact-label   { width: auto !important; display: block !important; margin-bottom: 4px; }
+      .impact-content { width: 100% !important; display: block !important; }
     }
 
   </style>
@@ -389,8 +403,7 @@
       <tr><td>
         <div class="masthead-rule-top"></div>
         <div class="masthead">
-          <p class="masthead-kicker">Company Compliance Strategy</p>
-          <div class="masthead-hairline"></div>
+          <p class="masthead-kicker">Regulatory Intelligence</p>
           <h1 class="masthead-title">Compliance Intelligence</h1>
           <p class="masthead-dateline">
             {{ date_display }}<span class="sep">&#8212;</span>Daily Briefing
@@ -406,26 +419,22 @@
         <!-- Sidebar — sticky applied by JS below for browser only -->
         <td class="sidebar-cell" width="156" valign="top">
           <div class="sidebar-nav" id="sidebar-nav">
-            <div class="sidebar-top-rule"></div>
             <div class="sidebar-header">
-              <span class="sidebar-eyebrow">Contents</span>
-              <span class="sidebar-rule"></span>
+              <span class="sidebar-eyebrow">In This Issue</span>
             </div>
-            <ul class="sidebar-links">
+            <table class="sidebar-links-table" cellpadding="0" cellspacing="0" width="100%">
               {% for topic in topics %}
-              <li>
-                <a href="#section-{{ topic.topic | lower }}" class="sidebar-link">
-                  <span class="sidebar-link-inner">
-                    <span class="sidebar-pip" style="background-color: {{ topic.color }};"></span>
+              <tr>
+                <td class="sidebar-link" style="border-left-color: {{ topic.color }};">
+                  <a href="#section-{{ topic.topic | lower }}" class="sidebar-link-anchor">
+                    <span class="sidebar-pip" style="background-color: {{ topic.color }}; display:inline-block; width:10px; height:10px;"></span>
                     <span class="sidebar-code">{{ topic.topic }}</span>
-                    {% if topic.developments %}
-                    <span class="sidebar-count">{{ topic.developments | length }}</span>
-                    {% endif %}
-                  </span>
-                </a>
-              </li>
+                  </a>
+                  {% if topic.developments %}<span class="sidebar-count">{{ topic.developments | length }}</span>{% endif %}
+                </td>
+              </tr>
               {% endfor %}
-            </ul>
+            </table>
             <div class="sidebar-footer">
               <p class="sidebar-date">{{ date_display }}</p>
               <p class="sidebar-date">Daily Briefing</p>
@@ -491,18 +500,97 @@
   </td></tr>
 </table>
 
-<!-- Sticky sidebar: runs only in browsers (stripped by all email clients) -->
+{% if is_web_version %}
+<!-- Browser-only JS: sections start collapsed with expand/collapse on click. -->
 <script>
 (function () {
+  // Sticky sidebar
   var nav = document.getElementById('sidebar-nav');
-  if (!nav) return;
-  nav.style.position = 'sticky';
-  nav.style.top = '0';
-  nav.style.minHeight = '100vh';
-  nav.style.display = 'flex';
-  nav.style.flexDirection = 'column';
+  if (nav) {
+    nav.style.position = 'sticky';
+    nav.style.top = '0';
+    nav.style.minHeight = '100vh';
+    nav.style.display = 'flex';
+    nav.style.flexDirection = 'column';
+  }
+
+  // Collapse all topic sections on load
+  document.querySelectorAll('.topic-section').forEach(function (section) {
+    var body = section.querySelector('.topic-body');
+    var chevClosed = section.querySelector('.topic-label .chev-closed');
+    var chevOpen = section.querySelector('.topic-label .chev-open');
+    if (body) body.style.display = 'none';
+    if (chevClosed) { chevClosed.style.display = 'inline'; }
+    if (chevOpen) { chevOpen.style.display = 'none'; }
+  });
+
+  // Collapse all impact callouts on load
+  document.querySelectorAll('.impact-accordion').forEach(function (acc) {
+    var callout = acc.querySelector('.impact-callout');
+    var chevClosed = acc.querySelector('.impact-ck-label .chev-closed');
+    var chevOpen = acc.querySelector('.impact-ck-label .chev-open');
+    if (callout) callout.style.display = 'none';
+    if (chevClosed) { chevClosed.style.display = 'inline'; }
+    if (chevOpen) { chevOpen.style.display = 'none'; }
+  });
+
+  // Toggle function for topic sections
+  function toggleSection(section) {
+    var body = section.querySelector('.topic-body');
+    var chevClosed = section.querySelector('.topic-label .chev-closed');
+    var chevOpen = section.querySelector('.topic-label .chev-open');
+    if (!body) return;
+    var isHidden = body.style.display === 'none';
+    body.style.display = isHidden ? 'block' : 'none';
+    if (chevClosed) chevClosed.style.display = isHidden ? 'none' : 'inline';
+    if (chevOpen) chevOpen.style.display = isHidden ? 'inline' : 'none';
+  }
+
+  // Click on topic header label to toggle
+  document.querySelectorAll('.topic-label').forEach(function (label) {
+    label.addEventListener('click', function (e) {
+      e.preventDefault();
+      var section = this.closest('.topic-section');
+      if (section) toggleSection(section);
+    });
+  });
+
+  // Click on impact toggle to expand/collapse
+  document.querySelectorAll('.impact-ck-label').forEach(function (label) {
+    label.addEventListener('click', function (e) {
+      e.preventDefault();
+      var acc = this.closest('.impact-accordion');
+      if (!acc) return;
+      var callout = acc.querySelector('.impact-callout');
+      var chevClosed = acc.querySelector('.impact-ck-label .chev-closed');
+      var chevOpen = acc.querySelector('.impact-ck-label .chev-open');
+      if (!callout) return;
+      var isHidden = callout.style.display === 'none';
+      callout.style.display = isHidden ? 'block' : 'none';
+      if (chevClosed) chevClosed.style.display = isHidden ? 'none' : 'inline';
+      if (chevOpen) chevOpen.style.display = isHidden ? 'inline' : 'none';
+    });
+  });
+
+  // Sidebar anchor clicks: expand target section + scroll
+  document.querySelectorAll('.sidebar-link-anchor').forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      var hash = this.getAttribute('href');
+      if (!hash || hash.charAt(0) !== '#') return;
+      var section = document.querySelector(hash);
+      if (!section) return;
+      e.preventDefault();
+      // Expand the section if collapsed
+      var body = section.querySelector('.topic-body');
+      if (body && body.style.display === 'none') toggleSection(section);
+      requestAnimationFrame(function () {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+  });
 })();
 </script>
+{% endif %}
 
 </body>
 </html>
