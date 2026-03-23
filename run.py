@@ -153,14 +153,16 @@ def _git_push(repo_dir: Path, files: list[str], message: str) -> bool:
 
 
 def _push_maps_to_github(pfas_map_path: Path, epr_map_path: Optional[Path],
-                          repo_dir: Path) -> Tuple[Optional[str], Optional[str]]:
-    """Copy PFAS (and optionally EPR) map to GitHub Pages repo and push."""
+                          reach_map_path: Optional[Path],
+                          repo_dir: Path) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+    """Copy PFAS, EPR, and REACH maps to GitHub Pages repo and push."""
     logger = logging.getLogger("github_maps")
     try:
         dest = repo_dir / "index.html"
         shutil.copy2(pfas_map_path, dest)
         files = ["index.html"]
         epr_url = None
+        reach_url = None
 
         if epr_map_path:
             epr_dest = repo_dir / "epr-map.html"
@@ -168,13 +170,19 @@ def _push_maps_to_github(pfas_map_path: Path, epr_map_path: Optional[Path],
             files.append("epr-map.html")
             epr_url = f"{_PAGES_BASE}/epr-map.html"
 
+        if reach_map_path:
+            reach_dest = repo_dir / "reach-map.html"
+            shutil.copy2(reach_map_path, reach_dest)
+            files.append("reach-map.html")
+            reach_url = f"{_PAGES_BASE}/reach-map.html"
+
         date_str = date.today().isoformat()
         _git_push(repo_dir, files, f"Update state maps {date_str}")
         logger.info("Maps pushed to GitHub Pages.")
-        return f"{_PAGES_BASE}/", epr_url
+        return f"{_PAGES_BASE}/", epr_url, reach_url
     except Exception as e:
         logger.warning(f"Failed to push maps to GitHub: {e}")
-        return f"{_PAGES_BASE}/", None
+        return f"{_PAGES_BASE}/", None, None
 
 
 def _push_daily_newsletter(web_html: str, repo_dir: Path) -> Optional[str]:
@@ -279,11 +287,12 @@ def _sync_notebooklm_weekly(weekly_url: str, archive_weeks: List[dict]) -> None:
 
 # ── Maps ───────────────────────────────────────────────────────────────────
 
-def _generate_maps(repo_dir: Path) -> Tuple[Optional[str], Optional[str]]:
-    """Generate PFAS + EPR maps and push to GitHub Pages. Returns (pfas_url, epr_url)."""
+def _generate_maps(repo_dir: Path) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+    """Generate PFAS, EPR, and REACH maps and push to GitHub Pages."""
     logger = logging.getLogger("maps")
     pfas_map_path = None
     epr_map_path = None
+    reach_map_path = None
 
     try:
         pfas_map_path = generate_pfas_map()
@@ -298,10 +307,19 @@ def _generate_maps(repo_dir: Path) -> Tuple[Optional[str], Optional[str]]:
     except Exception as e:
         logger.warning(f"EPR map generation failed: {e}")
 
+    try:
+        from delivery.reach_map_generator import generate_reach_map
+        reach_map_path = generate_reach_map()
+        logger.info("REACH map generated.")
+    except Exception as e:
+        logger.warning(f"REACH map generation failed: {e}")
+
     if pfas_map_path:
-        pfas_url, epr_url = _push_maps_to_github(pfas_map_path, epr_map_path, repo_dir)
-        return pfas_url, epr_url
-    return None, None
+        pfas_url, epr_url, reach_url = _push_maps_to_github(
+            pfas_map_path, epr_map_path, reach_map_path, repo_dir
+        )
+        return pfas_url, epr_url, reach_url
+    return None, None, None
 
 
 # ── Main pipeline ──────────────────────────────────────────────────────────
@@ -412,16 +430,17 @@ def run_pipeline(args: argparse.Namespace) -> None:
     # Step 3b: Generate maps (Fridays and --finalize-week only)
     pfas_map_url = f"{_PAGES_BASE}/"
     epr_map_url = f"{_PAGES_BASE}/epr-map.html"
+    reach_map_url = f"{_PAGES_BASE}/reach-map.html"
     if is_friday or is_finalize:
         logger.info("Step 3b: Generating and pushing state maps…")
-        pfas_map_url, epr_map_url = _generate_maps(_GITHUB_REPO_DIR)
+        pfas_map_url, epr_map_url, reach_map_url = _generate_maps(_GITHUB_REPO_DIR)
 
     # Step 3c: Publish to GitHub Pages
     logger.info("Step 3c: Publishing to GitHub Pages…")
 
     # Daily newsletter web version
     web_html = renderer.render(
-        pipeline_output, map_url=pfas_map_url, epr_map_url=epr_map_url,
+        pipeline_output, map_url=pfas_map_url, epr_map_url=epr_map_url, reach_map_url=reach_map_url,
         is_web_version=True, week_context=week_context,
         archive_weeks=archive_weeks, archive_url=archive_url,
     )
@@ -455,7 +474,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
 
     # Update web version with exec_summary_url and archive now that we have the URL
     web_html = renderer.render(
-        pipeline_output, map_url=pfas_map_url, epr_map_url=epr_map_url,
+        pipeline_output, map_url=pfas_map_url, epr_map_url=epr_map_url, reach_map_url=reach_map_url,
         is_web_version=True, exec_summary_url=weekly_briefing_url,
         week_context=week_context, archive_weeks=archive_weeks, archive_url=archive_url,
     )
@@ -472,7 +491,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
             name = email.split("@")[0].split(".")[0].title()
             html = renderer.render(
                 pipeline_output, subscriber_name=name, map_url=pfas_map_url,
-                epr_map_url=epr_map_url, exec_summary_url=weekly_briefing_url,
+                epr_map_url=epr_map_url, reach_map_url=reach_map_url, exec_summary_url=weekly_briefing_url,
                 week_context=week_context, archive_weeks=archive_weeks, archive_url=archive_url,
             )
             success = sender.send(email, f"[TEST] {subject}", html)
@@ -492,7 +511,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
                     continue
                 html = renderer.render(
                     pipeline_output, subscriber_name=sub.first_name,
-                    map_url=pfas_map_url, epr_map_url=epr_map_url,
+                    map_url=pfas_map_url, epr_map_url=epr_map_url, reach_map_url=reach_map_url,
                     exec_summary_url=weekly_briefing_url,
                     week_context=week_context, archive_weeks=archive_weeks, archive_url=archive_url,
                 )
