@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Executive Briefing — {{ date_display }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #FAF7F2;
+      --header: #2C2C2C;
+      --text: #1A1A1A;
+      --text-secondary: #4A4740;
+      --text-muted: #9A9590;
+      --border: #E5E1DA;
+      --border-light: #ECEAE5;
+      --mono: 'IBM Plex Mono', 'Courier New', monospace;
+      --serif: 'Libre Baskerville', Georgia, serif;
+      --sans: 'Source Sans 3', 'Trebuchet MS', Helvetica, sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: var(--bg);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.8;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    .header {
+      background-color: var(--header);
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-brand {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #9A9590;
+    }
+    .header-date {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #6E6A63;
+    }
+
+    /* ── Container ── */
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 0 28px;
+    }
+
+    /* ── Title ── */
+    .title-block {
+      padding: 48px 0 32px;
+    }
+    .title-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+    .title-main {
+      font-family: var(--serif);
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1.25;
+      color: var(--text);
+      margin-bottom: 0;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      height: 1px;
+      background-color: var(--border);
+      margin: 0;
+    }
+
+    /* ── Opening paragraph ── */
+    .opening {
+      padding: 32px 0 28px;
+    }
+    .opening p {
+      font-family: var(--serif);
+      font-size: 16px;
+      line-height: 1.9;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
+    /* ── Key developments ── */
+    .developments {
+      padding: 0 0 28px;
+    }
+    .developments-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    .dev-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .dev-list li {
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.75;
+      color: var(--text);
+      padding: 14px 0 14px 20px;
+      border-bottom: 1px solid var(--border-light);
+      position: relative;
+    }
+    .dev-list li:last-child {
+      border-bottom: none;
+    }
+    .dev-list li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 22px;
+      width: 6px;
+      height: 6px;
+      background-color: var(--text-muted);
+      border-radius: 50%;
+    }
+
+    /* ── Outlook ── */
+    .outlook {
+      padding: 24px 0 36px;
+      border-top: 1px solid var(--border);
+    }
+    .outlook-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+    .outlook p {
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--text-secondary);
+    }
+
+    /* ── Footer link ── */
+    .footer-section {
+      padding: 0 0 48px;
+      text-align: center;
+    }
+    .footer-link {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 2px;
+      transition: color 0.15s ease;
+    }
+    .footer-link:hover {
+      color: var(--text);
+      border-color: var(--text);
+    }
+
+    /* ── Bottom bar ── */
+    .bottom-bar {
+      background-color: var(--header);
+      padding: 18px 32px;
+      text-align: center;
+    }
+    .bottom-bar-text {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 400;
+      color: #6E6A63;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* ── Mobile ── */
+    @media screen and (max-width: 480px) {
+      .header { padding: 14px 20px; }
+      .container { padding: 0 20px; }
+      .title-block { padding: 36px 0 24px; }
+      .title-main { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <span class="header-brand">Compliance Intelligence</span>
+    <span class="header-date">{{ date_display }}</span>
+  </div>
+
+  <div class="container">
+
+    <div class="title-block">
+      <p class="title-label">Executive Briefing</p>
+      <h1 class="title-main">Regulatory Landscape Overview</h1>
+    </div>
+
+    <div class="divider"></div>
+
+    {% set sections = {} %}
+    {% set ns = namespace(current='opening', opening='', developments=[], outlook='') %}
+    {% for line in exec_summary.split('\n') %}
+      {% set trimmed = line.strip() %}
+      {% if trimmed == '[OPENING]' %}
+        {% set ns.current = 'opening' %}
+      {% elif trimmed == '[KEY DEVELOPMENTS]' %}
+        {% set ns.current = 'developments' %}
+      {% elif trimmed == '[OUTLOOK]' %}
+        {% set ns.current = 'outlook' %}
+      {% elif trimmed %}
+        {% if ns.current == 'opening' %}
+          {% set ns.opening = ns.opening ~ ' ' ~ trimmed if ns.opening else trimmed %}
+        {% elif ns.current == 'developments' %}
+          {% if trimmed.startswith('•') %}
+            {% set _ = ns.developments.append(trimmed.lstrip('•').strip()) %}
+          {% else %}
+            {% set _ = ns.developments.append(trimmed) %}
+          {% endif %}
+        {% elif ns.current == 'outlook' %}
+          {% set ns.outlook = ns.outlook ~ ' ' ~ trimmed if ns.outlook else trimmed %}
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+
+    <div class="opening">
+      <p>{{ ns.opening }}</p>
+    </div>
+
+    {% if ns.developments %}
+    <div class="developments">
+      <p class="developments-label">Key Developments</p>
+      <ul class="dev-list">
+        {% for item in ns.developments %}
+        <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {% if ns.outlook %}
+    <div class="outlook">
+      <p class="outlook-label">Looking Ahead</p>
+      <p>{{ ns.outlook }}</p>
+    </div>
+    {% endif %}
+
+    {% if newsletter_url %}
+    <div class="footer-section">
+      <a href="{{ newsletter_url }}" class="footer-link">View full briefing with source articles &rarr;</a>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <div class="bottom-bar">
+    <span class="bottom-bar-text">Compliance Intelligence &mdash; {{ date_display }}</span>
+  </div>
+
+</body>
+</html>

@@ -114,11 +114,11 @@ Produce a JSON object with this exact structure:
     }}
   ],
   "company_impact": {{
-    "direct_products": "Impact on our OWN products containing PFAS — registration, reformulation, labeling obligations. Null if not applicable.",
-    "supply_chain": "Impact on our PURCHASING side — which component categories (electronics, gaskets, PPE, etc.) are at risk if their manufacturers miss registration deadlines. Be specific about procurement risk. Null if not applicable.",
-    "supplier_campaign": "What this development means for our supplier education campaigns — does it add urgency, identify new supplier segments to target, or change messaging? Null if not applicable.",
-    "direct_actions": ["Specific action item for direct product compliance"],
-    "supplier_actions": ["Specific action for supplier outreach or Assent declarations"]
+    "direct_products": "ONE sentence max: impact on our own PFAS-containing products. Null if N/A.",
+    "supply_chain": "ONE sentence max: which purchased component categories are at risk. Null if N/A.",
+    "supplier_campaign": "ONE sentence max: what this means for supplier outreach. Null if N/A.",
+    "direct_actions": ["1-2 specific action items max for direct compliance"],
+    "supplier_actions": ["1-2 specific action items max for supplier outreach"]
   }},
   "has_news": true
 }}
@@ -163,9 +163,37 @@ Here is a condensed view of all developments:
 
 {summaries_text}
 
-Write a 3-5 sentence executive summary for the top of today's compliance briefing email.
-Focus on the 1-2 most actionable or time-sensitive items. Be specific about the company's
-exposure. Mention deadlines if present. Use professional but direct language — no filler.
+Write an executive briefing for SENIOR LEADERSHIP — people who are not compliance specialists
+and may not know what PFAS, EPR, REACH, TSCA, PRISM, or other acronyms mean.
 
-Return plain text only (no JSON, no markdown headers).
+This will be read by VPs, directors, and C-suite. It should read like a polished internal memo
+from a trusted advisor — authoritative, concise, and clear about business impact.
+
+Structure (use these exact section markers):
+
+[OPENING]
+A 2-3 sentence opening paragraph that frames the week's regulatory landscape. Set context:
+what is the overall posture (stable, escalating, approaching deadlines)? Mention the single
+most important thing leadership should know. Spell out any acronym on first use.
+
+[KEY DEVELOPMENTS]
+3-4 bullet points covering only items that have material business impact. Each bullet should:
+- Lead with the business consequence, not the regulatory detail
+- Name specific deadlines, cost exposure, or operational risk
+- Be 1-2 sentences max
+- Use plain business language — "supply chain disruption risk" not "TSCA Section 6 rulemaking"
+
+[OUTLOOK]
+A 1-2 sentence forward-looking close. What should leadership be watching for next?
+What decisions may be needed soon?
+
+Writing rules:
+- Spell out every acronym on first use (e.g. "PFAS (a class of industrial chemicals used in coatings and components)")
+- No jargon without explanation. If a compliance term is necessary, define it in context.
+- Be direct and confident. No hedging ("may potentially"), no filler ("it is worth noting").
+- Write at the level of a Wall Street Journal article — precise, polished, authoritative.
+
+Return plain text with section markers [OPENING], [KEY DEVELOPMENTS], [OUTLOOK] on their own lines.
+Bullets in KEY DEVELOPMENTS should be prefixed with "•".
+No JSON, no markdown, no headers beyond the section markers.
 """

@@ -153,26 +153,39 @@ def _push_map_to_github(map_path: Path, repo_dir: Path) -> None:
         logger.warning(f"Failed to push map to GitHub: {e}")
 
 
-def _push_newsletter_to_github(html: str, repo_dir: Path):
-    """Save the web version HTML to the GitHub Pages repo and push. Returns the URL."""
+def _push_newsletter_to_github(html: str, repo_dir: Path, exec_html=None):
+    """Save newsletter + exec summary to GitHub Pages repo and push. Returns (newsletter_url, exec_url)."""
     logger = logging.getLogger("github_newsletter")
+    _BASE = "https://ryan-jenkinson.github.io/compliance-maps"
     try:
         import shutil
 
-        # Create newsletter directory if needed
         newsletter_dir = repo_dir / "newsletter"
         newsletter_dir.mkdir(exist_ok=True)
 
-        # Save date-based version and latest copy
         date_str = datetime.now().strftime("%Y-%m-%d")
+
+        # Save newsletter
         dated_path = newsletter_dir / f"{date_str}.html"
         latest_path = newsletter_dir / "latest.html"
-
         dated_path.write_text(html, encoding="utf-8")
         shutil.copy2(dated_path, latest_path)
 
+        files_to_add = [f"newsletter/{date_str}.html", "newsletter/latest.html"]
+        newsletter_url = f"{_BASE}/newsletter/{date_str}.html"
+        exec_url = None
+
+        # Save exec summary if provided
+        if exec_html:
+            exec_dated = newsletter_dir / f"exec-{date_str}.html"
+            exec_latest = newsletter_dir / "exec-latest.html"
+            exec_dated.write_text(exec_html, encoding="utf-8")
+            shutil.copy2(exec_dated, exec_latest)
+            files_to_add += [f"newsletter/exec-{date_str}.html", "newsletter/exec-latest.html"]
+            exec_url = f"{_BASE}/newsletter/exec-{date_str}.html"
+
         cmds = [
-            ["git", "-C", str(repo_dir), "add", f"newsletter/{date_str}.html", "newsletter/latest.html"],
+            ["git", "-C", str(repo_dir), "add"] + files_to_add,
             ["git", "-C", str(repo_dir), "commit", "-m", f"Update newsletter {date_str}"],
             ["git", "-C", str(repo_dir), "push"],
         ]
@@ -180,13 +193,12 @@ def _push_newsletter_to_github(html: str, repo_dir: Path):
             result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode != 0 and "nothing to commit" not in result.stdout:
                 logger.warning(f"Git command failed: {' '.join(cmd)}: {result.stderr.strip()}")
-                # Still return URL even if push fails — the file exists locally
-                return f"https://ryan-jenkinson.github.io/compliance-maps/newsletter/{date_str}.html"
-        logger.info("Newsletter web version pushed to GitHub Pages.")
-        return f"https://ryan-jenkinson.github.io/compliance-maps/newsletter/{date_str}.html"
+                return newsletter_url, exec_url
+        logger.info("Newsletter pushed to GitHub Pages.")
+        return newsletter_url, exec_url
     except Exception as e:
         logger.warning(f"Failed to push newsletter to GitHub: {e}")
-        return None
+        return None, None
 
 
 def _sync_notebooklm(urls: list) -> None:
@@ -313,18 +325,35 @@ def main() -> None:
     if args.preview:
         from delivery.preview import save_preview
         d = datetime.now()
+        ts = d.strftime('%Y-%m-%d_%H%M%S')
+
+        # Render exec summary page
+        exec_filename = f"preview_exec_{ts}.html"
+        exec_preview_path = Config.DATA_DIR / exec_filename
+        exec_summary_url = f"file://{exec_preview_path.resolve()}"
 
         # Render web preview (interactive, with JS)
-        web_html = renderer.render(pipeline_output, map_url=pfas_map_url, is_web_version=True)
-        web_filename = f"preview_web_{d.strftime('%Y-%m-%d_%H%M%S')}.html"
+        web_html = renderer.render(
+            pipeline_output, map_url=pfas_map_url, is_web_version=True,
+            exec_summary_url=exec_summary_url,
+        )
+        web_filename = f"preview_web_{ts}.html"
         web_preview_path = Config.DATA_DIR / web_filename
         web_preview_path.write_text(web_html, encoding="utf-8")
+
+        # Now render exec summary with link back to web version
+        exec_html = renderer.render_exec_summary(
+            pipeline_output,
+            newsletter_url=f"file://{web_preview_path.resolve()}",
+        )
+        exec_preview_path.write_text(exec_html, encoding="utf-8")
 
         # Render email preview (full content, no JS)
         email_html = renderer.render(
             pipeline_output, subscriber_name="Ryan", map_url=pfas_map_url,
+            exec_summary_url=exec_summary_url,
         )
-        email_filename = f"preview_email_{d.strftime('%Y-%m-%d_%H%M%S')}.html"
+        email_filename = f"preview_email_{ts}.html"
         email_preview_path = Config.DATA_DIR / email_filename
         email_preview_path.write_text(email_html, encoding="utf-8")
 
@@ -333,14 +362,26 @@ def main() -> None:
 
         logger.info(f"Web version preview: {web_preview_path}")
         logger.info(f"Email version preview: {email_preview_path}")
+        logger.info(f"Exec summary preview: {exec_preview_path}")
         print(f"Web version (interactive): {web_preview_path}")
         print(f"Email version (full content): {email_preview_path}")
+        print(f"Exec summary: {exec_preview_path}")
         return
 
-    # Step 3b: Render and push web version to GitHub Pages
-    logger.info("Step 3b: Publishing web version to GitHub Pages…")
-    web_html = renderer.render(pipeline_output, map_url=pfas_map_url, is_web_version=True)
-    _push_newsletter_to_github(web_html, _GITHUB_REPO_DIR)
+    # Step 3b: Render exec summary + newsletter and push to GitHub Pages
+    logger.info("Step 3b: Publishing to GitHub Pages…")
+    # First render exec summary (needs newsletter URL, but we know the pattern)
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    _PAGES_BASE = "https://ryan-jenkinson.github.io/compliance-maps"
+    newsletter_url = f"{_PAGES_BASE}/newsletter/{date_str}.html"
+    exec_summary_url = f"{_PAGES_BASE}/newsletter/exec-{date_str}.html"
+
+    exec_html = renderer.render_exec_summary(pipeline_output, newsletter_url=newsletter_url)
+    web_html = renderer.render(
+        pipeline_output, map_url=pfas_map_url, is_web_version=True,
+        exec_summary_url=exec_summary_url,
+    )
+    _push_newsletter_to_github(web_html, _GITHUB_REPO_DIR, exec_html=exec_html)
 
     # Step 4: Send emails
     sender = GmailSender()
@@ -355,6 +396,7 @@ def main() -> None:
             name = email.split("@")[0].split(".")[0].title()
             html = renderer.render(
                 pipeline_output, subscriber_name=name, map_url=pfas_map_url,
+                exec_summary_url=exec_summary_url,
             )
             success = sender.send(email, f"[TEST] {subject}", html)
             if success:
@@ -379,6 +421,7 @@ def main() -> None:
 
             html = renderer.render(
                 pipeline_output, subscriber_name=sub.first_name, map_url=pfas_map_url,
+                exec_summary_url=exec_summary_url,
             )
             success = sender.send(sub.email, subject, html)
 

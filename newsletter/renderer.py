@@ -55,6 +55,7 @@ class NewsletterRenderer:
         inline_css: bool = True,
         map_url: str | None = None,
         is_web_version: bool = False,
+        exec_summary_url: str | None = None,
     ) -> str:
         """
         Render the newsletter to HTML.
@@ -80,6 +81,7 @@ class NewsletterRenderer:
             date_long=date_long,
             subscriber_name=subscriber_name,
             exec_summary=pipeline_output["exec_summary"],
+            exec_summary_url=exec_summary_url,
             topics=enriched_topics,
             run_timestamp=now.strftime("%Y-%m-%d %H:%M:%S"),
             total_sources=pipeline_output.get("total_sources", 0),
@@ -96,3 +98,17 @@ class NewsletterRenderer:
                 logger.warning(f"premailer CSS inlining failed (sending without): {e}")
 
         return html
+
+    def render_exec_summary(
+        self,
+        pipeline_output: dict,
+        newsletter_url: str | None = None,
+    ) -> str:
+        """Render the standalone executive summary page."""
+        now = datetime.now()
+        template = self.env.get_template("exec_summary.html")
+        return template.render(
+            date_display=now.strftime("%B %-d, %Y"),
+            exec_summary=pipeline_output["exec_summary"],
+            newsletter_url=newsletter_url,
+        )

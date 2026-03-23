@@ -181,26 +181,28 @@
       padding-bottom: 1px;
     }
 
-    /* ── Executive summary ────────────────────────────────── */
-    .exec-section {
-      padding: 30px 40px 32px;
-      border-bottom: 2px solid #ECEAE5;
+    /* ── Executive summary link ────────────────────────────── */
+    .exec-link-bar {
+      padding: 14px 40px;
+      border-bottom: 1px solid #ECEAE5;
       background-color: #FFFFFF;
     }
+    .exec-link {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 11px; font-weight: 500;
+      letter-spacing: 1px;
+      text-decoration: none;
+      color: #6E6A63;
+      border-bottom: 1px solid #D4CFC7;
+      padding-bottom: 1px;
+      transition: color 0.15s ease;
+    }
+    .exec-link:hover { color: #1A1A1A; border-color: #1A1A1A; }
     .section-eyebrow {
       font-family: 'IBM Plex Mono', 'Courier New', monospace;
       font-size: 10px; font-weight: 600;
       letter-spacing: 3px; text-transform: uppercase;
       color: #D64045; margin: 0 0 16px; display: block;
-    }
-    .exec-pull {
-      border-left: 3px solid #D64045;
-      padding: 3px 0 3px 22px; margin: 0;
-    }
-    .exec-pull p {
-      font-family: 'Libre Baskerville', Georgia, serif;
-      font-size: 15px; line-height: 1.85;
-      color: #2A2A2A; margin: 0; font-style: italic;
     }
 
     /* ── Topic collapse (JS-only, see script at bottom) ──── */
@@ -368,26 +370,24 @@
     .footer-links a { color: #B0ACA5; text-decoration: none; }
     .footer-links a:hover { text-decoration: underline; }
 
-    /* ── Mobile: stack sidebar above content ──────────────── */
+    /* ── Small screens: keep sidebar on left, shrink padding ── */
     @media screen and (max-width: 600px) {
-      .sidebar-cell   { display: block !important; width: 100% !important; border-bottom: 2px solid rgba(255,255,255,0.1); }
-      .sidebar-nav    { width: 100% !important; padding: 10px 0; }
-      .sidebar-header { display: none !important; }
-      .sidebar-links-table { width: 100% !important; }
-      .sidebar-links-table tr { display: inline-block !important; margin: 4px 3px; }
-      .sidebar-link   { display: inline-block !important; padding: 10px 16px !important; border-bottom: none !important; border-left: 3px solid !important; background-color: rgba(255,255,255,0.04) !important; }
-      .sidebar-code   { font-size: 12px !important; letter-spacing: 2px !important; color: #F0EDE8 !important; }
-      .sidebar-count  { font-size: 10px !important; float: none !important; margin-left: 8px; }
+      .sidebar-cell   { width: 120px !important; min-width: 120px !important; }
+      .sidebar-nav    { width: 120px !important; }
+      .sidebar-link   { padding: 10px !important; }
+      .sidebar-code   { font-size: 11px !important; letter-spacing: 1px !important; }
+      .sidebar-count  { display: none !important; }
       .sidebar-footer { display: none !important; }
-      .content-cell   { display: block !important; width: 100% !important; }
+      .sidebar-header { padding: 16px 10px 12px !important; }
+      .sidebar-eyebrow { font-size: 8px !important; letter-spacing: 2px !important; }
       .masthead       { padding: 24px 20px 22px; }
       .masthead-title { font-size: 24px !important; }
-      .greeting       { padding: 24px 20px 18px; }
-      .utility-bar    { padding: 10px 20px; }
-      .exec-section   { padding: 24px 20px 26px; }
-      .topic-header   { padding: 14px 20px 14px 18px; }
-      .topic-body     { padding: 8px 20px 22px 20px; }
-      .email-footer   { padding: 18px 20px 24px; }
+      .greeting       { padding: 24px 16px 18px; }
+      .utility-bar    { padding: 10px 16px; }
+      .exec-section   { padding: 24px 16px 26px; }
+      .topic-header   { padding: 14px 16px 14px 14px; }
+      .topic-body     { padding: 8px 16px 22px 16px; }
+      .email-footer   { padding: 18px 16px 24px; }
       .impact-label   { width: auto !important; display: block !important; margin-bottom: 4px; }
       .impact-content { width: 100% !important; display: block !important; }
     }
@@ -417,8 +417,8 @@
       <tr>
 
         <!-- Sidebar — sticky applied by JS below for browser only -->
-        <td class="sidebar-cell" width="156" valign="top">
-          <div class="sidebar-nav" id="sidebar-nav">
+        <td class="sidebar-cell" width="156" valign="top" style="width:156px;min-width:120px;max-width:156px;background-color:#2C2C2C;vertical-align:top;">
+          <div class="sidebar-nav" id="sidebar-nav" style="width:156px;background-color:#2C2C2C;">
             <div class="sidebar-header">
               <span class="sidebar-eyebrow">In This Issue</span>
             </div>
@@ -443,7 +443,7 @@
         </td>
 
         <!-- Content -->
-        <td class="content-cell" valign="top">
+        <td class="content-cell" valign="top" style="vertical-align:top;">
           <table class="email-body" width="100%" cellpadding="0" cellspacing="0" role="presentation">
             <tr><td>
 
@@ -459,12 +459,11 @@
                 {% endif %}
               </div>
 
-              <div class="exec-section">
-                <span class="section-eyebrow">Executive Summary</span>
-                <div class="exec-pull">
-                  <p>{{ exec_summary }}</p>
-                </div>
+              {% if exec_summary_url %}
+              <div class="exec-link-bar">
+                <a href="{{ exec_summary_url }}" class="exec-link" target="_blank">Executive briefing &rarr;</a>
               </div>
+              {% endif %}
 
               {% for topic in topics %}
               {% include 'topic_section.html' %}
