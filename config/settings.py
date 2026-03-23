@@ -36,6 +36,10 @@ class Config:
     def gmail_app_password() -> str:
         return _require("GMAIL_APP_PASSWORD")
 
+    @staticmethod
+    def legiscan_api_key() -> str:
+        return os.getenv("LEGISCAN_API_KEY", "")
+
     # Email sender identity
     GMAIL_FROM_NAME: str = os.getenv("GMAIL_FROM_NAME", "Compliance Intelligence")
 

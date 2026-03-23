@@ -294,6 +294,49 @@ Return ONLY a JSON object (no markdown):
     return final_data
 
 
+def _load_legiscan_data() -> str:
+    """
+    Run LegiScan tracker and return structured bill data as context for Claude.
+    Returns empty string if LegiScan is not configured.
+    """
+    try:
+        from scrapers.legiscan_tracker import LegiScanTracker
+        tracker = LegiScanTracker()
+        report = tracker.run()
+        bills = tracker.export_for_pipeline()
+        tracker.close()
+
+        if not bills:
+            return ""
+
+        lines = [
+            f"\n\n=== LEGISCAN STRUCTURED BILL DATA ({len(bills)} active PFAS bills) ===",
+            "This is authoritative, real-time data from state legislature tracking systems.",
+            "Use this data with HIGH confidence — it overrides article-based inferences.\n",
+        ]
+        for b in bills:
+            sponsors_str = ", ".join(b["sponsors"][:3]) if b["sponsors"] else "N/A"
+            actions_str = " | ".join(b["recent_actions"][-2:]) if b["recent_actions"] else "N/A"
+            lines.append(
+                f"STATE: {b['state']} | BILL: {b['bill_number']} | STATUS: {b['status']}\n"
+                f"  TITLE: {b['title'][:150]}\n"
+                f"  DESCRIPTION: {b['description'][:200]}\n"
+                f"  STAGE: {b['stage']} | SCOPE: {b['scope']}\n"
+                f"  COMMITTEE: {b['committee'] or 'N/A'}\n"
+                f"  SPONSORS: {sponsors_str}\n"
+                f"  RECENT ACTIONS: {actions_str}\n"
+                f"  URL: {b['url']}\n"
+            )
+
+        logger.info(f"LegiScan: {len(bills)} active bills across {report['states_with_bills']} states "
+                     f"({report['api_calls']} API calls)")
+        return "\n".join(lines)
+
+    except Exception as e:
+        logger.warning(f"LegiScan integration skipped: {e}")
+        return ""
+
+
 def run_pipeline(skip_scrape: bool = False) -> dict:
     """
     Run the full PFAS legislative intelligence pipeline.
@@ -322,10 +365,17 @@ def run_pipeline(skip_scrape: bool = False) -> dict:
 
     logger.info(f"\nTotal articles for analysis: {len(all_articles)}")
 
+    # Step 1b: Run LegiScan bill tracker (if configured)
+    logger.info("\n--- Running LegiScan bill tracker ---")
+    legiscan_context = _load_legiscan_data()
+
     # Step 2: Prepare context for Claude
     logger.info("\n--- Preparing article context ---")
     context = _prepare_article_context(all_articles, max_chars=50000)
-    logger.info(f"Context prepared: {len(context)} chars from top-scored articles")
+    # Append LegiScan structured data — this takes priority in Claude's analysis
+    if legiscan_context:
+        context = context + "\n" + legiscan_context
+    logger.info(f"Context prepared: {len(context)} chars total")
 
     # Step 3: Run Claude extraction pipeline
     logger.info("\n--- Running Claude extraction pipeline ---")
