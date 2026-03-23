@@ -985,6 +985,42 @@ def generate_epr_map(output_path: Path = None, activity_counts: Optional[Dict[st
       font-size: 11px;
       color: #A0AEC0;
     }}
+
+    /* ---- Site nav ---- */
+    .site-nav {{
+      background: #0A1628;
+      border-bottom: 1px solid #162540;
+      padding: 7px 32px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+    }}
+    .nav-section {{
+      color: #3A5070;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 0 6px 0 2px;
+    }}
+    .nav-sep {{
+      width: 1px;
+      height: 14px;
+      background: #1E3050;
+      margin: 0 8px;
+    }}
+    .nav-item {{
+      color: #6A8CAA;
+      font-size: 11px;
+      font-weight: 500;
+      text-decoration: none;
+      padding: 3px 9px;
+      border-radius: 2px;
+      transition: background 0.12s, color 0.12s;
+    }}
+    .nav-item:hover {{ background: rgba(255,255,255,0.07); color: #CBD5E0; }}
+    .nav-item.active {{ background: rgba(196,165,90,0.14); color: #C4A55A; font-weight: 600; }}
   </style>
 </head>
 <body>
@@ -994,6 +1030,19 @@ def generate_epr_map(output_path: Path = None, activity_counts: Optional[Dict[st
   <h1>EPR State Tracker</h1>
   <p class="sub">Extended Producer Responsibility laws covering packaging, electronics, paint &amp; tires &nbsp;&middot;&nbsp; Last updated: {last_updated}</p>
 </div>
+<nav class="site-nav">
+  <span class="nav-section">Maps</span>
+  <a href="./index.html" class="nav-item">PFAS</a>
+  <a href="./epr-map.html" class="nav-item active">EPR</a>
+  <a href="./reach-map.html" class="nav-item">REACH</a>
+  <div class="nav-sep"></div>
+  <span class="nav-section">Timelines</span>
+  <a href="./pfas-timeline.html" class="nav-item">PFAS</a>
+  <a href="./epr-timeline.html" class="nav-item">EPR</a>
+  <a href="./reach-timeline.html" class="nav-item">REACH</a>
+  <a href="./tsca-timeline.html" class="nav-item">TSCA</a>
+  <a href="./deadline-timeline.html" class="nav-item">All Topics</a>
+</nav>
 
 <div class="page-body">
 

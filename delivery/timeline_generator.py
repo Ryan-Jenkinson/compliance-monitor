@@ -345,14 +345,31 @@ def generate_deadline_timeline(topic: Optional[str] = None, output_path: Optiona
     dl_count = len(all_deadlines)
     jx_count = len(by_jx)
 
-    back_links_html = "".join(
-        f'<a href="{url}" class="back-link">{_h(label)}</a>'
-        for url, label in cfg["back_links"]
-    )
-
     accent = cfg["accent"]
     page_title = cfg["page_title"]
     eyebrow = cfg["eyebrow"]
+    current_file = cfg["filename"]
+
+    _BASE = "https://ryan-jenkinson.github.io/compliance-maps"
+    _MAPS = [
+        (f"{_BASE}/index.html",     "PFAS",  "index.html"),
+        (f"{_BASE}/epr-map.html",   "EPR",   "epr-map.html"),
+        (f"{_BASE}/reach-map.html", "REACH", "reach-map.html"),
+    ]
+    _TIMELINES = [
+        (f"{_BASE}/pfas-timeline.html",     "PFAS",       "pfas-timeline.html"),
+        (f"{_BASE}/epr-timeline.html",      "EPR",        "epr-timeline.html"),
+        (f"{_BASE}/reach-timeline.html",    "REACH",      "reach-timeline.html"),
+        (f"{_BASE}/tsca-timeline.html",     "TSCA",       "tsca-timeline.html"),
+        (f"{_BASE}/deadline-timeline.html", "All Topics", "deadline-timeline.html"),
+    ]
+
+    def _nav_link(url: str, label: str, filename: str) -> str:
+        cls = 'nav-item active' if filename == current_file else 'nav-item'
+        return f'<a href="{url}" class="{cls}">{_h(label)}</a>'
+
+    map_links = "".join(_nav_link(u, l, f) for u, l, f in _MAPS)
+    tl_links = "".join(_nav_link(u, l, f) for u, l, f in _TIMELINES)
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -416,24 +433,45 @@ def generate_deadline_timeline(topic: Optional[str] = None, output_path: Optiona
       letter-spacing: 1px;
       margin-top: 4px;
     }}
-    .back-links {{
+    /* ── Site nav ─────────────────────────────── */
+    .site-nav {{
+      background: #0D0F11;
+      border-bottom: 1px solid #1E2226;
+      padding: 7px 28px;
       display: flex;
-      gap: 10px;
+      align-items: center;
+      gap: 4px;
       flex-wrap: wrap;
+      flex-shrink: 0;
     }}
-    .back-link {{
+    .nav-section {{
       font-family: 'IBM Plex Mono', monospace;
-      font-size: 9px;
+      color: #2E3238;
+      font-size: 8px;
       font-weight: 600;
-      letter-spacing: 2px;
+      letter-spacing: 3px;
       text-transform: uppercase;
-      color: #858890;
-      text-decoration: none;
-      border: 1px solid #2A2E34;
-      padding: 6px 11px;
-      transition: color 0.15s, border-color 0.15s;
+      padding: 0 6px 0 2px;
     }}
-    .back-link:hover {{ color: #E4E0DA; border-color: #4A4E54; }}
+    .nav-sep {{
+      width: 1px;
+      height: 12px;
+      background: #1E2226;
+      margin: 0 8px;
+    }}
+    .nav-item {{
+      font-family: 'IBM Plex Mono', monospace;
+      color: #4A5060;
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-decoration: none;
+      padding: 3px 9px;
+      border-radius: 2px;
+      transition: background 0.12s, color 0.12s;
+    }}
+    .nav-item:hover {{ background: rgba(255,255,255,0.05); color: #9EA4B0; }}
+    .nav-item.active {{ background: rgba(214,64,69,0.12); color: {accent}; font-weight: 600; }}
 
     /* ── Gantt scroll container ───────────────── */
     .tl-scroll {{
@@ -693,10 +731,16 @@ def generate_deadline_timeline(topic: Optional[str] = None, output_path: Optiona
     <div class="hdr-title">{_h(page_title)}</div>
     <div class="hdr-sub">Generated {today_str} &nbsp;·&nbsp; {dl_count} tracked deadline{'s' if dl_count != 1 else ''} across {jx_count} jurisdiction{'s' if jx_count != 1 else ''}</div>
   </div>
-  <div class="back-links">
-    {back_links_html}
-  </div>
 </div>
+
+<!-- Site nav -->
+<nav class="site-nav">
+  <span class="nav-section">Maps</span>
+  {map_links}
+  <div class="nav-sep"></div>
+  <span class="nav-section">Timelines</span>
+  {tl_links}
+</nav>
 
 <!-- Gantt scroll area -->
 <div class="tl-scroll">
