@@ -929,6 +929,10 @@ function showDetail(code) {{
       + '</div>';
   }}
 
+  var notesHtml = (country.status !== 'standard' && country.key_notes)
+    ? '<p class="detail-section-label">Notes</p><p class="detail-text">' + escapeHtml(country.key_notes) + '</p>'
+    : '';
+
   var html = '<div class="detail-code">' + code + '</div>'
     + '<div class="detail-name">' + escapeHtml(country.name) + '</div>'
     + '<span class="detail-status-badge' + badgeClass + '" style="' + badgeStyle + '">'
@@ -939,8 +943,7 @@ function showDetail(code) {{
     + '<p class="detail-text">' + escapeHtml(country.enforcement_body) + '</p>'
     + '<p class="detail-section-label">Supplier Relevance</p>'
     + '<span class="supplier-pill ' + relClass + '">' + escapeHtml(country.supplier_relevance) + '</span>'
-    + '<p class="detail-section-label">Notes</p>'
-    + '<p class="detail-text">' + escapeHtml(country.key_notes) + '</p>';
+    + notesHtml;
 
   document.getElementById('detailEmpty').style.display = 'none';
   var content = document.getElementById('detailContent');

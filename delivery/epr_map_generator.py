@@ -1044,13 +1044,16 @@ function showDetail(abbr) {{
     datesHtml += '</ul>';
   }}
 
+  var overviewHtml = (state.status !== 'none' && state.summary)
+    ? '<p class="detail-section-label">Overview</p><p class="detail-summary">' + escapeHtml(state.summary) + '</p>'
+    : '';
+
   var html = '<div class="detail-abbr">' + abbr + '</div>'
     + '<div class="detail-name">' + escapeHtml(state.name) + '</div>'
     + '<span class="detail-status-badge' + badgeExtraClass + '" style="background:' + color + ';">'
     + escapeHtml(statusLabel)
     + '</span>'
-    + '<p class="detail-section-label">Overview</p>'
-    + '<p class="detail-summary">' + escapeHtml(state.summary) + '</p>'
+    + overviewHtml
     + programsHtml
     + datesHtml;
 

@@ -548,11 +548,14 @@ function showDetail(abbr) {{
       + '<div class="company-note"><strong>Compliance Note</strong>' + escapeHtml(state.company_note) + '</div>';
   }}
 
+  var summaryHtml = (state.status !== 'none' && state.summary)
+    ? '<p class="detail-section-label">Summary</p><p class="detail-summary">' + escapeHtml(state.summary) + '</p>'
+    : '';
+
   var html = '<div class="detail-abbr">' + abbr + '</div>'
     + '<div class="detail-name">' + escapeHtml(state.name) + '</div>'
     + '<span class="detail-status-badge" style="background:' + color + ';">' + escapeHtml(statusLabel) + '</span>'
-    + '<p class="detail-section-label">Summary</p>'
-    + '<p class="detail-summary">' + escapeHtml(state.summary) + '</p>'
+    + summaryHtml
     + lawsHtml
     + datesHtml
     + noteHtml;
