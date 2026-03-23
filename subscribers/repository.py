@@ -126,7 +126,7 @@ class SubscriberRepository:
                 """SELECT 1 FROM send_log
                    WHERE subscriber_id = ?
                      AND status = 'success'
-                     AND date(sent_at) = date('now')
+                     AND date(sent_at, 'localtime') = date('now', 'localtime')
                    LIMIT 1""",
                 (subscriber_id,),
             ).fetchone()

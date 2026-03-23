@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+
+    <!-- Unique identifier for this job -->
+    <key>Label</key>
+    <string>com.ryanjenkinson.compliance-monitor</string>
+
+    <!-- Use a shell wrapper that sources the venv — avoids the pyvenv.cfg
+         PermissionError that launchd hits when calling venv Python directly -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/ryanjenkinson/.compliance_launcher.sh</string>
+    </array>
+
+    <!-- Fire at 6:00 AM daily.
+         Key behaviour: if the Mac is asleep at 6 AM, launchd fires the job
+         the next time the Mac wakes up that day — unlike cron which silently skips. -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>6</integer>
+        <key>Minute</key>
+        <integer>15</integer>
+    </dict>
+
+    <!-- Log both stdout and stderr to the existing launchd log file -->
+    <key>StandardOutPath</key>
+    <string>/Users/ryanjenkinson/Library/Logs/compliance-monitor.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/ryanjenkinson/Library/Logs/compliance-monitor.log</string>
+
+    <!-- Restart on crash (not on clean exit, which is the default) -->
+    <key>KeepAlive</key>
+    <false/>
+
+    <!-- Pass through the user's environment so PATH, HOME etc. are correct -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>HOME</key>
+        <string>/Users/ryanjenkinson</string>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+
+</dict>
+</plist>

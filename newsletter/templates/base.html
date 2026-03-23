@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Compliance Intelligence — {{ date_display }}</title>
+  <meta name="color-scheme" content="dark light">
+  <meta name="supported-color-schemes" content="dark light">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <!--[if mso]>
@@ -28,15 +30,15 @@
     /* ── Base ─────────────────────────────────────────────── */
     body {
       margin: 0; padding: 0;
-      background-color: #FAF7F2;
+      background-color: #131416;
       font-family: 'Source Sans 3', 'Trebuchet MS', Helvetica, sans-serif;
       font-size: 15px; line-height: 1.75;
-      color: #1A1A1A;
+      color: #D8D4CE;
     }
     .email-wrapper {
       max-width: 900px;
       margin: 0 auto;
-      background-color: #FAF7F2;
+      background-color: #131416;
     }
 
     /* ── Masthead ─────────────────────────────────────────── */
@@ -46,7 +48,7 @@
       font-size: 0; line-height: 0;
     }
     .masthead {
-      background-color: #2C2C2C;
+      background-color: #111315;
       padding: 32px 40px 28px;
     }
     .masthead-kicker {
@@ -72,12 +74,12 @@
     /* ── Sidebar ──────────────────────────────────────────── */
     .sidebar-cell {
       width: 156px;
-      background-color: #2C2C2C;
+      background-color: #111315;
       vertical-align: top;
     }
     .sidebar-nav {
       width: 156px;
-      background-color: #2C2C2C;
+      background-color: #111315;
     }
     .sidebar-header {
       padding: 22px 14px 16px;
@@ -94,8 +96,8 @@
     .sidebar-link {
       padding: 14px;
       border-left: 4px solid transparent;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      background-color: #2C2C2C;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      background-color: #111315;
     }
     .sidebar-link:hover {
       background-color: rgba(255, 255, 255, 0.06);
@@ -181,42 +183,42 @@
     /* ── Body shell ───────────────────────────────────────── */
     .content-cell { vertical-align: top; }
     .email-body {
-      background-color: #FFFFFF;
+      background-color: #191C20;
     }
 
     /* ── Greeting ─────────────────────────────────────────── */
     .greeting {
       padding: 32px 40px 24px;
-      background-color: #FAF7F2;
-      border-bottom: 1px solid #D4CFC7;
+      background-color: #191C20;
+      border-bottom: 1px solid #252A30;
     }
     .greeting-name {
       font-family: 'Libre Baskerville', Georgia, serif;
       font-size: 20px; font-weight: 400; font-style: italic;
-      color: #1A1A1A; margin: 0 0 6px;
+      color: #E4E0DA; margin: 0 0 6px;
     }
     .greeting-sub {
       font-family: 'Source Sans 3', 'Trebuchet MS', Helvetica, sans-serif;
       font-size: 13px; font-weight: 400;
-      color: #6E6A63; margin: 0;
+      color: #696D73; margin: 0;
     }
 
     /* ── Utility bar ──────────────────────────────────────── */
     .utility-bar {
       padding: 12px 40px;
-      background-color: #FAF7F2;
-      border-bottom: 1px solid #D4CFC7;
+      background-color: #141618;
+      border-bottom: 1px solid #232830;
     }
     .utility-label {
       font-family: 'Source Sans 3', 'Trebuchet MS', Helvetica, sans-serif;
       font-size: 14px; font-weight: 600;
-      color: #4A4740; margin-right: 16px;
+      color: #858890; margin-right: 16px;
     }
     .utility-bar a {
       font-family: 'Source Sans 3', 'Trebuchet MS', Helvetica, sans-serif;
       font-size: 14px; font-weight: 500;
-      color: #2B5EA7; text-decoration: underline;
-      text-decoration-color: rgba(43, 94, 167, 0.4);
+      color: #7A9EB5; text-decoration: underline;
+      text-decoration-color: rgba(122, 158, 181, 0.35);
       text-underline-offset: 2px;
       margin-right: 12px;
     }
@@ -224,8 +226,8 @@
     /* ── Executive summary link ────────────────────────────── */
     .exec-link-bar {
       padding: 16px 40px;
-      border-bottom: 1px solid #ECEAE5;
-      background-color: #F5F2EC;
+      border-bottom: 1px solid #232830;
+      background-color: #121416;
     }
     .exec-link {
       font-family: 'Source Sans 3', 'Trebuchet MS', Helvetica, sans-serif;
@@ -250,7 +252,7 @@
       display: block; cursor: pointer;
       user-select: none; -webkit-user-select: none;
     }
-    .topic-label:hover .topic-header { background-color: #FBF9F5; }
+    .topic-label:hover .topic-header { background-color: #222529; }
 
     /* Chevron + collapse states applied by JS */
     .topic-chevron { font-style: normal; font-size: 18px; display: inline-block; color: #D64045; line-height: 1; }
@@ -261,7 +263,7 @@
     .topic-section { position: relative; }
     .topic-header {
       padding: 18px 36px 18px 32px;
-      background-color: #FFFFFF;
+      background-color: #191C20;
       border-left: 4px solid transparent;
     }
     .topic-header-table { border-collapse: collapse; }
@@ -278,23 +280,23 @@
     .topic-name {
       font-family: 'Libre Baskerville', Georgia, serif;
       font-size: 16px; font-weight: 700;
-      color: #1A1A1A; line-height: 1.3;
+      color: #E4E0DA; line-height: 1.3;
     }
     .topic-tally-cell { padding-right: 10px; white-space: nowrap; }
     .topic-tally {
       font-family: 'IBM Plex Mono', 'Courier New', monospace;
       font-size: 10px; font-weight: 400;
-      color: #6E6A63; background-color: #F0EDE8;
+      color: #858890; background-color: #1F2328;
       padding: 4px 12px; letter-spacing: 0.3px;
-      border: 1px solid #D4CFC7; white-space: nowrap;
+      border: 1px solid #2C3038; white-space: nowrap;
       display: inline-block;
     }
-    .topic-tally-none { color: #B0ACA5; background: transparent; border-color: #D4CFC7; }
+    .topic-tally-none { color: #484C52; background: transparent; border-color: #232830; }
 
-    .topic-body { padding: 12px 36px 28px; background-color: #FAFAF8; }
+    .topic-body { padding: 12px 36px 28px; background-color: #1E2226; }
 
     /* ── Development item ─────────────────────────────────── */
-    .dev-item { padding: 20px 0; border-bottom: 1px solid #ECEAE5; }
+    .dev-item { padding: 20px 0; border-bottom: 1px solid #252A30; }
     .dev-item:last-of-type { border-bottom: none; padding-bottom: 6px; }
     .dev-head { margin-bottom: 7px; }
     .new-badge {
@@ -308,18 +310,18 @@
     .dev-headline {
       font-family: 'Libre Baskerville', Georgia, serif;
       font-size: 15px; font-weight: 700;
-      color: #1A1A1A; line-height: 1.45; margin: 0;
+      color: #E4E0DA; line-height: 1.45; margin: 0;
     }
-    .dev-headline a { color: #2B5EA7; text-decoration: underline; text-decoration-color: rgba(43, 94, 167, 0.4); text-underline-offset: 2px; }
+    .dev-headline a { color: #7A9EB5; text-decoration: underline; text-decoration-color: rgba(122, 158, 181, 0.35); text-underline-offset: 2px; }
     .dev-meta {
       font-family: 'IBM Plex Mono', 'Courier New', monospace;
       font-size: 11px; font-weight: 400;
-      color: #8A857E; margin: 0 0 10px; letter-spacing: 0.2px;
+      color: #636870; margin: 0 0 10px; letter-spacing: 0.2px;
     }
-    .dev-sep { color: #D4CFC7; margin: 0 8px; }
+    .dev-sep { color: #2C3038; margin: 0 8px; }
     .dev-summary {
       font-family: 'Source Sans 3', 'Trebuchet MS', Helvetica, sans-serif;
-      font-size: 14px; line-height: 1.75; color: #3A3632; margin: 0 0 12px;
+      font-size: 14px; line-height: 1.75; color: #B2B6BC; margin: 0 0 12px;
     }
     .dev-footer { }
     .urgency-badge {
@@ -329,9 +331,9 @@
       letter-spacing: 2px; text-transform: uppercase;
       padding: 3px 9px; border: 1px solid;
     }
-    .urgency-HIGH   { color: #7F1D1D; background-color: #FEE2E2; border-color: #FECACA; }
-    .urgency-MEDIUM { color: #78350F; background-color: #FEF3C7; border-color: #FDE68A; }
-    .urgency-LOW    { color: #14532D; background-color: #DCFCE7; border-color: #BBF7D0; }
+    .urgency-HIGH   { color: #F08080; background-color: #2A1018; border-color: #4A1E28; }
+    .urgency-MEDIUM { color: #D4A84B; background-color: #221808; border-color: #3A2C10; }
+    .urgency-LOW    { color: #5EB88A; background-color: #081A14; border-color: #103A28; }
     .deadline-note {
       font-family: 'IBM Plex Mono', 'Courier New', monospace;
       font-size: 10px; font-weight: 500; color: #B91C1C; letter-spacing: 0.2px;
@@ -341,7 +343,7 @@
     /* ── No-news state ────────────────────────────────────── */
     .no-news {
       font-family: 'IBM Plex Mono', 'Courier New', monospace;
-      font-size: 11px; font-weight: 400; color: #B0ACA5;
+      font-size: 11px; font-weight: 400; color: #484C52;
       letter-spacing: 0.5px; padding: 22px 0 4px; margin: 0;
     }
 
@@ -351,8 +353,8 @@
     .impact-chevron { font-style: normal; font-size: 18px; display: inline-block; color: #D64045; line-height: 1; }
 
     /* ── Impact accordion ─────────────────────────────────── */
-    .impact-accordion { margin-top: 20px; border: 1px solid #D4CFC7; }
-    .impact-toggle { padding: 12px 16px; background-color: #2C2C2C; }
+    .impact-accordion { margin-top: 20px; border: 1px solid #232830; }
+    .impact-toggle { padding: 12px 16px; background-color: #121416; }
     .impact-toggle-label {
       font-family: 'IBM Plex Mono', 'Courier New', monospace;
       font-size: 10px; font-weight: 600;
@@ -361,37 +363,37 @@
     }
 
     /* ── Impact callout ───────────────────────────────────── */
-    .impact-callout { background-color: #F7F5F0; }
-    .impact-row { padding: 13px 18px; border-bottom: 1px solid #ECEAE5; }
+    .impact-callout { background-color: #181B1E; }
+    .impact-row { padding: 13px 18px; border-bottom: 1px solid #232830; }
     .impact-row:last-child { border-bottom: none; }
     .impact-label {
       font-family: 'IBM Plex Mono', 'Courier New', monospace;
       font-size: 9px; font-weight: 600;
       text-transform: uppercase; letter-spacing: 2px;
-      color: #8A7D6B; width: 100px; padding-top: 2px; line-height: 1.5;
+      color: #636870; width: 100px; padding-top: 2px; line-height: 1.5;
       display: inline-block; vertical-align: top;
     }
-    .impact-label.supplier { color: #2B5EA7; }
+    .impact-label.supplier { color: #7A9EB5; }
     .impact-content { display: inline-block; vertical-align: top; width: calc(100% - 120px); }
     .impact-text {
       font-family: 'Source Sans 3', 'Trebuchet MS', Helvetica, sans-serif;
-      font-size: 14px; line-height: 1.75; color: #2A2A2A; margin: 0;
+      font-size: 14px; line-height: 1.75; color: #B2B6BC; margin: 0;
     }
     .action-items { list-style: none; margin: 0; padding: 0; }
     .action-items li {
       font-family: 'Source Sans 3', 'Trebuchet MS', Helvetica, sans-serif;
-      font-size: 14px; color: #2A2A2A;
+      font-size: 14px; color: #B2B6BC;
       line-height: 1.6; margin-bottom: 6px; padding-left: 0;
     }
     .action-items li:last-child { margin-bottom: 0; }
-    .action-items.supplier li { color: #1A3A5C; }
+    .action-items.supplier li { color: #8AAEC8; }
 
     /* ── Section divider ──────────────────────────────────── */
-    .section-divider { height: 2px; background-color: #ECEAE5; }
+    .section-divider { height: 2px; background-color: #1E2226; }
 
     /* ── Footer ───────────────────────────────────────────── */
     .email-footer {
-      background-color: #2C2C2C;
+      background-color: #111315;
       padding: 22px 40px 28px;
     }
     .footer-rule { height: 2px; background-color: #D64045; margin-bottom: 18px; }
@@ -456,8 +458,8 @@
       <tr>
 
         <!-- Sidebar — sticky applied by JS below for browser only -->
-        <td class="sidebar-cell" width="156" valign="top" style="width:156px;min-width:120px;max-width:156px;background-color:#2C2C2C;vertical-align:top;">
-          <div class="sidebar-nav" id="sidebar-nav" style="width:156px;background-color:#2C2C2C;">
+        <td class="sidebar-cell" width="156" valign="top" style="width:156px;min-width:120px;max-width:156px;background-color:#111315;vertical-align:top;">
+          <div class="sidebar-nav" id="sidebar-nav" style="width:156px;background-color:#111315;">
             <div class="sidebar-header">
               <span class="sidebar-eyebrow">In This Issue</span>
             </div>
