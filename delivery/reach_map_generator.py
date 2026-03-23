@@ -874,6 +874,7 @@ def generate_reach_map(activity_counts: Optional[Dict[str, int]] = None) -> Path
   <h1>EU REACH Tracker</h1>
   <p class="sub">Enforcement intensity &amp; supplier exposure by country &nbsp;&middot;&nbsp; Generated: {today}</p>
   <a class="download-btn" href="./reach-tracker.xlsx" download>&#8595; Download Excel</a>
+  <a class="download-btn" href="./reach-timeline.html" style="margin-left:8px;">&#9201; Deadline Timeline</a>
 </div>
 
 <div class="page-body">

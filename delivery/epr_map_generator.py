@@ -1000,6 +1000,7 @@ def generate_epr_map(output_path: Path = None, activity_counts: Optional[Dict[st
   <!-- Map -->
   <div class="map-panel">
     <a class="download-btn" href="./epr-tracker.xlsx" download>&#8595; Download Excel</a>
+    <a class="download-btn" href="./epr-timeline.html" style="margin-left:8px;">&#9201; Deadline Timeline</a>
     <p class="map-title">Click any state for details</p>
     <div class="state-grid" id="stateGrid">
 {state_cells_html}

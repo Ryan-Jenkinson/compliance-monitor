@@ -186,6 +186,15 @@ def _push_maps_to_github(pfas_map_path: Path, epr_map_path: Optional[Path],
                     shutil.copy2(src_path, repo_dir / dest_name)
                     files.append(dest_name)
 
+        # Copy all timeline files
+        data_dir = Path(__file__).parent / "data"
+        for tl_name in ("deadline-timeline.html", "pfas-timeline.html", "epr-timeline.html",
+                         "reach-timeline.html", "tsca-timeline.html"):
+            tl_src = data_dir / tl_name
+            if tl_src.exists():
+                shutil.copy2(tl_src, repo_dir / tl_name)
+                files.append(tl_name)
+
         date_str = date.today().isoformat()
         _git_push(repo_dir, files, f"Update state maps {date_str}")
         logger.info("Maps pushed to GitHub Pages.")
@@ -369,6 +378,14 @@ def _generate_maps(repo_dir: Path, articles: Optional[List] = None) -> Tuple[Opt
         logger.info("Excel exports generated.")
     except Exception as e:
         logger.warning(f"Excel generation failed: {e}")
+
+    # Generate deadline timelines (all topics + combined)
+    try:
+        from delivery.timeline_generator import generate_all_timelines
+        generate_all_timelines()
+        logger.info("Deadline timelines generated.")
+    except Exception as e:
+        logger.warning(f"Timeline generation failed: {e}")
 
     if pfas_map_path:
         pfas_url, epr_url, reach_url = _push_maps_to_github(

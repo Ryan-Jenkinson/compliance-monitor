@@ -494,6 +494,7 @@ def generate_pfas_map(output_path: Path = None, activity_counts: Optional[Dict[s
   <h1>PFAS State Compliance Tracker</h1>
   <p class="sub">Interactive map of US state PFAS laws &amp; restrictions &nbsp;&middot;&nbsp; Last updated: {last_updated}</p>
   <a class="download-btn" href="./pfas-tracker.xlsx" download>&#8595; Download Excel</a>
+  <a class="download-btn" href="./pfas-timeline.html" style="margin-left:8px;">&#9201; Deadline Timeline</a>
 </div>
 
 <div class="page-body">
