@@ -91,6 +91,8 @@ def parse_args() -> argparse.Namespace:
                         help="Send Friday reminder email to verify end-of-week run")
     parser.add_argument("--test-email", action="append", default=[],
                         help="Send only to these addresses (repeatable)")
+    parser.add_argument("--test-subject", default="",
+                        help="Override email subject for test sends")
     parser.add_argument("--week-of", metavar="YYYY-MM-DD",
                         help="Override today's date (e.g. use last Friday to archive last week)")
     return parser.parse_args()
@@ -592,7 +594,8 @@ def run_pipeline(args: argparse.Namespace) -> None:
                 week_context=week_context, archive_weeks=archive_weeks, archive_url=archive_url,
                 calendar_url=calendar_url,
             )
-            success = sender.send(email, f"[TEST] {subject}", html)
+            test_subject = args.test_subject or f"[TEST] {subject}"
+            success = sender.send(email, test_subject, html)
             if success:
                 sent_count += 1
     else:
