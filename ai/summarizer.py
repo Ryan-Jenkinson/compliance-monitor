@@ -68,6 +68,17 @@ class Summarizer:
 
             # Stage 2: summarize with Sonnet
             summary = self._stage2_summarize(filtered_articles, topic_config)
+
+            # Stage 2b: impact scoring with Haiku
+            if summary.get("developments"):
+                try:
+                    from .impact_scorer import score_developments
+                    summary["developments"] = score_developments(
+                        topic_name, summary["developments"], client=self.client
+                    )
+                except Exception as e:
+                    logger.warning(f"Impact scoring failed for {topic_name} (non-fatal): {e}")
+
             topic_summaries.append(summary)
 
         # Stage 3: weekly briefing (day-aware)

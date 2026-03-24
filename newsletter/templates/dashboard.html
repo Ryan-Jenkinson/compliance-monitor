@@ -763,6 +763,14 @@
     .badge-high { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
     .badge-medium { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
     .badge-low { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+    .badge-impact {
+      font-family: var(--mono); font-size: 10px; font-weight: 700;
+      padding: 1px 5px; border-radius: 3px; letter-spacing: .03em;
+      border: 1px solid transparent;
+    }
+    .badge-impact.hi  { background:#fee2e2; color:#991b1b; border-color:#fca5a5; }
+    .badge-impact.mid { background:#fef9c3; color:#713f12; border-color:#fde047; }
+    .badge-impact.lo  { background:#f0fdf4; color:#166534; border-color:#bbf7d0; }
 
     .article-meta {
       font-family: var(--mono);
@@ -1655,6 +1663,9 @@
                       {% if dev.is_new %}<span class="badge badge-new">New</span>{% endif %}
                       <span class="article-headline"><a href="{{ dev.url }}" target="_blank">{{ dev.headline }}</a></span>
                       <span class="badge badge-{{ dev.urgency|lower }}">{{ dev.urgency }}</span>
+                      {% if dev.impact_score is defined %}
+                      <span class="badge badge-impact {% if dev.impact_score >= 7 %}hi{% elif dev.impact_score >= 4 %}mid{% else %}lo{% endif %}" title="Company impact score">{{ dev.impact_score }}</span>
+                      {% endif %}
                     </div>
                     <div class="article-meta">
                       <span>{{ dev.source }}</span>
