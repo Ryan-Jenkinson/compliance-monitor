@@ -334,6 +334,22 @@ class NewsletterRenderer:
 
         base_url = "https://ryan-jenkinson.github.io/compliance-maps"
 
+        # Normalize deadline topics to lowercase so they match `topic.topic|lower`
+        # in the template filter (topics.yaml names are uppercase e.g. "PFAS").
+        # Also ensure days_until is present on every item.
+        from datetime import date as _date
+        _today = _date.today()
+        normalized_deadlines = []
+        for dl in (deadlines or []):
+            dl = dict(dl)
+            dl["topic"] = (dl.get("topic") or "").lower()
+            if "days_until" not in dl or dl["days_until"] is None:
+                try:
+                    dl["days_until"] = (_date.fromisoformat(dl["deadline_date"]) - _today).days
+                except Exception:
+                    dl["days_until"] = None
+            normalized_deadlines.append(dl)
+
         template = self.env.get_template("dashboard.html")
         return template.render(
             date_display=now.strftime("%-d %b %Y"),
@@ -366,7 +382,7 @@ class NewsletterRenderer:
                 "reach_xlsx": f"{base_url}/reach-tracker.xlsx",
             },
             calendar_url=calendar_url or f"{base_url}/deadlines.ics",
-            deadlines=deadlines or [],
+            deadlines=normalized_deadlines,
             daily_changes=daily_changes or [],
             trend_data=trend_data,
             sparklines=sparklines,

@@ -353,6 +353,9 @@ def get_bill_calendar_events(days_past: int = 30, days_ahead: int = 180) -> list
     Includes:
     - All bills with a future last_action_date (upcoming scheduled actions)
     - Bills in significant stages (committee+) with recent last_action_date
+
+    Topics are lowercased to match the template's ``topic.topic|lower`` filter.
+    ``days_until`` is pre-calculated so the timeline widget renders the items.
     """
     from datetime import date, timedelta
     today = date.today()
@@ -361,11 +364,9 @@ def get_bill_calendar_events(days_past: int = 30, days_ahead: int = 180) -> list
     today_str = today.isoformat()
 
     conn = get_connection()
-    # Future dates: any bill with upcoming action (most actionable)
-    # Recent past: only significant stages (committee+) to avoid noise
     rows = conn.execute(
         """SELECT state, bill_number, title, last_action_date, last_action,
-                  stage, topic, url, state_link, status_date
+                  stage, topic, url, state_link, status_date, history_json
            FROM legiscan_bills
            WHERE (
                (last_action_date > ? AND last_action_date <= ?)
@@ -379,28 +380,87 @@ def get_bill_calendar_events(days_past: int = 30, days_ahead: int = 180) -> list
     ).fetchall()
     conn.close()
 
+    import json as _json
+    from datetime import date as _date
+
     results = []
+    seen = set()  # dedupe (bill_id, date, action) tuples
+
     for r in rows:
         r = dict(r)
         stage = r.get("stage", "introduced")
         urgency = _STAGE_URGENCY.get(stage, "LOW")
         bill_label = f"{r['state']} {r['bill_number']}"
-        title_short = (r.get("title") or "")[:70].rstrip()
-        action_desc = r.get("last_action") or ""
-        stage_label = stage.replace("_", " ").title()
-        is_future = r["last_action_date"] > today_str
+        title_short = (r.get("title") or "")[:60].rstrip()
+        topic_lc = (r.get("topic") or "").lower()
+        source_url = r.get("url") or r.get("state_link") or ""
 
-        results.append({
-            "topic": r.get("topic", ""),
-            "title": f"{bill_label} — {title_short}",
-            "deadline_date": r["last_action_date"],
-            "description": (
-                f"{'Scheduled: ' if is_future else ''}{action_desc} "
-                f"[{stage_label} stage, {r['state']}]"
-            ).strip(),
-            "jurisdiction": r.get("state", ""),
-            "source_url": r.get("url") or r.get("state_link") or "",
-            "urgency": urgency,
-            "is_bill_event": True,
-        })
+        # Expand every history entry within the date window
+        history = []
+        try:
+            history = _json.loads(r.get("history_json") or "[]")
+        except Exception:
+            pass
+
+        for entry in history:
+            h_date = (entry.get("date") or "").strip()
+            h_action = (entry.get("action") or "").strip()
+            if not h_date or not h_action:
+                continue
+            if h_date < past_cutoff or h_date > future_cutoff:
+                continue
+            key = (bill_label, h_date, h_action[:40])
+            if key in seen:
+                continue
+            seen.add(key)
+            try:
+                d = _date.fromisoformat(h_date)
+                days_until = (d - today).days
+            except Exception:
+                days_until = None
+            is_future = h_date > today_str
+            results.append({
+                "topic": topic_lc,
+                "title": f"{bill_label} — {h_action[:60]}",
+                "deadline_date": h_date,
+                "days_until": days_until,
+                "description": (
+                    f"{'Scheduled: ' if is_future else ''}{h_action} "
+                    f"[{stage.replace('_',' ').title()} stage] {title_short}"
+                ).strip(),
+                "jurisdiction": r.get("state", ""),
+                "source_url": source_url,
+                "urgency": urgency,
+                "is_bill_event": True,
+            })
+
+        # Always include last_action_date even if outside the history window
+        action_date = r.get("last_action_date") or ""
+        if action_date and past_cutoff <= action_date <= future_cutoff:
+            action_desc = r.get("last_action") or ""
+            key = (bill_label, action_date, action_desc[:40])
+            if key not in seen:
+                seen.add(key)
+                try:
+                    d = _date.fromisoformat(action_date)
+                    days_until = (d - today).days
+                except Exception:
+                    days_until = None
+                is_future = action_date > today_str
+                results.append({
+                    "topic": topic_lc,
+                    "title": f"{bill_label} — {action_desc[:60]}",
+                    "deadline_date": action_date,
+                    "days_until": days_until,
+                    "description": (
+                        f"{'Scheduled: ' if is_future else ''}{action_desc} "
+                        f"[{stage.replace('_',' ').title()} stage] {title_short}"
+                    ).strip(),
+                    "jurisdiction": r.get("state", ""),
+                    "source_url": source_url,
+                    "urgency": urgency,
+                    "is_bill_event": True,
+                })
+
+    results.sort(key=lambda x: x["deadline_date"])
     return results
