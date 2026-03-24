@@ -243,6 +243,16 @@ def get_latest_critique() -> Optional[dict]:
     return d
 
 
+def _already_ran_today() -> bool:
+    """Return True if a critique was already saved for today."""
+    conn = sqlite3.connect(str(_DB_PATH))
+    row = conn.execute(
+        "SELECT critique_date FROM dashboard_critiques ORDER BY critique_date DESC LIMIT 1"
+    ).fetchone()
+    conn.close()
+    return bool(row and row[0] == date.today().isoformat())
+
+
 def run_director_critique(
     pipeline_output: dict,
     watchdog: Optional[dict] = None,
@@ -253,13 +263,10 @@ def run_director_critique(
     """
     Run the director critique. Returns parsed critique dict, or None if skipped.
 
-    Runs on Mondays or when force=True. Cached per day (re-runnable).
+    Runs daily (once per day). Pass force=True to re-run even if already done today.
     """
-    today = date.today()
-    is_monday = today.weekday() == 0
-
-    if not is_monday and not force:
-        logger.info("Director critique: skipping (not Monday, use force=True to override)")
+    if not force and _already_ran_today():
+        logger.info("Director critique: already ran today, skipping (use force=True to re-run)")
         return get_latest_critique()
 
     logger.info("Director critique: running weekly analysis...")

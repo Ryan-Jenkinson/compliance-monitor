@@ -532,17 +532,16 @@ def run_pipeline(args: argparse.Namespace) -> None:
     except Exception as e:
         logger.warning(f"Change detection failed (non-fatal): {e}")
 
-    # Step 2c: Director's critique (Mondays only — writes to data/director_review.html)
-    if week_context.get("is_monday"):
-        try:
-            from ai.director_agent import run_director_critique
-            run_director_critique(
-                pipeline_output,
-                watchdog=watchdog,
-                daily_changes=daily_changes,
-            )
-        except Exception as e:
-            logger.warning(f"Director critique failed (non-fatal): {e}")
+    # Step 2c: Director's critique (daily — writes to data/director_review.html)
+    try:
+        from ai.director_agent import run_director_critique
+        run_director_critique(
+            pipeline_output,
+            watchdog=watchdog,
+            daily_changes=daily_changes,
+        )
+    except Exception as e:
+        logger.warning(f"Director critique failed (non-fatal): {e}")
 
     if args.dry_run:
         print("\n" + "=" * 60)
@@ -626,6 +625,24 @@ def run_pipeline(args: argparse.Namespace) -> None:
         print(f"Weekly briefing: {briefing_path}")
         print(f"Email version:   {email_path}")
         print(f"Archive index:   {archive_path}")
+
+        # Director critique — runs automatically during preview, opens alongside dashboard
+        try:
+            from ai.director_agent import run_director_critique
+            logger.info("Running director critique for preview…")
+            critique = run_director_critique(
+                pipeline_output,
+                watchdog=watchdog,
+                daily_changes=daily_changes,
+                force=True,  # always refresh during preview/dev
+            )
+            review_path = Config.DATA_DIR / "director_review.html"
+            if review_path.exists():
+                webbrowser.open(f"file://{review_path.resolve()}")
+                print(f"Director review: {review_path}")
+        except Exception as e:
+            logger.warning(f"Director critique skipped in preview: {e}")
+
         return
 
     # Step 3b: Generate maps (Fridays and --finalize-week only)
