@@ -155,6 +155,104 @@ class NewsletterRenderer:
             ics_url=ics_url,
         )
 
+    @staticmethod
+    def _load_pfas_intel() -> dict:
+        """Load PFAS legislative intel metrics from cached pipeline result."""
+        import json
+        path = Path(__file__).parent.parent / "data" / "cache" / "claude" / "pfas_legislative_intel_result.json"
+        if not path.exists():
+            return {}
+        try:
+            data = json.loads(path.read_text())
+            states = data.get("states", {})
+            stages = {}
+            relevance = {"high": 0, "medium": 0, "low": 0}
+            total_bills = 0
+            high_relevance_states = []
+            for code, st in states.items():
+                stage = st.get("stage", "none")
+                stages[stage] = stages.get(stage, 0) + 1
+                rel = st.get("company_relevance", "low")
+                relevance[rel] = relevance.get(rel, 0) + 1
+                bills = st.get("bills", [])
+                if isinstance(bills, list):
+                    total_bills += len(bills)
+                if rel == "high":
+                    high_relevance_states.append({
+                        "code": code, "stage": stage,
+                        "name": st.get("name", code),
+                        "bills": len(bills) if isinstance(bills, list) else 0,
+                    })
+            # Sort stages by pipeline order
+            stage_order = ["enacted_watching", "advanced", "passed_one",
+                           "committee", "introduced", "rulemaking",
+                           "discussion", "pre_discussion"]
+            sorted_stages = [(s, stages.get(s, 0)) for s in stage_order if stages.get(s, 0) > 0]
+            return {
+                "total_bills": total_bills,
+                "total_states": len(states),
+                "active_states": sum(1 for s in states.values() if s.get("stage", "none") != "none"),
+                "stages": sorted_stages,
+                "relevance": relevance,
+                "high_relevance_states": sorted(high_relevance_states, key=lambda x: x["code"]),
+                "generated": data.get("generated", ""),
+            }
+        except Exception as e:
+            logger.warning(f"Failed to load PFAS intel: {e}")
+            return {}
+
+    def render_dashboard(
+        self,
+        pipeline_output: dict,
+        week_context: Optional[dict] = None,
+        archive_weeks: Optional[List[dict]] = None,
+        deadlines: Optional[List[dict]] = None,
+        calendar_url: Optional[str] = None,
+    ) -> str:
+        """Render the compliance intelligence dashboard."""
+        now = datetime.now()
+        ctx = week_context or {}
+        exec_text, fun_fact = _parse_fun_fact(pipeline_output.get("exec_summary", ""))
+        enriched_topics = self._enrich_topics(pipeline_output)
+        pfas_intel = self._load_pfas_intel()
+
+        base_url = "https://ryan-jenkinson.github.io/compliance-maps"
+
+        template = self.env.get_template("dashboard.html")
+        return template.render(
+            date_display=now.strftime("%-d %b %Y"),
+            date_long=now.strftime("%A, %B %-d, %Y"),
+            run_timestamp=now.strftime("%Y-%m-%d %H:%M:%S"),
+            exec_summary=exec_text,
+            fun_fact=fun_fact,
+            topics=enriched_topics,
+            total_sources=pipeline_output.get("total_sources", 0),
+            total_articles=pipeline_output.get("total_articles", 0),
+            week_label=ctx.get("week_label", ""),
+            archive_weeks=archive_weeks or [],
+            pfas_intel=pfas_intel,
+            maps={
+                "pfas_map_url": f"{base_url}/",
+                "epr_map_url": f"{base_url}/epr-map.html",
+                "reach_map_url": f"{base_url}/reach-map.html",
+                "pfas_intel_url": f"{base_url}/pfas-legislative-intel.html",
+            },
+            timelines={
+                "pfas": f"{base_url}/pfas-timeline.html",
+                "epr": f"{base_url}/epr-timeline.html",
+                "reach": f"{base_url}/reach-timeline.html",
+                "tsca": f"{base_url}/tsca-timeline.html",
+                "all": f"{base_url}/deadline-timeline.html",
+            },
+            downloads={
+                "pfas_xlsx": f"{base_url}/pfas-tracker.xlsx",
+                "epr_xlsx": f"{base_url}/epr-tracker.xlsx",
+                "reach_xlsx": f"{base_url}/reach-tracker.xlsx",
+            },
+            calendar_url=calendar_url or f"{base_url}/deadlines.ics",
+            deadlines=deadlines or [],
+        )
+
     # Keep old name as alias for any callers
     def render_exec_summary(self, pipeline_output: dict, newsletter_url: Optional[str] = None,
                              week_context: Optional[dict] = None) -> str:

@@ -1,0 +1,1907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compliance Intelligence — {{ date_display }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F4F5F7;
+      --surface: #FFFFFF;
+      --surface-raised: #FFFFFF;
+      --surface-sunken: #EBEDF0;
+      --surface-dark: #1A1D23;
+      --surface-dark-2: #22252C;
+      --border: #D8DBE0;
+      --border-light: #E8EAED;
+      --border-dark: rgba(255,255,255,0.08);
+      --text-primary: #111318;
+      --text-secondary: #4A4F5C;
+      --text-tertiary: #7A8194;
+      --text-inverse: #E4E7ED;
+      --text-inverse-dim: #7A8194;
+      --red: #D63031;
+      --red-bg: #FEF0F0;
+      --red-border: #FACACA;
+      --amber: #CB7B0A;
+      --amber-bg: #FEF6E8;
+      --amber-border: #F5DFA6;
+      --green: #0F7B3F;
+      --green-bg: #EEFAF3;
+      --green-border: #B2E0C7;
+      --blue: #1565C0;
+      --blue-bg: #EBF3FD;
+      --teal: #0F766E;
+      --sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'IBM Plex Mono', 'Consolas', 'Monaco', monospace;
+      --rail-w: 56px;
+      --topbar-h: 44px;
+      --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 2px 8px rgba(0,0,0,0.08);
+      --radius: 6px;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      font-family: var(--sans);
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ============================================================
+       NAV RAIL — thin icon strip, expands on hover
+       ============================================================ */
+    .rail {
+      position: fixed;
+      top: 0; left: 0;
+      width: var(--rail-w);
+      height: 100vh;
+      background: var(--surface-dark);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      transition: width 0.2s var(--ease);
+      overflow: hidden;
+    }
+    .rail:hover { width: 200px; }
+    .rail:hover .rail-label { opacity: 1; }
+
+    .rail-brand {
+      padding: 14px 0;
+      text-align: center;
+      border-bottom: 1px solid var(--border-dark);
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding-left: 0;
+    }
+    .rail:hover .rail-brand { justify-content: flex-start; padding-left: 16px; }
+
+    .rail-brand-icon {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, var(--teal), var(--blue));
+      border-radius: 6px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .rail-brand-icon::after {
+      content: '';
+      width: 12px; height: 12px;
+      border: 2px solid #fff;
+      border-radius: 2px;
+    }
+    .rail-brand-text {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-inverse);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .rail:hover .rail-brand-text { opacity: 1; }
+
+    .rail-nav { flex: 1; padding: 8px 0; overflow-y: auto; }
+
+    .rail-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 0 9px 18px;
+      color: var(--text-inverse-dim);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.12s;
+      border-left: 3px solid transparent;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .rail-link:hover { color: var(--text-inverse); background: var(--surface-dark-2); text-decoration: none; }
+    .rail-link.active { color: #fff; border-left-color: var(--teal); background: rgba(15,118,110,0.12); }
+
+    .rail-dot {
+      width: 8px; height: 8px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .rail-label {
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .rail-divider {
+      height: 1px;
+      background: var(--border-dark);
+      margin: 6px 14px;
+    }
+
+    .rail-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border-dark);
+    }
+    .rail-footer-text {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: rgba(255,255,255,0.25);
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .rail:hover .rail-footer-text { opacity: 1; }
+
+    /* ============================================================
+       TOP BAR
+       ============================================================ */
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: var(--rail-w);
+      right: 0;
+      height: var(--topbar-h);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 20px;
+      z-index: 50;
+    }
+    .topbar-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text-primary);
+      white-space: nowrap;
+    }
+    .topbar-date {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-tertiary);
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      padding: 2px 8px;
+      background: var(--surface-sunken);
+      border-radius: 3px;
+    }
+    .topbar-search {
+      flex: 1;
+      max-width: 300px;
+      position: relative;
+    }
+    .topbar-search input {
+      width: 100%;
+      background: var(--surface-sunken);
+      border: 1px solid transparent;
+      border-radius: 4px;
+      padding: 5px 10px 5px 10px;
+      font-family: var(--sans);
+      font-size: 12px;
+      color: var(--text-primary);
+      outline: none;
+      transition: all 0.12s;
+    }
+    .topbar-search input::placeholder { color: var(--text-tertiary); }
+    .topbar-search input:focus {
+      background: var(--surface);
+      border-color: var(--blue);
+      box-shadow: 0 0 0 2px rgba(21,101,192,0.12);
+    }
+    .topbar-search-count {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-tertiary);
+      white-space: nowrap;
+    }
+    .topbar-filters {
+      display: flex;
+      gap: 2px;
+      align-items: center;
+    }
+    .f-btn {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-tertiary);
+      cursor: pointer;
+      transition: all 0.1s;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+    .f-btn:hover { border-color: var(--text-tertiary); color: var(--text-secondary); }
+    .f-btn.active { background: var(--text-primary); border-color: var(--text-primary); color: #fff; }
+    .f-btn.topic-f { border-left-width: 3px; }
+    .f-btn.topic-f.active { background: var(--surface); color: var(--text-primary); border-color: var(--border); font-weight: 700; }
+    .f-btn.topic-f:not(.active) { opacity: 0.45; }
+    .f-sep { width: 1px; height: 16px; background: var(--border); margin: 0 4px; }
+
+    /* ============================================================
+       MOBILE HEADER
+       ============================================================ */
+    .mobile-header {
+      display: none;
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 44px; background: var(--surface-dark);
+      z-index: 200; align-items: center;
+      justify-content: space-between; padding: 0 14px;
+    }
+    .mobile-brand { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--teal); }
+    .mobile-toggle { background: none; border: 1px solid rgba(255,255,255,0.15); color: var(--text-inverse); font-size: 14px; padding: 4px 10px; border-radius: 3px; cursor: pointer; }
+
+    /* ============================================================
+       MAIN LAYOUT
+       ============================================================ */
+    .main {
+      margin-left: var(--rail-w);
+      padding-top: var(--topbar-h);
+      min-height: 100vh;
+    }
+    .dashboard {
+      padding: 16px 20px 60px;
+      max-width: 1400px;
+    }
+
+    /* ============================================================
+       KPI ROW
+       ============================================================ */
+    /* ============================================================
+       PANEL GRID — 3 column dashboard layout
+       ============================================================ */
+    .panel-grid-top {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .panel-grid-top .panel-span-2 { grid-column: span 2; }
+
+    .grid-main {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    /* Collapsible exec summary */
+    .exec-collapsed .exec-expand-body { display: none; }
+    .exec-toggle-btn {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--teal);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .exec-toggle-btn:hover { color: var(--blue); }
+    .exec-toggle-chevron {
+      display: inline-block;
+      transition: transform 0.2s var(--ease);
+      font-size: 12px;
+    }
+    .exec-collapsed .exec-toggle-chevron { transform: rotate(-90deg); }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+    }
+    .panel-title {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+    }
+    .panel-title-accent {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--teal);
+    }
+    .panel-badge {
+      margin-left: auto;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+    }
+    .panel-body { padding: 14px 16px; }
+
+    /* ============================================================
+       EXEC SUMMARY — compact, structured
+       ============================================================ */
+    .exec-section { margin-bottom: 12px; }
+    .exec-section:last-child { margin-bottom: 0; }
+    .exec-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      display: inline-block;
+      padding-bottom: 2px;
+      border-bottom: 2px solid;
+    }
+    .exec-label.opening { color: var(--teal); border-color: var(--teal); }
+    .exec-label.developments { color: var(--blue); border-color: var(--blue); }
+    .exec-label.outlook { color: var(--green); border-color: var(--green); }
+    .exec-text {
+      font-size: 13px;
+      line-height: 1.65;
+      color: var(--text-secondary);
+    }
+    .exec-text p { margin-bottom: 6px; }
+    .exec-text p:last-child { margin-bottom: 0; }
+    .fun-fact-box {
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: var(--blue-bg);
+      border-left: 3px solid var(--blue);
+      border-radius: 0 4px 4px 0;
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      font-style: italic;
+    }
+
+    /* ============================================================
+       MAP CARDS — prominent visual links
+       ============================================================ */
+    .map-stack { display: flex; flex-direction: column; gap: 8px; }
+    .map-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: all 0.12s;
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+    .map-link:hover {
+      border-color: var(--blue);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+      text-decoration: none;
+    }
+    .map-link-visual {
+      width: 48px; height: 48px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .map-link-visual::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.15;
+    }
+    .map-link-visual.pfas { background: #E3F2FD; }
+    .map-link-visual.pfas::before { background: var(--blue); }
+    .map-link-visual.epr { background: #E8F5E9; }
+    .map-link-visual.epr::before { background: var(--green); }
+    .map-link-visual.reach { background: #FFF3E0; }
+    .map-link-visual.reach::before { background: var(--amber); }
+    .map-link-visual.intel { background: #EDE7F6; }
+    .map-link-visual.intel::before { background: #5E35B1; }
+
+    /* mini US map silhouette via CSS */
+    .map-usa {
+      width: 32px; height: 20px;
+      background: currentColor;
+      opacity: 0.5;
+      clip-path: polygon(2% 30%, 5% 15%, 15% 10%, 25% 5%, 35% 8%, 50% 5%, 60% 8%, 75% 3%, 85% 10%, 95% 15%, 98% 25%, 95% 40%, 98% 55%, 92% 65%, 85% 70%, 75% 75%, 70% 85%, 60% 90%, 50% 88%, 40% 92%, 30% 85%, 20% 80%, 10% 75%, 5% 60%, 2% 45%);
+    }
+    .map-link-visual.pfas .map-usa { color: var(--blue); }
+    .map-link-visual.epr .map-usa { color: var(--green); }
+    .map-link-visual.reach .map-usa { color: var(--amber); }
+    .map-link-visual.intel .map-usa { color: #5E35B1; }
+
+    .map-link-info { flex: 1; min-width: 0; }
+    .map-link-title {
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--text-primary);
+      margin-bottom: 1px;
+    }
+    .map-link-desc {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      line-height: 1.4;
+    }
+    .map-link-arrow {
+      font-family: var(--mono);
+      font-size: 14px;
+      color: var(--text-tertiary);
+      flex-shrink: 0;
+      transition: transform 0.12s;
+    }
+    .map-link:hover .map-link-arrow { transform: translateX(2px); }
+
+    /* ============================================================
+       CSS CHARTS
+       ============================================================ */
+    .chart-section { margin-bottom: 14px; }
+    .chart-section:last-child { margin-bottom: 0; }
+    .chart-title {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: 8px;
+    }
+
+    /* Horizontal bar chart */
+    .hbar { margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .hbar-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      min-width: 70px;
+      text-align: right;
+    }
+    .hbar-track {
+      flex: 1;
+      height: 16px;
+      background: var(--surface-sunken);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .hbar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.4s var(--ease);
+      min-width: 2px;
+    }
+    .hbar-fill.red { background: var(--red); }
+    .hbar-fill.amber { background: var(--amber); }
+    .hbar-fill.green { background: var(--green); }
+    .hbar-fill.blue { background: var(--blue); }
+    .hbar-fill.teal { background: var(--teal); }
+    .hbar-fill.slate { background: var(--text-tertiary); }
+    .hbar-val {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-primary);
+      min-width: 24px;
+    }
+
+    /* Donut chart */
+    .donut-row { display: flex; align-items: center; gap: 16px; }
+    .donut {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .donut::after {
+      content: '';
+      position: absolute;
+      inset: 12px;
+      background: var(--surface);
+      border-radius: 50%;
+    }
+    .donut-legend { flex: 1; }
+    .donut-legend-item {
+      display: flex; align-items: center; gap: 6px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-secondary);
+      padding: 2px 0;
+    }
+    .donut-legend-dot {
+      width: 8px; height: 8px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .donut-legend-val {
+      margin-left: auto;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    /* ============================================================
+       TOPIC CARDS — compact grid
+       ============================================================ */
+    .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .topic-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      border-top: 3px solid;
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      transition: all 0.12s;
+      overflow: hidden;
+    }
+    .topic-card:hover { box-shadow: var(--shadow-md); }
+    .topic-card.expanded { grid-column: 1 / -1; }
+    .topic-card-head {
+      padding: 12px 14px 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .topic-card-name {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      flex: 1;
+    }
+    .topic-card-count {
+      font-family: var(--mono);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+    .topic-card-count-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .topic-card-urgency {
+      display: flex; gap: 3px;
+      padding: 0 14px 10px;
+    }
+    .topic-urg-dot {
+      width: 18px; height: 6px;
+      border-radius: 1px;
+    }
+    .topic-urg-dot.high { background: var(--red); }
+    .topic-urg-dot.medium { background: var(--amber); }
+    .topic-urg-dot.low { background: var(--green); opacity: 0.5; }
+
+    .topic-card-latest {
+      padding: 8px 14px 10px;
+      border-top: 1px solid var(--border-light);
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+    .topic-card-latest a { color: var(--text-primary); font-weight: 600; }
+    .topic-card-latest a:hover { color: var(--blue); }
+
+    .topic-card-expand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-tertiary);
+      border-top: 1px solid var(--border-light);
+      background: var(--surface-sunken);
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+    .topic-card-expand:hover { color: var(--text-primary); background: var(--border-light); }
+    .topic-card-chevron { transition: transform 0.2s; display: inline-block; }
+    .topic-card.expanded .topic-card-chevron { transform: rotate(180deg); }
+
+    /* Topic expanded body */
+    .topic-expanded-body {
+      display: none;
+      border-top: 1px solid var(--border-light);
+    }
+    .topic-card.expanded .topic-expanded-body { display: block; }
+
+    .topic-summary-text {
+      padding: 12px 14px;
+      font-size: 12px;
+      line-height: 1.65;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    /* Company Impact & Strategy inline */
+    .topic-meta-section {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .topic-meta-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: 6px;
+    }
+    .impact-row { display: flex; gap: 10px; padding: 4px 0; }
+    .impact-row + .impact-row { border-top: 1px solid var(--border-light); padding-top: 6px; }
+    .impact-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--red);
+      min-width: 90px;
+      padding-top: 2px;
+      flex-shrink: 0;
+    }
+    .impact-label.supplier { color: var(--blue); }
+    .impact-text { font-size: 12px; line-height: 1.55; color: var(--text-secondary); }
+    .action-list { list-style: none; }
+    .action-list li {
+      font-size: 12px; line-height: 1.55;
+      color: var(--text-secondary);
+      padding: 2px 0 2px 14px;
+      position: relative;
+    }
+    .action-list li::before { content: '-'; position: absolute; left: 0; color: var(--red); font-weight: 700; }
+    .action-list.supplier li::before { color: var(--blue); }
+    .strategy-text {
+      font-size: 12px; line-height: 1.65;
+      color: var(--text-secondary);
+      font-style: italic;
+      padding-left: 10px;
+      border-left: 2px solid var(--teal);
+    }
+
+    /* ============================================================
+       ARTICLE FEED (below fold)
+       ============================================================ */
+    .article-section { margin-bottom: 16px; }
+    .section-anchor { display: block; position: relative; top: -60px; visibility: hidden; }
+
+    .article-item {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-light);
+      transition: background 0.08s;
+    }
+    .article-item:last-child { border-bottom: none; }
+    .article-item:hover { background: #FAFBFC; }
+    .article-item.hidden-by-search,
+    .article-item.hidden-by-urgency { display: none; }
+
+    .article-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      margin-bottom: 3px;
+    }
+    .article-headline {
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.4;
+      flex: 1;
+    }
+    .article-headline a { color: var(--text-primary); }
+    .article-headline a:hover { color: var(--blue); text-decoration: none; }
+    .badge {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      padding: 1px 6px;
+      border-radius: 2px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      flex-shrink: 0;
+      line-height: 1.5;
+    }
+    .badge-new { background: var(--red); color: #fff; }
+    .badge-high { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+    .badge-medium { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+    .badge-low { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+
+    .article-meta {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-tertiary);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .article-meta-sep { color: var(--border); }
+    .article-summary {
+      font-size: 12px;
+      line-height: 1.55;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+    .article-deadline-tag {
+      margin-top: 6px;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--amber);
+      padding: 2px 8px;
+      background: var(--amber-bg);
+      border: 1px solid var(--amber-border);
+      border-radius: 3px;
+      display: inline-block;
+    }
+
+    mark { background: rgba(21,101,192,0.15); color: var(--text-primary); border-radius: 1px; padding: 0 1px; }
+    .no-articles { padding: 20px; text-align: center; font-size: 12px; color: var(--text-tertiary); font-style: italic; }
+    .topic-hidden { display: none; }
+
+    /* ============================================================
+       DEADLINE LIST (sidebar panel)
+       ============================================================ */
+    .dl-item {
+      display: flex; gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-light);
+      align-items: flex-start;
+    }
+    .dl-item:last-child { border-bottom: none; }
+    .dl-days {
+      font-family: var(--mono);
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1;
+      min-width: 36px;
+      text-align: right;
+    }
+    .dl-days.urgent { color: var(--red); }
+    .dl-days.soon { color: var(--amber); }
+    .dl-days.normal { color: var(--text-tertiary); }
+    .dl-days-unit {
+      font-family: var(--mono);
+      font-size: 8px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .dl-pipe {
+      width: 2px;
+      align-self: stretch;
+      border-radius: 1px;
+      flex-shrink: 0;
+    }
+    .dl-body { flex: 1; min-width: 0; }
+    .dl-title { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 1px; }
+    .dl-desc { font-size: 10px; color: var(--text-tertiary); line-height: 1.4; }
+
+    /* ============================================================
+       DOWNLOADS ROW
+       ============================================================ */
+    .downloads-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+    .dl-link {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text-secondary);
+      background: var(--surface);
+      transition: all 0.1s;
+      text-decoration: none;
+    }
+    .dl-link:hover { border-color: var(--blue); color: var(--blue); text-decoration: none; }
+
+    /* ============================================================
+       ARCHIVE
+       ============================================================ */
+    .archive-list { list-style: none; }
+    .archive-item {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .archive-item:last-child { border-bottom: none; }
+    .archive-week {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-primary);
+      min-width: 100px;
+    }
+    .archive-links { display: flex; gap: 12px; }
+    .archive-link { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px; }
+
+    /* ============================================================
+       TIMELINE LINKS
+       ============================================================ */
+    .timeline-links { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tl-link {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all 0.1s;
+    }
+    .tl-link:hover { border-color: var(--teal); color: var(--teal); text-decoration: none; }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1100px) {
+      .grid-main { grid-template-columns: 1fr; }
+      .panel-grid-top { grid-template-columns: 1fr 1fr; }
+      .panel-grid-top > div:last-child { grid-column: 1 / -1; }
+    }
+    @media (max-width: 768px) {
+      .rail { display: none; }
+      .topbar { left: 0; }
+      .main { margin-left: 0; }
+      .mobile-header { display: flex; }
+      .main { padding-top: calc(var(--topbar-h) + 44px); }
+      .topbar { top: 44px; flex-wrap: wrap; height: auto; padding: 8px 12px; }
+      .dashboard { padding: 12px 12px 60px; }
+      .panel-grid-top { grid-template-columns: 1fr; }
+      .topic-grid { grid-template-columns: 1fr; }
+      .impact-row { flex-direction: column; gap: 2px; }
+      .impact-label { min-width: auto; }
+    }
+
+    /* ============================================================
+       PRINT
+       ============================================================ */
+    @media print {
+      .rail, .mobile-header, .topbar { display: none !important; }
+      .main { margin-left: 0; padding-top: 0; }
+      body { background: #fff; color: #111; font-size: 10px; }
+      .dashboard { padding: 0; max-width: none; }
+      .panel, .topic-card, .kpi-card, .map-link {
+        background: #fff; border-color: #ccc;
+        box-shadow: none; break-inside: avoid;
+      }
+      .topic-expanded-body { display: block !important; }
+      a { color: #111; text-decoration: underline; }
+      .badge-new { background: #c00; }
+    }
+
+    /* ============================================================
+       SCROLLBAR
+       ============================================================ */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+
+    /* ============================================================
+       PFAS LEGISLATIVE INTEL PANEL
+       ============================================================ */
+    .intel-header-row {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 12px;
+    }
+    .intel-big-num {
+      font-family: var(--mono);
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--text-primary);
+    }
+    .intel-big-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.3;
+    }
+    .intel-stage-bar { margin-bottom: 5px; }
+    .intel-stage-row {
+      display: flex; align-items: center; gap: 6px;
+      margin-bottom: 3px;
+    }
+    .intel-stage-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      min-width: 105px;
+      text-align: right;
+    }
+    .intel-stage-track {
+      flex: 1; height: 14px;
+      background: var(--surface-sunken);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .intel-stage-fill {
+      height: 100%;
+      border-radius: 2px;
+      min-width: 2px;
+    }
+    .intel-stage-val {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      min-width: 20px;
+      color: var(--text-primary);
+    }
+    .intel-relevance-row {
+      display: flex; gap: 8px;
+      margin-top: 10px;
+    }
+    .intel-rel-card {
+      flex: 1;
+      text-align: center;
+      padding: 8px 4px;
+      border-radius: 4px;
+      border: 1px solid var(--border-light);
+    }
+    .intel-rel-num {
+      font-family: var(--mono);
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .intel-rel-label {
+      font-family: var(--mono);
+      font-size: 8px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-tertiary);
+      margin-top: 2px;
+    }
+    .intel-states-list {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+    }
+    .intel-state-chip {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 2px;
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid var(--red-border);
+    }
+
+    /* ============================================================
+       TRAFFIC-LIGHT STATUS MATRIX
+       ============================================================ */
+    .status-matrix {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--mono);
+      font-size: 10px;
+    }
+    .status-matrix th {
+      padding: 6px 8px;
+      text-align: center;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      border-bottom: 2px solid var(--border);
+      font-size: 9px;
+    }
+    .status-matrix th:first-child { text-align: left; }
+    .status-matrix td {
+      padding: 6px 8px;
+      text-align: center;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .status-matrix td:first-child {
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .status-dot {
+      width: 12px; height: 12px;
+      border-radius: 3px;
+      display: inline-block;
+    }
+    .status-dot.s-red { background: var(--red); }
+    .status-dot.s-amber { background: var(--amber); }
+    .status-dot.s-green { background: var(--green); }
+    .status-dot.s-gray { background: var(--border); }
+    .status-dot.s-none { background: transparent; border: 1px dashed var(--border); }
+
+    /* ============================================================
+       LOAD ANIMATION
+       ============================================================ */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-in {
+      animation: fadeUp 0.3s var(--ease) both;
+    }
+    .kpi-card:nth-child(1) { animation-delay: 0ms; }
+    .kpi-card:nth-child(2) { animation-delay: 40ms; }
+    .kpi-card:nth-child(3) { animation-delay: 80ms; }
+    .kpi-card:nth-child(4) { animation-delay: 120ms; }
+    .kpi-card:nth-child(5) { animation-delay: 160ms; }
+    .kpi-card:nth-child(6) { animation-delay: 200ms; }
+  </style>
+</head>
+<body>
+
+<!-- Mobile Header -->
+<div class="mobile-header">
+  <span class="mobile-brand">Compliance Intel</span>
+  <button class="mobile-toggle" onclick="toggleSidebar()" aria-label="Toggle menu">M</button>
+</div>
+
+<!-- ═══ NAV RAIL ═══ -->
+<nav class="rail" id="sidebar">
+  <div class="rail-brand">
+    <div class="rail-brand-icon"></div>
+    <span class="rail-brand-text">Andersen</span>
+  </div>
+
+  <div class="rail-nav">
+    <a class="rail-link active" data-target="section-dashboard" onclick="scrollToSection('section-dashboard')">
+      <span class="rail-dot" style="background:var(--teal);"></span>
+      <span class="rail-label">Overview</span>
+    </a>
+
+    {% for topic in topics %}
+    <a class="rail-link" data-target="section-{{ topic.topic|lower }}" onclick="scrollToSection('section-{{ topic.topic|lower }}')">
+      <span class="rail-dot" style="background:{{ topic.color }};"></span>
+      <span class="rail-label">{{ topic.topic }}</span>
+    </a>
+    {% endfor %}
+
+    <div class="rail-divider"></div>
+
+    <a class="rail-link" data-target="section-maps" onclick="scrollToSection('section-maps')">
+      <span class="rail-dot" style="background:var(--blue);"></span>
+      <span class="rail-label">Maps & Data</span>
+    </a>
+    <a class="rail-link" data-target="section-feed" onclick="scrollToSection('section-feed')">
+      <span class="rail-dot" style="background:var(--text-tertiary);"></span>
+      <span class="rail-label">Article Feed</span>
+    </a>
+    <a class="rail-link" data-target="section-deadlines" onclick="scrollToSection('section-deadlines')">
+      <span class="rail-dot" style="background:var(--amber);"></span>
+      <span class="rail-label">Deadlines</span>
+    </a>
+    <a class="rail-link" data-target="section-archive" onclick="scrollToSection('section-archive')">
+      <span class="rail-dot" style="background:var(--text-tertiary);"></span>
+      <span class="rail-label">Archive</span>
+    </a>
+
+    {% if timelines %}
+    <div class="rail-divider"></div>
+    {% if timelines.all %}<a class="rail-link" href="{{ timelines.all }}" target="_blank"><span class="rail-dot" style="background:var(--text-inverse-dim);"></span><span class="rail-label">All Timelines</span></a>{% endif %}
+    {% if timelines.pfas %}<a class="rail-link" href="{{ timelines.pfas }}" target="_blank"><span class="rail-dot" style="background:var(--text-inverse-dim);"></span><span class="rail-label">PFAS Timeline</span></a>{% endif %}
+    {% if timelines.epr %}<a class="rail-link" href="{{ timelines.epr }}" target="_blank"><span class="rail-dot" style="background:var(--text-inverse-dim);"></span><span class="rail-label">EPR Timeline</span></a>{% endif %}
+    {% if timelines.reach %}<a class="rail-link" href="{{ timelines.reach }}" target="_blank"><span class="rail-dot" style="background:var(--text-inverse-dim);"></span><span class="rail-label">REACH Timeline</span></a>{% endif %}
+    {% if timelines.tsca %}<a class="rail-link" href="{{ timelines.tsca }}" target="_blank"><span class="rail-dot" style="background:var(--text-inverse-dim);"></span><span class="rail-label">TSCA Timeline</span></a>{% endif %}
+    {% endif %}
+  </div>
+
+  <div class="rail-footer">
+    {% if calendar_url %}
+    <a class="rail-link" href="{{ calendar_url }}" target="_blank" style="padding-left:14px;">
+      <span class="rail-dot" style="background:var(--teal);"></span>
+      <span class="rail-label">Calendar .ics</span>
+    </a>
+    {% endif %}
+    <div class="rail-footer-text">Updated {{ run_timestamp }}</div>
+  </div>
+</nav>
+
+<!-- ═══ TOP BAR ═══ -->
+<div class="topbar">
+  <span class="topbar-title">Compliance Intelligence</span>
+  <span class="topbar-date">{{ date_long }}{% if week_label %} / {{ week_label }}{% endif %}</span>
+
+  <div class="topbar-search">
+    <input type="text" id="search-input" placeholder="Search articles... ( / )" oninput="handleSearch(this.value)">
+  </div>
+  <span class="topbar-search-count" id="search-count"></span>
+
+  <div class="topbar-filters">
+    {% for topic in topics %}
+    <button class="f-btn topic-f active"
+            data-topic="{{ topic.topic|lower }}"
+            style="border-left-color:{{ topic.color }};"
+            onclick="toggleTopicFilter(this, '{{ topic.topic|lower }}')">{{ topic.topic }}</button>
+    {% endfor %}
+    <span class="f-sep"></span>
+    <button class="f-btn active" data-urgency="ALL" onclick="setUrgencyFilter('ALL', this)">All</button>
+    <button class="f-btn" data-urgency="MEDIUM" onclick="setUrgencyFilter('MEDIUM', this)">Med+</button>
+    <button class="f-btn" data-urgency="HIGH" onclick="setUrgencyFilter('HIGH', this)">High</button>
+  </div>
+</div>
+
+<!-- ═══ MAIN CONTENT ═══ -->
+<main class="main">
+  <div class="dashboard">
+
+    <span id="section-dashboard"></span>
+    <span class="section-anchor" id="anchor-section-dashboard"></span>
+    <span id="stat-articles" style="display:none;">{{ total_articles }}</span>
+
+    <!-- ────── TOP PANEL GRID (3-col) ────── -->
+    <div class="panel-grid-top">
+
+      <!-- PFAS Legislative Intel -->
+      {% if pfas_intel and pfas_intel.total_bills %}
+      <div class="panel animate-in">
+        <div class="panel-header">
+          <span class="panel-title-accent">PFAS Legislative Intel</span>
+          {% if maps and maps.pfas_intel_url %}
+          <a href="{{ maps.pfas_intel_url }}" target="_blank" style="margin-left:auto; font-family:var(--mono); font-size:10px; font-weight:600; color:var(--blue);">Full Map &rarr;</a>
+          {% endif %}
+        </div>
+        <div class="panel-body">
+          <div class="intel-header-row">
+            <div>
+              <div class="intel-big-num">{{ pfas_intel.total_bills }}</div>
+              <div class="intel-big-label">bills tracked</div>
+            </div>
+            <div style="margin-left:16px;">
+              <div class="intel-big-num">{{ pfas_intel.active_states }}</div>
+              <div class="intel-big-label">active states</div>
+            </div>
+            <div style="margin-left:16px;">
+              <div class="intel-big-num" style="color:var(--red);">{{ pfas_intel.relevance.high }}</div>
+              <div class="intel-big-label">high relevance</div>
+            </div>
+          </div>
+
+          <div class="chart-title">Bills by Legislative Stage</div>
+          {% for stage_name, stage_count in pfas_intel.stages %}
+          <div class="intel-stage-row">
+            <span class="intel-stage-label">{{ stage_name|replace('_', ' ') }}</span>
+            <div class="intel-stage-track">
+              <div class="intel-stage-fill" style="width:{{ (stage_count / (pfas_intel.active_states or 1) * 100)|int }}%; background:{% if stage_name in ['enacted_watching'] %}var(--green){% elif stage_name in ['advanced', 'passed_one'] %}var(--amber){% elif stage_name in ['committee', 'introduced'] %}var(--blue){% elif stage_name in ['rulemaking'] %}var(--red){% else %}var(--text-tertiary){% endif %};"></div>
+            </div>
+            <span class="intel-stage-val">{{ stage_count }}</span>
+          </div>
+          {% endfor %}
+
+          <div class="intel-relevance-row">
+            <div class="intel-rel-card" style="border-color:var(--red-border); background:var(--red-bg);">
+              <div class="intel-rel-num" style="color:var(--red);">{{ pfas_intel.relevance.high }}</div>
+              <div class="intel-rel-label">High</div>
+            </div>
+            <div class="intel-rel-card" style="border-color:var(--amber-border); background:var(--amber-bg);">
+              <div class="intel-rel-num" style="color:var(--amber);">{{ pfas_intel.relevance.medium }}</div>
+              <div class="intel-rel-label">Medium</div>
+            </div>
+            <div class="intel-rel-card" style="border-color:var(--green-border); background:var(--green-bg);">
+              <div class="intel-rel-num" style="color:var(--green);">{{ pfas_intel.relevance.low }}</div>
+              <div class="intel-rel-label">Low</div>
+            </div>
+          </div>
+
+          {% if pfas_intel.high_relevance_states %}
+          <div class="chart-title" style="margin-top:10px;">High Relevance States</div>
+          <div class="intel-states-list">
+            {% for st in pfas_intel.high_relevance_states %}
+            <span class="intel-state-chip">{{ st.code }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Interactive Maps -->
+      <div class="panel animate-in" id="section-maps">
+        <span class="section-anchor" id="anchor-section-maps"></span>
+        <div class="panel-header">
+          <span class="panel-title">Interactive Maps</span>
+        </div>
+        <div style="padding:10px 14px;">
+          <div class="map-stack">
+            {% if maps and maps.pfas_map_url %}
+            <a class="map-link" href="{{ maps.pfas_map_url }}" target="_blank">
+              <div class="map-link-visual pfas"><div class="map-usa"></div></div>
+              <div class="map-link-info">
+                <div class="map-link-title">PFAS State Map</div>
+                <div class="map-link-desc">Legislation and regulatory activity by state</div>
+              </div>
+              <span class="map-link-arrow">&rarr;</span>
+            </a>
+            {% endif %}
+            {% if maps and maps.pfas_intel_url %}
+            <a class="map-link" href="{{ maps.pfas_intel_url }}" target="_blank">
+              <div class="map-link-visual intel"><div class="map-usa"></div></div>
+              <div class="map-link-info">
+                <div class="map-link-title">PFAS Legislative Intel</div>
+                <div class="map-link-desc">Forward-looking bill tracking and engagement</div>
+              </div>
+              <span class="map-link-arrow">&rarr;</span>
+            </a>
+            {% endif %}
+            {% if maps and maps.epr_map_url %}
+            <a class="map-link" href="{{ maps.epr_map_url }}" target="_blank">
+              <div class="map-link-visual epr"><div class="map-usa"></div></div>
+              <div class="map-link-info">
+                <div class="map-link-title">EPR State Map</div>
+                <div class="map-link-desc">Extended Producer Responsibility tracking</div>
+              </div>
+              <span class="map-link-arrow">&rarr;</span>
+            </a>
+            {% endif %}
+            {% if maps and maps.reach_map_url %}
+            <a class="map-link" href="{{ maps.reach_map_url }}" target="_blank">
+              <div class="map-link-visual reach"><div class="map-usa"></div></div>
+              <div class="map-link-info">
+                <div class="map-link-title">REACH Map</div>
+                <div class="map-link-desc">EU substance restrictions and timelines</div>
+              </div>
+              <span class="map-link-arrow">&rarr;</span>
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Stacked: Status Matrix + Urgency + Deadlines -->
+      <div>
+        <!-- Traffic-Light Status Matrix -->
+        <div class="panel animate-in" style="margin-bottom:12px;">
+          <div class="panel-header">
+            <span class="panel-title">Regulatory Status</span>
+          </div>
+          <div class="panel-body" style="padding:10px 12px;">
+            <table class="status-matrix">
+              <thead>
+                <tr>
+                  <th></th>
+                  {% for t in topics %}
+                  <th style="color:{{ t.color }};">{{ t.topic }}</th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Activity</td>
+                  {% for t in topics %}
+                  {% set dev_count = t.developments|default([])|length %}
+                  <td><span class="status-dot {% if dev_count >= 5 %}s-red{% elif dev_count >= 2 %}s-amber{% elif dev_count >= 1 %}s-green{% else %}s-gray{% endif %}"></span></td>
+                  {% endfor %}
+                </tr>
+                <tr>
+                  <td>High Urgency</td>
+                  {% for t in topics %}
+                  {%- set ns_h = namespace(c=0) -%}
+                  {%- for d in t.developments|default([]) -%}{%- if d.urgency == 'HIGH' -%}{%- set ns_h.c = ns_h.c + 1 -%}{%- endif -%}{%- endfor -%}
+                  <td><span class="status-dot {% if ns_h.c >= 3 %}s-red{% elif ns_h.c >= 1 %}s-amber{% else %}s-green{% endif %}"></span></td>
+                  {% endfor %}
+                </tr>
+                <tr>
+                  <td>Deadlines</td>
+                  {% for t in topics %}
+                  {%- set ns_dl = namespace(c=0) -%}
+                  {%- for dl in deadlines -%}{%- if dl.topic == t.topic|lower -%}{%- set ns_dl.c = ns_dl.c + 1 -%}{%- endif -%}{%- endfor -%}
+                  <td><span class="status-dot {% if ns_dl.c >= 1 %}s-amber{% else %}s-none{% endif %}"></span></td>
+                  {% endfor %}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Urgency Donut -->
+        <div class="panel animate-in" style="margin-bottom:12px;">
+          <div class="panel-header">
+            <span class="panel-title">Urgency</span>
+          </div>
+          <div class="panel-body" style="padding:10px 14px;">
+            {%- set ns_u = namespace(high=0, medium=0, low=0, total=0) -%}
+            {%- for t in topics -%}
+              {%- for d in t.developments|default([]) -%}
+                {%- set ns_u.total = ns_u.total + 1 -%}
+                {%- if d.urgency == 'HIGH' -%}{%- set ns_u.high = ns_u.high + 1 -%}
+                {%- elif d.urgency == 'MEDIUM' -%}{%- set ns_u.medium = ns_u.medium + 1 -%}
+                {%- else -%}{%- set ns_u.low = ns_u.low + 1 -%}{%- endif -%}
+              {%- endfor -%}
+            {%- endfor -%}
+
+            <div class="donut-row">
+              <div class="donut" style="background: conic-gradient(var(--red) 0deg {{ (ns_u.high / (ns_u.total or 1) * 360)|int }}deg, var(--amber) {{ (ns_u.high / (ns_u.total or 1) * 360)|int }}deg {{ ((ns_u.high + ns_u.medium) / (ns_u.total or 1) * 360)|int }}deg, var(--green) {{ ((ns_u.high + ns_u.medium) / (ns_u.total or 1) * 360)|int }}deg 360deg);"></div>
+              <div class="donut-legend">
+                <div class="donut-legend-item">
+                  <span class="donut-legend-dot" style="background:var(--red);"></span>
+                  <span>High</span>
+                  <span class="donut-legend-val">{{ ns_u.high }}</span>
+                </div>
+                <div class="donut-legend-item">
+                  <span class="donut-legend-dot" style="background:var(--amber);"></span>
+                  <span>Medium</span>
+                  <span class="donut-legend-val">{{ ns_u.medium }}</span>
+                </div>
+                <div class="donut-legend-item">
+                  <span class="donut-legend-dot" style="background:var(--green);"></span>
+                  <span>Low</span>
+                  <span class="donut-legend-val">{{ ns_u.low }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upcoming Deadlines (compact) -->
+        <div class="panel animate-in" id="section-deadlines">
+          <span class="section-anchor" id="anchor-section-deadlines"></span>
+          <div class="panel-header">
+            <span class="panel-title">Deadlines</span>
+            <span class="panel-badge">{{ deadlines|length }}</span>
+          </div>
+          <div style="padding:6px 14px;">
+            {% if deadlines %}
+              {% for dl in deadlines %}
+              <div class="dl-item">
+                <div style="text-align:right;">
+                  <div class="dl-days {% if dl.urgency == 'HIGH' %}urgent{% elif dl.urgency == 'MEDIUM' %}soon{% else %}normal{% endif %}">
+                    {{ dl.date }}
+                  </div>
+                </div>
+                <div class="dl-pipe" style="background:{% if dl.urgency == 'HIGH' %}var(--red){% elif dl.urgency == 'MEDIUM' %}var(--amber){% else %}var(--green){% endif %};"></div>
+                <div class="dl-body">
+                  <div class="dl-title">{{ dl.title }}</div>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="no-articles">No upcoming deadlines.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+    </div><!-- .panel-grid-top -->
+
+    <!-- ────── EXEC SUMMARY (collapsible) + TOPIC CARDS ────── -->
+    <div class="grid-main">
+
+      <!-- LEFT COLUMN -->
+      <div>
+        <!-- Exec Summary — collapsed by default -->
+        <div class="panel exec-collapsed" id="exec-panel" style="margin-bottom:16px;">
+          <div class="panel-header" style="cursor:pointer;" onclick="toggleExec()">
+            <span class="panel-title-accent">Executive Briefing</span>
+            <span class="panel-badge">{{ date_display }}</span>
+            <button class="exec-toggle-btn" style="margin-left:auto;">
+              <span class="exec-toggle-chevron">&#9660;</span>
+              <span class="exec-toggle-label">expand</span>
+            </button>
+          </div>
+          <div class="exec-expand-body">
+            <div class="panel-body">
+              {% set exec_text = exec_summary|default('') %}
+              {% if '[OPENING]' in exec_text %}
+                {% set parts = exec_text.split('[KEY DEVELOPMENTS]') %}
+                {% set opening = parts[0].replace('[OPENING]', '').strip() %}
+                {% if parts|length > 1 %}
+                  {% set rest = parts[1].split('[OUTLOOK]') %}
+                  {% set developments = rest[0].strip() %}
+                  {% set outlook = rest[1].strip() if rest|length > 1 else '' %}
+                {% else %}
+                  {% set developments = '' %}
+                  {% set outlook = '' %}
+                {% endif %}
+
+                <div class="exec-section">
+                  <div class="exec-label opening">Opening</div>
+                  <div class="exec-text">{{ opening|replace('\n\n', '</p><p>')|replace('\n', '<br>') }}</div>
+                </div>
+
+                {% if developments %}
+                <div class="exec-section">
+                  <div class="exec-label developments">Key Developments</div>
+                  <div class="exec-text">{{ developments|replace('\n\n', '</p><p>')|replace('\n', '<br>') }}</div>
+                </div>
+                {% endif %}
+
+                {% if outlook %}
+                <div class="exec-section">
+                  <div class="exec-label outlook">Outlook</div>
+                  <div class="exec-text">{{ outlook|replace('\n\n', '</p><p>')|replace('\n', '<br>') }}</div>
+                </div>
+                {% endif %}
+              {% else %}
+                <div class="exec-section">
+                  <div class="exec-text">{{ exec_text|replace('\n\n', '</p><p>')|replace('\n', '<br>') }}</div>
+                </div>
+              {% endif %}
+
+              {% if fun_fact %}
+              <div class="fun-fact-box">{{ fun_fact }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Topic Cards Grid -->
+        <div class="topic-grid">
+          {% for topic in topics %}
+          <div class="topic-card topic-section"
+               id="section-{{ topic.topic|lower }}"
+               data-topic="{{ topic.topic|lower }}"
+               style="border-top-color:{{ topic.color }};"
+               onclick="toggleTopicCard(this, event)">
+            <span class="section-anchor" id="anchor-section-{{ topic.topic|lower }}"></span>
+
+            <div class="topic-card-head">
+              <span class="topic-card-name" style="color:{{ topic.color }};">{{ topic.topic }}</span>
+              <div style="text-align:right;">
+                <div class="topic-card-count">
+                  {% if topic.developments %}{{ topic.developments|length }}{% else %}0{% endif %}
+                </div>
+                <div class="topic-card-count-label">updates</div>
+              </div>
+            </div>
+
+            <!-- Urgency mini-bars -->
+            {% if topic.developments %}
+            <div class="topic-card-urgency">
+              {%- for d in topic.developments|default([]) -%}
+                <span class="topic-urg-dot {{ d.urgency|lower }}"></span>
+              {%- endfor -%}
+            </div>
+            {% endif %}
+
+            <!-- Latest headline -->
+            {% if topic.developments %}
+            <div class="topic-card-latest">
+              <a href="{{ topic.developments[0].url }}" target="_blank" onclick="event.stopPropagation();">{{ topic.developments[0].headline }}</a>
+            </div>
+            {% endif %}
+
+            <div class="topic-card-expand">
+              <span class="topic-card-chevron">&#9660;</span>
+            </div>
+
+            <!-- Expanded body -->
+            <div class="topic-expanded-body" onclick="event.stopPropagation();">
+              {% if topic.summary %}
+              <div class="topic-summary-text">{{ topic.summary }}</div>
+              {% endif %}
+
+              <!-- Company Impact -->
+              {% set impact = topic.company_impact %}
+              {% if impact and (impact.direct_products or impact.supply_chain or impact.direct_actions or impact.supplier_actions) %}
+              <div class="topic-meta-section">
+                <div class="topic-meta-label">Company Impact</div>
+                {% if impact.direct_products %}
+                <div class="impact-row">
+                  <span class="impact-label">Products</span>
+                  <span class="impact-text">{{ impact.direct_products }}</span>
+                </div>
+                {% endif %}
+                {% if impact.supply_chain %}
+                <div class="impact-row">
+                  <span class="impact-label supplier">Supply Chain</span>
+                  <span class="impact-text">{{ impact.supply_chain }}</span>
+                </div>
+                {% endif %}
+                {% if impact.direct_actions %}
+                <div class="impact-row">
+                  <span class="impact-label">Actions</span>
+                  <div><ul class="action-list">{% for item in impact.direct_actions %}<li>{{ item }}</li>{% endfor %}</ul></div>
+                </div>
+                {% endif %}
+                {% if impact.supplier_actions %}
+                <div class="impact-row">
+                  <span class="impact-label supplier">Supplier</span>
+                  <div><ul class="action-list supplier">{% for item in impact.supplier_actions %}<li>{{ item }}</li>{% endfor %}</ul></div>
+                </div>
+                {% endif %}
+              </div>
+              {% endif %}
+
+              {% if topic.company_strategy %}
+              <div class="topic-meta-section">
+                <div class="topic-meta-label">Strategy Note</div>
+                <div class="strategy-text">{{ topic.company_strategy }}</div>
+              </div>
+              {% endif %}
+              {% if topic.strategy_note %}
+              <div class="topic-meta-section">
+                <div class="topic-meta-label">Strategy Note</div>
+                <div class="strategy-text">{{ topic.strategy_note }}</div>
+              </div>
+              {% endif %}
+
+              <!-- Articles -->
+              <div class="article-feed">
+                {% if topic.developments %}
+                  {% for dev in topic.developments %}
+                  <div class="article-item" data-urgency="{{ dev.urgency }}" data-topic="{{ topic.topic|lower }}"
+                       data-headline="{{ dev.headline|lower }}" data-summary="{{ dev.summary|lower if dev.summary else '' }}" data-source="{{ dev.source|lower if dev.source else '' }}">
+                    <div class="article-head">
+                      {% if dev.is_new %}<span class="badge badge-new">New</span>{% endif %}
+                      <span class="article-headline"><a href="{{ dev.url }}" target="_blank">{{ dev.headline }}</a></span>
+                      <span class="badge badge-{{ dev.urgency|lower }}">{{ dev.urgency }}</span>
+                    </div>
+                    <div class="article-meta">
+                      <span>{{ dev.source }}</span>
+                      {% if dev.date %}
+                      <span class="article-meta-sep">&middot;</span>
+                      <span>{{ dev.date }}</span>
+                      {% endif %}
+                    </div>
+                    {% if dev.summary %}
+                    <div class="article-summary">{{ dev.summary }}</div>
+                    {% endif %}
+                    {% if dev.deadline %}
+                    <span class="article-deadline-tag">{{ dev.deadline }}</span>
+                    {% endif %}
+                  </div>
+                  {% endfor %}
+                {% else %}
+                  <div class="no-articles">No developments in current window.</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Full Article Feed Section -->
+        <div class="panel article-section" id="section-feed">
+          <span class="section-anchor" id="anchor-section-feed"></span>
+          <div class="panel-header">
+            <span class="panel-title">All Articles</span>
+            <span class="panel-badge" id="feed-count">{{ total_articles }} items</span>
+          </div>
+          {% for topic in topics %}
+            {% if topic.developments %}
+              {% for dev in topic.developments %}
+              <div class="article-item" data-urgency="{{ dev.urgency }}" data-topic="{{ topic.topic|lower }}"
+                   data-headline="{{ dev.headline|lower }}" data-summary="{{ dev.summary|lower if dev.summary else '' }}" data-source="{{ dev.source|lower if dev.source else '' }}">
+                <div class="article-head">
+                  {% if dev.is_new %}<span class="badge badge-new">New</span>{% endif %}
+                  <span class="badge badge-{{ dev.urgency|lower }}" style="margin-right:4px;">{{ dev.urgency }}</span>
+                  <span class="article-headline"><a href="{{ dev.url }}" target="_blank">{{ dev.headline }}</a></span>
+                  <span class="badge" style="background:{{ topic.color }}20; color:{{ topic.color }}; border:1px solid {{ topic.color }}40;">{{ topic.topic }}</span>
+                </div>
+                <div class="article-meta">
+                  <span>{{ dev.source }}</span>
+                  {% if dev.date %}
+                  <span class="article-meta-sep">&middot;</span>
+                  <span>{{ dev.date }}</span>
+                  {% endif %}
+                </div>
+                {% if dev.summary %}
+                <div class="article-summary">{{ dev.summary }}</div>
+                {% endif %}
+                {% if dev.deadline %}
+                <span class="article-deadline-tag">{{ dev.deadline }}</span>
+                {% endif %}
+              </div>
+              {% endfor %}
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div>
+        <!-- Downloads & Timelines -->
+        <div class="panel" style="margin-bottom:12px;">
+          <div class="panel-header">
+            <span class="panel-title">Downloads & Timelines</span>
+          </div>
+          <div class="panel-body">
+            {% if timelines %}
+            <div class="chart-title">Regulatory Timelines</div>
+            <div class="timeline-links" style="margin-bottom:12px;">
+              {% if timelines.all %}<a class="tl-link" href="{{ timelines.all }}" target="_blank">All Topics</a>{% endif %}
+              {% if timelines.pfas %}<a class="tl-link" href="{{ timelines.pfas }}" target="_blank">PFAS</a>{% endif %}
+              {% if timelines.epr %}<a class="tl-link" href="{{ timelines.epr }}" target="_blank">EPR</a>{% endif %}
+              {% if timelines.reach %}<a class="tl-link" href="{{ timelines.reach }}" target="_blank">REACH</a>{% endif %}
+              {% if timelines.tsca %}<a class="tl-link" href="{{ timelines.tsca }}" target="_blank">TSCA</a>{% endif %}
+            </div>
+            {% endif %}
+
+            {% if downloads %}
+            <div class="chart-title">Data Exports</div>
+            <div class="downloads-row">
+              {% if downloads.pfas_xlsx %}<a class="dl-link" href="{{ downloads.pfas_xlsx }}" target="_blank">PFAS .xlsx</a>{% endif %}
+              {% if downloads.epr_xlsx %}<a class="dl-link" href="{{ downloads.epr_xlsx }}" target="_blank">EPR .xlsx</a>{% endif %}
+              {% if downloads.reach_xlsx %}<a class="dl-link" href="{{ downloads.reach_xlsx }}" target="_blank">REACH .xlsx</a>{% endif %}
+            </div>
+            {% endif %}
+
+            {% if calendar_url %}
+            <div style="margin-top:10px;">
+              <a class="dl-link" href="{{ calendar_url }}" target="_blank">Subscribe .ics Calendar</a>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Archive -->
+        <div class="panel" id="section-archive">
+          <span class="section-anchor" id="anchor-section-archive"></span>
+          <div class="panel-header">
+            <span class="panel-title">Archive</span>
+          </div>
+          <div style="padding:8px 14px;">
+            {% if archive_weeks %}
+            <ul class="archive-list">
+              {% for week in archive_weeks %}
+              <li class="archive-item">
+                <span class="archive-week">{{ week.label }}</span>
+                <div class="archive-links">
+                  {% if week.newsletter_url %}
+                  <a class="archive-link" href="{{ week.newsletter_url }}" target="_blank">Newsletter</a>
+                  {% endif %}
+                  {% if week.weekly_briefing_url %}
+                  <a class="archive-link" href="{{ week.weekly_briefing_url }}" target="_blank">Briefing</a>
+                  {% endif %}
+                </div>
+              </li>
+              {% endfor %}
+            </ul>
+            {% else %}
+            <div class="no-articles">No archived briefings yet.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+    </div><!-- .grid-main -->
+
+  </div><!-- .dashboard -->
+</main>
+
+<script>
+(function() {
+  'use strict';
+
+  var state = {
+    searchQuery: '',
+    activeTopics: new Set({{ topics|map(attribute='topic')|list|map('lower')|list|tojson }}),
+    urgencyFilter: 'ALL',
+    allTopics: {{ topics|map(attribute='topic')|list|map('lower')|list|tojson }}
+  };
+
+  window.toggleSidebar = function() {
+    document.getElementById('sidebar').classList.toggle('open');
+  };
+
+  window.scrollToSection = function(id) {
+    var anchor = document.getElementById('anchor-' + id) || document.getElementById(id);
+    if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  /* ── Sidebar active tracking ── */
+  function updateActiveRailLink() {
+    var links = document.querySelectorAll('.rail-link[data-target]');
+    var sections = [];
+    links.forEach(function(link) {
+      var target = document.getElementById(link.dataset.target);
+      if (target) sections.push({ link: link, el: target });
+    });
+    var active = sections[0];
+    var scrollY = window.scrollY + 80;
+    for (var i = sections.length - 1; i >= 0; i--) {
+      if (sections[i].el.offsetTop <= scrollY) { active = sections[i]; break; }
+    }
+    links.forEach(function(l) { l.classList.remove('active'); });
+    if (active) active.link.classList.add('active');
+  }
+
+  var scrollTick = false;
+  window.addEventListener('scroll', function() {
+    if (!scrollTick) {
+      requestAnimationFrame(function() { updateActiveRailLink(); scrollTick = false; });
+      scrollTick = true;
+    }
+  });
+
+  /* ── Exec summary toggle ── */
+  window.toggleExec = function() {
+    var panel = document.getElementById('exec-panel');
+    panel.classList.toggle('exec-collapsed');
+    var label = panel.querySelector('.exec-toggle-label');
+    if (label) label.textContent = panel.classList.contains('exec-collapsed') ? 'expand' : 'collapse';
+  };
+
+  /* ── Topic Card expand/collapse ── */
+  window.toggleTopicCard = function(card, e) {
+    if (e.target.tagName === 'A') return;
+    card.classList.toggle('expanded');
+  };
+
+  /* ── Search ── */
+  window.handleSearch = function(query) {
+    state.searchQuery = query.trim().toLowerCase();
+    applyFilters();
+  };
+
+  /* ── Topic filter ── */
+  window.toggleTopicFilter = function(btn, topic) {
+    btn.classList.toggle('active');
+    if (state.activeTopics.has(topic)) { state.activeTopics.delete(topic); }
+    else { state.activeTopics.add(topic); }
+    applyFilters();
+  };
+
+  /* ── Urgency filter ── */
+  window.setUrgencyFilter = function(level, btn) {
+    state.urgencyFilter = level;
+    document.querySelectorAll('.f-btn[data-urgency]').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    applyFilters();
+  };
+
+  function applyFilters() {
+    var q = state.searchQuery;
+    var visibleCount = 0;
+    var totalCount = 0;
+
+    /* Hide/show topic sections (cards) */
+    document.querySelectorAll('.topic-section').forEach(function(section) {
+      var topic = section.dataset.topic;
+      if (topic) section.classList.toggle('topic-hidden', !state.activeTopics.has(topic));
+    });
+
+    /* Filter articles */
+    document.querySelectorAll('.article-item').forEach(function(article) {
+      totalCount++;
+      var topic = article.dataset.topic;
+      var urgency = article.dataset.urgency;
+      var headline = article.dataset.headline || '';
+      var summary = article.dataset.summary || '';
+      var source = article.dataset.source || '';
+
+      if (!state.activeTopics.has(topic)) { article.classList.add('hidden-by-search'); return; }
+
+      var passUrgency = true;
+      if (state.urgencyFilter === 'HIGH') passUrgency = urgency === 'HIGH';
+      else if (state.urgencyFilter === 'MEDIUM') passUrgency = urgency === 'HIGH' || urgency === 'MEDIUM';
+
+      article.classList.toggle('hidden-by-urgency', !passUrgency);
+      if (!passUrgency) { article.classList.remove('hidden-by-search'); }
+
+      var passSearch = true;
+      if (q) passSearch = headline.indexOf(q) !== -1 || summary.indexOf(q) !== -1 || source.indexOf(q) !== -1;
+      article.classList.toggle('hidden-by-search', !passSearch);
+
+      if (passUrgency && passSearch && state.activeTopics.has(topic)) visibleCount++;
+    });
+
+    highlightSearchMatches(q);
+
+    var countEl = document.getElementById('search-count');
+    countEl.textContent = (q || state.urgencyFilter !== 'ALL') ? visibleCount + ' / ' + totalCount : '';
+    document.getElementById('stat-articles').textContent = visibleCount || totalCount;
+  }
+
+  function highlightSearchMatches(query) {
+    document.querySelectorAll('.article-headline mark, .article-summary mark').forEach(function(m) {
+      var parent = m.parentNode;
+      parent.replaceChild(document.createTextNode(m.textContent), m);
+      parent.normalize();
+    });
+    if (!query) return;
+    document.querySelectorAll('.article-item:not(.hidden-by-search):not(.hidden-by-urgency)').forEach(function(article) {
+      highlightInElement(article.querySelector('.article-headline'), query);
+      highlightInElement(article.querySelector('.article-summary'), query);
+    });
+  }
+
+  function highlightInElement(el, query) {
+    if (!el) return;
+    var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+    var textNodes = [];
+    while (walker.nextNode()) textNodes.push(walker.currentNode);
+    textNodes.forEach(function(node) {
+      var text = node.textContent;
+      var lower = text.toLowerCase();
+      var idx = lower.indexOf(query);
+      if (idx === -1) return;
+      var frag = document.createDocumentFragment();
+      var lastIdx = 0;
+      while (idx !== -1) {
+        if (idx > lastIdx) frag.appendChild(document.createTextNode(text.substring(lastIdx, idx)));
+        var mark = document.createElement('mark');
+        mark.textContent = text.substring(idx, idx + query.length);
+        frag.appendChild(mark);
+        lastIdx = idx + query.length;
+        idx = lower.indexOf(query, lastIdx);
+      }
+      if (lastIdx < text.length) frag.appendChild(document.createTextNode(text.substring(lastIdx)));
+      node.parentNode.replaceChild(frag, node);
+    });
+  }
+
+  /* ── Keyboard shortcuts ── */
+  document.addEventListener('keydown', function(e) {
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+      e.preventDefault();
+      document.getElementById('search-input').focus();
+    }
+    if (e.key === 'Escape') {
+      document.getElementById('search-input').blur();
+    }
+  });
+
+  updateActiveRailLink();
+})();
+</script>
+
+</body>
+</html>
