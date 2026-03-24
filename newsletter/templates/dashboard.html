@@ -1126,6 +1126,12 @@
 
     <div class="rail-divider"></div>
 
+    {% if daily_changes %}
+    <a class="rail-link" data-target="section-changes" onclick="scrollToSection('section-changes')">
+      <span class="rail-dot" style="background:var(--red);"></span>
+      <span class="rail-label">Changes</span>
+    </a>
+    {% endif %}
     <a class="rail-link" data-target="section-maps" onclick="scrollToSection('section-maps')">
       <span class="rail-dot" style="background:var(--blue);"></span>
       <span class="rail-label">Maps & Data</span>
@@ -1429,6 +1435,44 @@
       </div>
 
     </div><!-- .panel-grid-top -->
+
+    <!-- ────── WHAT CHANGED TODAY ────── -->
+    {% if daily_changes %}
+    <div class="panel animate-in" id="section-changes" style="margin-bottom:16px;">
+      <span class="section-anchor" id="anchor-section-changes"></span>
+      <div class="panel-header">
+        <span class="panel-title">What Changed Today</span>
+        <span class="panel-badge">{{ daily_changes|length }}</span>
+      </div>
+      <div class="panel-body" style="padding:0;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          {% for ch in daily_changes %}
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:8px 12px;width:90px;white-space:nowrap;">
+              {% if ch.change_type == 'urgency_spike' %}
+                <span style="background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:.04em;">SPIKE</span>
+              {% elif ch.change_type == 'new_deadline' %}
+                <span style="background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:.04em;">DEADLINE</span>
+              {% elif ch.change_type == 'bill_change' %}
+                <span style="background:#dbeafe;color:#1e40af;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:.04em;">BILL</span>
+              {% elif ch.change_type == 'new_bills' %}
+                <span style="background:#e0e7ff;color:#3730a3;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:.04em;">BILLS</span>
+              {% else %}
+                <span style="background:#d1fae5;color:#065f46;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:.04em;">UPDATE</span>
+              {% endif %}
+            </td>
+            <td style="padding:8px 6px;width:70px;color:var(--text-muted);font-size:11px;">
+              {% if ch.topic %}{{ ch.topic }}{% endif %}
+            </td>
+            <td style="padding:8px 12px 8px 6px;color:var(--text-primary);line-height:1.4;">
+              {{ ch.description }}
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+    {% endif %}
 
     <!-- ────── EXEC SUMMARY (collapsible) + TOPIC CARDS ────── -->
     <div class="grid-main">

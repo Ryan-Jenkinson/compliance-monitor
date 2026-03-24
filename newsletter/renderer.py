@@ -208,6 +208,7 @@ class NewsletterRenderer:
         archive_weeks: Optional[List[dict]] = None,
         deadlines: Optional[List[dict]] = None,
         calendar_url: Optional[str] = None,
+        daily_changes: Optional[List[dict]] = None,
     ) -> str:
         """Render the compliance intelligence dashboard."""
         now = datetime.now()
@@ -251,6 +252,7 @@ class NewsletterRenderer:
             },
             calendar_url=calendar_url or f"{base_url}/deadlines.ics",
             deadlines=deadlines or [],
+            daily_changes=daily_changes or [],
         )
 
     # Keep old name as alias for any callers

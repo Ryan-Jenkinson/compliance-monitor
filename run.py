@@ -509,6 +509,15 @@ def run_pipeline(args: argparse.Namespace) -> None:
     summarizer = Summarizer()
     pipeline_output = summarizer.run(articles, week_context=week_context)
 
+    # Step 2b: Change detection
+    daily_changes = []
+    try:
+        from processors.change_detector import detect_and_save
+        daily_changes = detect_and_save(pipeline_output, run_date=today)
+        logger.info(f"Change detection: {len(daily_changes)} change(s) recorded")
+    except Exception as e:
+        logger.warning(f"Change detection failed (non-fatal): {e}")
+
     if args.dry_run:
         print("\n" + "=" * 60)
         print(f"DRY RUN — Weekly Briefing ({week_context['today_name']}, week of {week_context['week_label']}):")
@@ -575,6 +584,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
         dashboard_html = renderer.render_dashboard(
             pipeline_output, week_context=week_context,
             archive_weeks=archive_weeks, deadlines=deadlines_preview,
+            daily_changes=daily_changes,
         )
         dashboard_path = data_dir / f"preview_dashboard_{ts}.html"
         dashboard_path.write_text(dashboard_html, encoding="utf-8")
@@ -625,7 +635,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
         dashboard_html = renderer.render_dashboard(
             pipeline_output, week_context=week_context,
             archive_weeks=archive_weeks, deadlines=deadlines_dash,
-            calendar_url=calendar_url,
+            calendar_url=calendar_url, daily_changes=daily_changes,
         )
         _push_dashboard(dashboard_html, _GITHUB_REPO_DIR)
     except Exception as e:

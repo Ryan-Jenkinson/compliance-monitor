@@ -142,6 +142,33 @@ def init_db() -> None:
         conn.commit()
     except Exception:
         pass
+    # Migration: add daily_snapshots and daily_changes tables
+    try:
+        conn.execute("""CREATE TABLE IF NOT EXISTS daily_snapshots (
+            snapshot_date TEXT PRIMARY KEY,
+            total_articles INTEGER DEFAULT 0,
+            high_count INTEGER DEFAULT 0,
+            medium_count INTEGER DEFAULT 0,
+            low_count INTEGER DEFAULT 0,
+            topic_counts_json TEXT DEFAULT '{}',
+            article_ids_json TEXT DEFAULT '[]',
+            new_deadlines_count INTEGER DEFAULT 0,
+            bill_changes_count INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT (datetime('now'))
+        )""")
+        conn.execute("""CREATE TABLE IF NOT EXISTS daily_changes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            change_date TEXT NOT NULL,
+            change_type TEXT NOT NULL,
+            topic TEXT,
+            description TEXT NOT NULL,
+            detail_json TEXT DEFAULT '{}',
+            severity TEXT DEFAULT 'normal',
+            created_at TEXT DEFAULT (datetime('now'))
+        )""")
+        conn.commit()
+    except Exception:
+        pass
     conn.close()
 
 
