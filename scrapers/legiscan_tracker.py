@@ -55,6 +55,22 @@ _TOPIC_QUERIES: dict[str, list[str]] = {
         'TSCA AND (section OR reporting OR restriction)',
         '"chemical safety" AND (reform OR regulation OR assessment)',
     ],
+    "Prop65": [
+        '"Proposition 65" AND (amendment OR reform OR exemption OR enforcement)',
+        'OEHHA AND (listing OR chemical OR substance OR warning)',
+        '"safe harbor" AND (chemical OR warning OR California)',
+        '"chemical warning" AND (label OR disclosure OR California)',
+        '"toxic chemicals" AND (warning OR disclosure OR consumer)',
+        '"right to know" AND (chemical OR toxic OR California)',
+    ],
+    "ConflictMinerals": [
+        '"conflict minerals" AND (disclosure OR reporting OR bill OR act)',
+        '"supply chain disclosure" AND (minerals OR mining OR manufacturer)',
+        '"modern slavery" AND (disclosure OR act OR reporting)',
+        '"human rights due diligence" AND (supply chain OR bill OR act OR law)',
+        'CSDDD OR "supply chain due diligence" AND (bill OR act OR state)',
+        '"responsible sourcing" AND (bill OR act OR requirement OR disclosure)',
+    ],
     "ForcedLabor": [
         '"forced labor" AND (supply chain OR manufacturer OR import)',
         'UFLPA OR "Uyghur Forced Labor Prevention"',
