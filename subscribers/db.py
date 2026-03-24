@@ -332,3 +332,75 @@ def get_upcoming_deadlines(days_ahead: int = 365) -> list[dict]:
     ).fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+
+_STAGE_URGENCY = {
+    "advanced": "HIGH",
+    "passed_one": "HIGH",
+    "enacted_watching": "HIGH",
+    "rulemaking": "HIGH",
+    "committee": "MEDIUM",
+    "discussion": "MEDIUM",
+    "introduced": "LOW",
+    "pre_discussion": "LOW",
+    "none": "LOW",
+}
+
+
+def get_bill_calendar_events(days_past: int = 30, days_ahead: int = 180) -> list[dict]:
+    """Return legiscan bill action dates as deadline-like dicts for the calendar.
+
+    Includes:
+    - All bills with a future last_action_date (upcoming scheduled actions)
+    - Bills in significant stages (committee+) with recent last_action_date
+    """
+    from datetime import date, timedelta
+    today = date.today()
+    past_cutoff = (today - timedelta(days=days_past)).isoformat()
+    future_cutoff = (today + timedelta(days=days_ahead)).isoformat()
+    today_str = today.isoformat()
+
+    conn = get_connection()
+    # Future dates: any bill with upcoming action (most actionable)
+    # Recent past: only significant stages (committee+) to avoid noise
+    rows = conn.execute(
+        """SELECT state, bill_number, title, last_action_date, last_action,
+                  stage, topic, url, state_link, status_date
+           FROM legiscan_bills
+           WHERE (
+               (last_action_date > ? AND last_action_date <= ?)
+               OR
+               (last_action_date >= ? AND last_action_date <= ?
+                AND stage IN ('committee','passed_one','advanced','rulemaking','enacted_watching'))
+           )
+           AND stage != 'none'
+           ORDER BY last_action_date ASC""",
+        (today_str, future_cutoff, past_cutoff, today_str),
+    ).fetchall()
+    conn.close()
+
+    results = []
+    for r in rows:
+        r = dict(r)
+        stage = r.get("stage", "introduced")
+        urgency = _STAGE_URGENCY.get(stage, "LOW")
+        bill_label = f"{r['state']} {r['bill_number']}"
+        title_short = (r.get("title") or "")[:70].rstrip()
+        action_desc = r.get("last_action") or ""
+        stage_label = stage.replace("_", " ").title()
+        is_future = r["last_action_date"] > today_str
+
+        results.append({
+            "topic": r.get("topic", ""),
+            "title": f"{bill_label} — {title_short}",
+            "deadline_date": r["last_action_date"],
+            "description": (
+                f"{'Scheduled: ' if is_future else ''}{action_desc} "
+                f"[{stage_label} stage, {r['state']}]"
+            ).strip(),
+            "jurisdiction": r.get("state", ""),
+            "source_url": r.get("url") or r.get("state_link") or "",
+            "urgency": urgency,
+            "is_bill_event": True,
+        })
+    return results

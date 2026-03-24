@@ -7,6 +7,15 @@ from typing import List
 from config.settings import Config
 
 
+def _get_bill_events() -> List[dict]:
+    """Pull upcoming and recent bill action dates from legiscan_bills."""
+    try:
+        from subscribers.db import get_bill_calendar_events
+        return get_bill_calendar_events(days_past=30, days_ahead=365)
+    except Exception:
+        return []
+
+
 def _get_monitored_law_deadlines() -> List[dict]:
     """Pull reporting_deadline events from the regulation_events table."""
     try:
@@ -54,13 +63,16 @@ def generate_ics(deadlines: List[dict]) -> Path:
     """
     # Merge in monitored law deadlines from the regulation registry
     monitored = _get_monitored_law_deadlines()
-    if monitored:
+    bill_events = _get_bill_events()
+    extra = monitored + bill_events
+    if extra:
         existing_keys = {(d.get("topic", ""), d.get("title", ""), d.get("deadline_date", "")) for d in deadlines}
-        for m in monitored:
+        for m in extra:
             key = (m.get("topic", ""), m.get("title", ""), m.get("deadline_date", ""))
             if key not in existing_keys:
                 deadlines = list(deadlines) + [m]
                 existing_keys.add(key)
+    deadlines = sorted(deadlines, key=lambda d: d.get("deadline_date", ""))
 
     lines = [
         "BEGIN:VCALENDAR",

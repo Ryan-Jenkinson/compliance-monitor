@@ -60,7 +60,7 @@ from ai.summarizer import Summarizer
 from newsletter.renderer import NewsletterRenderer
 from delivery.gmail_sender import GmailSender
 from delivery.state_map_generator import generate_pfas_map
-from subscribers.db import init_db, get_archive_weeks, save_archive_week, get_upcoming_deadlines
+from subscribers.db import init_db, get_archive_weeks, save_archive_week, get_upcoming_deadlines, get_bill_calendar_events
 from subscribers.repository import SubscriberRepository
 from delivery.calendar_generator import generate_ics
 from scrapers.legiscan_tracker import LegiScanTracker
@@ -790,6 +790,13 @@ def run_pipeline(args: argparse.Namespace) -> None:
             watchdog["enriched"][:30]
             if watchdog else get_upcoming_deadlines(days_ahead=180)
         )
+        # Merge in bill action dates so the calendar shows legislative activity
+        bill_events = get_bill_calendar_events(days_past=30, days_ahead=180)
+        existing_keys = {(d.get("topic",""), d.get("deadline_date","")) for d in deadlines_dash}
+        for be in bill_events:
+            if (be["topic"], be["deadline_date"]) not in existing_keys:
+                deadlines_dash = list(deadlines_dash) + [be]
+        deadlines_dash.sort(key=lambda d: d.get("deadline_date", ""))
         dashboard_html = renderer.render_dashboard(
             pipeline_output, week_context=week_context,
             archive_weeks=archive_weeks, deadlines=deadlines_dash,
@@ -824,6 +831,8 @@ def run_pipeline(args: argparse.Namespace) -> None:
     if is_friday or is_finalize:
         logger.info("Step 3d: Generating deadline calendar…")
         deadlines = get_upcoming_deadlines(days_ahead=365)
+        deadlines = list(deadlines) + get_bill_calendar_events(days_past=30, days_ahead=365)
+        deadlines.sort(key=lambda d: d.get("deadline_date", ""))
         if deadlines:
             ics_path = generate_ics(deadlines)
             ics_url = f"{_PAGES_BASE}/deadlines.ics"
