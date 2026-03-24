@@ -785,24 +785,21 @@ def run_pipeline(args: argparse.Namespace) -> None:
     # Step 3c: Publish to GitHub Pages
     logger.info("Step 3c: Publishing to GitHub Pages…")
 
-    # Daily newsletter web version
+    # Daily newsletter web version — rendering kept but push disabled (dashboard is primary)
     web_html = renderer.render(
         pipeline_output, map_url=pfas_map_url, epr_map_url=epr_map_url, reach_map_url=reach_map_url,
         is_web_version=True, week_context=week_context,
         archive_weeks=archive_weeks, archive_url=archive_url,
     )
-    newsletter_url = _push_daily_newsletter(web_html, _GITHUB_REPO_DIR)
+    newsletter_url = None  # _push_daily_newsletter(web_html, _GITHUB_REPO_DIR)
 
-    # Weekly briefing page (updated daily, archived on Friday)
+    # Weekly briefing page — rendering kept but push disabled (dashboard is primary)
     briefing_html = renderer.render_weekly_briefing(
         pipeline_output,
         newsletter_url=newsletter_url,
         week_context=week_context,
     )
-    weekly_briefing_url = _push_weekly_briefing(
-        briefing_html, _GITHUB_REPO_DIR, week_context,
-        is_archive=(is_friday or is_finalize),
-    )
+    weekly_briefing_url = None  # _push_weekly_briefing(...)
 
     # Generate .ics daily so the link is never broken (small file, cheap to generate)
     try:
@@ -857,7 +854,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
         )
         archive_weeks = get_archive_weeks()  # Reload with new entry
         archive_html = renderer.render_archive_index(archive_weeks)
-        archive_url = _push_archive_index(archive_html, _GITHUB_REPO_DIR)
+        archive_url = None  # _push_archive_index(archive_html, _GITHUB_REPO_DIR) — disabled
         logger.info(f"End-of-week archive saved: week of {week_context['week_label']}")
 
     # Step 3d: Generate deadline calendar (Fridays and --finalize-week only)
