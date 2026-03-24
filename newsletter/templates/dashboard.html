@@ -607,7 +607,18 @@
       font-weight: 700;
       letter-spacing: 0.8px;
       text-transform: uppercase;
-      flex: 1;
+    }
+    .topic-new-badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      background: var(--red);
+      color: #fff;
+      padding: 2px 7px;
+      border-radius: 10px;
+      white-space: nowrap;
     }
     .topic-card-count {
       font-family: var(--mono);
@@ -737,7 +748,48 @@
     .article-item:last-child { border-bottom: none; }
     .article-item:hover { background: #FAFBFC; }
     .article-item.hidden-by-search,
-    .article-item.hidden-by-urgency { display: none; }
+    .article-item.hidden-by-urgency,
+    .article-item.hidden-by-new { display: none; }
+
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 10px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .filter-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-right: 2px;
+    }
+    .f-btn {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--bg);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .f-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .f-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
     .article-head {
       display: flex;
@@ -1673,6 +1725,26 @@
           </div>
         </div>
 
+        <!-- Filter / Sort bar -->
+        <div class="filter-bar" id="filter-bar">
+          <div class="filter-group">
+            <span class="filter-label">Urgency</span>
+            <button class="f-btn active" data-urgency="ALL"    onclick="setUrgencyFilter('ALL',this)">All</button>
+            <button class="f-btn"        data-urgency="HIGH"   onclick="setUrgencyFilter('HIGH',this)">High</button>
+            <button class="f-btn"        data-urgency="MEDIUM" onclick="setUrgencyFilter('MEDIUM',this)">High+Med</button>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">Show</span>
+            <button class="f-btn active" id="btn-show-all"  onclick="setNewFilter('ALL',this)">All</button>
+            <button class="f-btn"        id="btn-show-new"  onclick="setNewFilter('NEW',this)">New only</button>
+          </div>
+          <div class="filter-group" style="margin-left:auto;">
+            <span class="filter-label">Sort</span>
+            <button class="f-btn active" id="btn-sort-date"    onclick="setSortOrder('date',this)">Date</button>
+            <button class="f-btn"        id="btn-sort-urgency" onclick="setSortOrder('urgency',this)">Urgency</button>
+          </div>
+        </div>
+
         <!-- Topic Cards Grid — SECOND -->
         <div class="topic-grid" data-widget-id="topics" data-widget-label="Topic Cards">
           {% for topic in topics %}
@@ -1683,9 +1755,13 @@
                onclick="toggleTopicCard(this, event)">
             <span class="section-anchor" id="anchor-section-{{ topic.topic|lower }}"></span>
 
+            {% set new_count = topic.developments | selectattr('is_new') | list | length %}
             <div class="topic-card-head">
               <span class="topic-card-name" style="color:{{ topic.color }};">{{ topic.topic }}</span>
-              <div style="text-align:right;">
+              {% if new_count > 0 %}
+              <span class="topic-new-badge">{{ new_count }} new</span>
+              {% endif %}
+              <div style="text-align:right;margin-left:auto;">
                 <div class="topic-card-count">
                   {% if topic.developments %}{{ topic.developments|length }}{% else %}0{% endif %}
                 </div>
@@ -1751,16 +1827,11 @@
               </div>
               {% endif %}
 
-              {% if topic.company_strategy %}
+              {% set strategy = topic.company_strategy or topic.strategy_note %}
+              {% if strategy %}
               <div class="topic-meta-section">
                 <div class="topic-meta-label">Strategy Note</div>
-                <div class="strategy-text">{{ topic.company_strategy }}</div>
-              </div>
-              {% endif %}
-              {% if topic.strategy_note %}
-              <div class="topic-meta-section">
-                <div class="topic-meta-label">Strategy Note</div>
-                <div class="strategy-text">{{ topic.strategy_note }}</div>
+                <div class="strategy-text">{{ strategy }}</div>
               </div>
               {% endif %}
 
@@ -1769,7 +1840,8 @@
                 {% if topic.developments %}
                   {% for dev in topic.developments %}
                   <div class="article-item" data-urgency="{{ dev.urgency }}" data-topic="{{ topic.topic|lower }}"
-                       data-headline="{{ dev.headline|lower }}" data-summary="{{ dev.summary|lower if dev.summary else '' }}" data-source="{{ dev.source|lower if dev.source else '' }}">
+                       data-headline="{{ dev.headline|lower }}" data-summary="{{ dev.summary|lower if dev.summary else '' }}" data-source="{{ dev.source|lower if dev.source else '' }}"
+                       data-date="{{ dev.date or '' }}" data-new="{{ 'true' if dev.is_new else 'false' }}">
                     <div class="article-head">
                       {% if dev.is_new %}<span class="badge badge-new">New</span>{% endif %}
                       <span class="article-headline"><a href="{{ dev.url }}">{{ dev.headline }}</a></span>
@@ -2387,6 +2459,8 @@
     searchQuery: '',
     activeTopics: new Set({{ topics|map(attribute='topic')|list|map('lower')|list|tojson }}),
     urgencyFilter: 'ALL',
+    newFilter: 'ALL',
+    sortOrder: 'date',
     allTopics: {{ topics|map(attribute='topic')|list|map('lower')|list|tojson }}
   };
 
@@ -2546,6 +2620,39 @@
     applyFilters();
   };
 
+  /* ── New-only filter ── */
+  window.setNewFilter = function(mode, btn) {
+    state.newFilter = mode;
+    document.getElementById('btn-show-all').classList.toggle('active', mode === 'ALL');
+    document.getElementById('btn-show-new').classList.toggle('active', mode === 'NEW');
+    applyFilters();
+  };
+
+  /* ── Sort order ── */
+  window.setSortOrder = function(order, btn) {
+    state.sortOrder = order;
+    document.getElementById('btn-sort-date').classList.toggle('active', order === 'date');
+    document.getElementById('btn-sort-urgency').classList.toggle('active', order === 'urgency');
+    var urgPri = {HIGH: 0, MEDIUM: 1, LOW: 2};
+    document.querySelectorAll('.article-feed').forEach(function(feed) {
+      var items = Array.from(feed.querySelectorAll('.article-item'));
+      items.sort(function(a, b) {
+        if (order === 'urgency') {
+          var diff = (urgPri[a.dataset.urgency] || 2) - (urgPri[b.dataset.urgency] || 2);
+          if (diff !== 0) return diff;
+          return (b.dataset.date || '').localeCompare(a.dataset.date || '');
+        } else {
+          // date: NEW items always first, then by date descending
+          var aNew = a.dataset.new === 'true' ? 0 : 1;
+          var bNew = b.dataset.new === 'true' ? 0 : 1;
+          if (aNew !== bNew) return aNew - bNew;
+          return (b.dataset.date || '').localeCompare(a.dataset.date || '');
+        }
+      });
+      items.forEach(function(item) { feed.appendChild(item); });
+    });
+  };
+
   function applyFilters() {
     var q = state.searchQuery;
     var visibleCount = 0;
@@ -2572,20 +2679,23 @@
       if (state.urgencyFilter === 'HIGH') passUrgency = urgency === 'HIGH';
       else if (state.urgencyFilter === 'MEDIUM') passUrgency = urgency === 'HIGH' || urgency === 'MEDIUM';
 
+      var passNew = state.newFilter !== 'NEW' || article.dataset.new === 'true';
+
       article.classList.toggle('hidden-by-urgency', !passUrgency);
-      if (!passUrgency) { article.classList.remove('hidden-by-search'); }
+      article.classList.toggle('hidden-by-new', !passNew);
+      if (!passUrgency || !passNew) { article.classList.remove('hidden-by-search'); }
 
       var passSearch = true;
       if (q) passSearch = headline.indexOf(q) !== -1 || summary.indexOf(q) !== -1 || source.indexOf(q) !== -1;
       article.classList.toggle('hidden-by-search', !passSearch);
 
-      if (passUrgency && passSearch && state.activeTopics.has(topic)) visibleCount++;
+      if (passUrgency && passNew && passSearch && state.activeTopics.has(topic)) visibleCount++;
     });
 
     highlightSearchMatches(q);
 
     var countEl = document.getElementById('search-count');
-    countEl.textContent = (q || state.urgencyFilter !== 'ALL') ? visibleCount + ' / ' + totalCount : '';
+    countEl.textContent = (q || state.urgencyFilter !== 'ALL' || state.newFilter !== 'ALL') ? visibleCount + ' / ' + totalCount : '';
     document.getElementById('stat-articles').textContent = visibleCount || totalCount;
   }
 

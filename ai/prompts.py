@@ -120,6 +120,7 @@ Produce a JSON object with this exact structure:
     "direct_actions": ["1-2 specific action items max for direct compliance"],
     "supplier_actions": ["1-2 specific action items max for supplier outreach"]
   }},
+  "company_strategy": "2-3 sentences. Based on NEW developments today, what is the specific recommended action for the compliance team this week? If nothing material changed today, restate the most current plan (e.g. continue monitoring X, prepare Y ahead of deadline Z). Never say 'no updates' — always give a concrete direction.",
   "has_news": true
 }}
 
@@ -134,6 +135,7 @@ If there are no articles or none are relevant, return:
     "direct_actions": [],
     "supplier_actions": []
   }},
+  "company_strategy": null,
   "has_news": false
 }}
 
