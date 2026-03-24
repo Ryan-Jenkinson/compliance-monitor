@@ -639,10 +639,18 @@ if __name__ == "__main__":
     import sys
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 
-    # Parse optional topic argument: python -m scrapers.legiscan_tracker [PFAS|EPR|TSCA|ALL]
-    topic_arg = sys.argv[1].upper() if len(sys.argv) > 1 else None
-    if topic_arg == "ALL":
+    # Parse optional topic argument: python -m scrapers.legiscan_tracker [PFAS|EPR|TSCA|Prop65|ConflictMinerals|ForcedLabor|ALL]
+    _raw_arg = sys.argv[1] if len(sys.argv) > 1 else None
+    if _raw_arg is None or _raw_arg.upper() == "ALL":
         topic_arg = None  # Run all topics
+    else:
+        # Case-insensitive lookup against known topic keys
+        _upper = _raw_arg.upper()
+        _match = next((k for k in _TOPIC_QUERIES if k.upper() == _upper), None)
+        if _match is None:
+            print(f"WARNING Unknown topic '{_raw_arg}', valid topics: {list(_TOPIC_QUERIES.keys())}")
+            sys.exit(1)
+        topic_arg = _match
 
     try:
         tracker = LegiScanTracker()
