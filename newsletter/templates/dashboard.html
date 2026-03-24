@@ -1720,6 +1720,45 @@
 
       <!-- RIGHT COLUMN -->
       <div>
+        <!-- 28-Day Trends -->
+        {% if trend_data and trend_data.days_with_data >= 2 %}
+        <div class="panel animate-in" style="margin-bottom:12px;">
+          <div class="panel-header">
+            <span class="panel-title">28-Day Trends</span>
+            <span class="panel-badge">{{ trend_data.days_with_data }}d</span>
+          </div>
+          <div class="panel-body" style="padding:8px 14px;">
+            <!-- Total articles sparkline -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <span style="font-size:11px;color:var(--text-secondary);min-width:80px;">Total Articles</span>
+              <div style="flex:1;margin:0 8px;">{{ sparklines.total|safe }}</div>
+              <span style="font-size:12px;font-weight:600;color:var(--text-primary);min-width:24px;text-align:right;">{{ trend_data.total[-1] if trend_data.total else 0 }}</span>
+            </div>
+            <!-- HIGH urgency sparkline -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <span style="font-size:11px;color:var(--text-secondary);min-width:80px;">HIGH Urgency</span>
+              <div style="flex:1;margin:0 8px;">{{ sparklines.high|safe }}</div>
+              <span style="font-size:12px;font-weight:600;color:var(--red);min-width:24px;text-align:right;">{{ trend_data.high[-1] if trend_data.high else 0 }}</span>
+            </div>
+            {% if sparklines.by_topic %}
+            <div style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px;">
+              {% for topic, svg in sparklines.by_topic.items() %}
+              {% if svg %}
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+                <span style="font-size:10px;color:var(--text-muted);min-width:80px;">{{ topic }}</span>
+                <div style="flex:1;margin:0 8px;">{{ svg|safe }}</div>
+                <span style="font-size:11px;color:var(--text-secondary);min-width:24px;text-align:right;">
+                  {{ trend_data.by_topic[topic][-1] if trend_data.by_topic[topic] else 0 }}
+                </span>
+              </div>
+              {% endif %}
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
         <!-- Downloads & Timelines -->
         <div class="panel" style="margin-bottom:12px;">
           <div class="panel-header">

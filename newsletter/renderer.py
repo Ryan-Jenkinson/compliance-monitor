@@ -217,6 +217,16 @@ class NewsletterRenderer:
         enriched_topics = self._enrich_topics(pipeline_output)
         pfas_intel = self._load_pfas_intel()
 
+        # Trend data for sparklines
+        trend_data: dict = {}
+        sparklines: dict = {}
+        try:
+            from processors.trend_tracker import get_trend_data, build_sparklines
+            trend_data = get_trend_data(days=28)
+            sparklines = build_sparklines(trend_data)
+        except Exception:
+            pass
+
         base_url = "https://ryan-jenkinson.github.io/compliance-maps"
 
         template = self.env.get_template("dashboard.html")
@@ -253,6 +263,8 @@ class NewsletterRenderer:
             calendar_url=calendar_url or f"{base_url}/deadlines.ics",
             deadlines=deadlines or [],
             daily_changes=daily_changes or [],
+            trend_data=trend_data,
+            sparklines=sparklines,
         )
 
     # Keep old name as alias for any callers
