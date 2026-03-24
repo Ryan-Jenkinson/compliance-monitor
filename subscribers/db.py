@@ -169,6 +169,22 @@ def init_db() -> None:
         conn.commit()
     except Exception:
         pass
+    # Migration: add dashboard_critiques table
+    try:
+        conn.execute("""CREATE TABLE IF NOT EXISTS dashboard_critiques (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            critique_date TEXT NOT NULL,
+            what_works TEXT DEFAULT '',
+            questions_raised TEXT DEFAULT '',
+            missing_data TEXT DEFAULT '',
+            actionable_suggestions TEXT DEFAULT '',
+            verdict TEXT DEFAULT '',
+            raw_json TEXT DEFAULT '{}',
+            created_at TEXT DEFAULT (datetime('now'))
+        )""")
+        conn.commit()
+    except Exception:
+        pass
     conn.close()
 
 

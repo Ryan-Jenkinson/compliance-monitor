@@ -99,6 +99,8 @@ def parse_args() -> argparse.Namespace:
                         help="Override email subject for test sends")
     parser.add_argument("--week-of", metavar="YYYY-MM-DD",
                         help="Override today's date (e.g. use last Friday to archive last week)")
+    parser.add_argument("--director-review", action="store_true",
+                        help="Run director critique now (ignores Monday gate) and open report")
     return parser.parse_args()
 
 
@@ -530,6 +532,18 @@ def run_pipeline(args: argparse.Namespace) -> None:
     except Exception as e:
         logger.warning(f"Change detection failed (non-fatal): {e}")
 
+    # Step 2c: Director's critique (Mondays only — writes to data/director_review.html)
+    if week_context.get("is_monday"):
+        try:
+            from ai.director_agent import run_director_critique
+            run_director_critique(
+                pipeline_output,
+                watchdog=watchdog,
+                daily_changes=daily_changes,
+            )
+        except Exception as e:
+            logger.warning(f"Director critique failed (non-fatal): {e}")
+
     if args.dry_run:
         print("\n" + "=" * 60)
         print(f"DRY RUN — Weekly Briefing ({week_context['today_name']}, week of {week_context['week_label']}):")
@@ -771,7 +785,48 @@ def main() -> None:
             logging.getLogger("reminder").error(f"Reminder failed: {e}")
         return
 
+    if args.director_review:
+        _run_director_review_standalone()
+        return
+
     run_pipeline(args)
+
+
+def _run_director_review_standalone() -> None:
+    """Run director critique on-demand and open the HTML report."""
+    logger = logging.getLogger("director")
+    init_db()
+    logger.info("Running director critique (forced)…")
+
+    # Get latest pipeline output from cache if available, otherwise use minimal stub
+    try:
+        cache_dir = Config.DATA_DIR / "cache" / "claude"
+        import glob as _glob
+        cache_files = sorted(_glob.glob(str(cache_dir / "s3_*.json")), reverse=True)
+        if cache_files:
+            import json as _json
+            with open(cache_files[0]) as f:
+                pipeline_output = _json.load(f)
+        else:
+            pipeline_output = {"topics": [], "exec_summary": "", "total_articles": 0, "total_sources": 0}
+    except Exception:
+        pipeline_output = {"topics": [], "exec_summary": "", "total_articles": 0, "total_sources": 0}
+
+    try:
+        from processors.deadline_watchdog import run_watchdog
+        watchdog = run_watchdog()
+    except Exception:
+        watchdog = None
+
+    from ai.director_agent import run_director_critique
+    critique = run_director_critique(pipeline_output, watchdog=watchdog, force=True)
+
+    report_path = Config.DATA_DIR / "director_review.html"
+    if report_path.exists():
+        webbrowser.open(f"file://{report_path.resolve()}")
+        print(f"Director review: {report_path}")
+    else:
+        print("Director critique complete — check logs for output")
 
 
 if __name__ == "__main__":
