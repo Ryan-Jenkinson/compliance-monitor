@@ -484,6 +484,18 @@ def run_pipeline(args: argparse.Namespace) -> None:
 
     init_db()
 
+    # Deadline watchdog (deduplicate DB + compute threshold status)
+    try:
+        from processors.deadline_watchdog import run_watchdog
+        watchdog = run_watchdog(as_of=today)
+        logger.info(
+            f"Deadlines: {watchdog['total']} total, "
+            f"{watchdog['critical_count']} critical/urgent/overdue"
+        )
+    except Exception as e:
+        logger.warning(f"Deadline watchdog failed (non-fatal): {e}")
+        watchdog = None
+
     # LegiScan weekly pull (Mondays, or if overdue)
     _run_legiscan_if_due(today)
 
@@ -580,7 +592,12 @@ def run_pipeline(args: argparse.Namespace) -> None:
         archive_path.write_text(archive_html, encoding="utf-8")
 
         # Render dashboard
-        deadlines_preview = get_upcoming_deadlines(days_ahead=180)
+        from processors.deadline_watchdog import run_watchdog, enrich_deadlines
+        try:
+            wdg = run_watchdog(as_of=today)
+            deadlines_preview = wdg["enriched"][:30]
+        except Exception:
+            deadlines_preview = get_upcoming_deadlines(days_ahead=180)
         dashboard_html = renderer.render_dashboard(
             pipeline_output, week_context=week_context,
             archive_weeks=archive_weeks, deadlines=deadlines_preview,
@@ -631,7 +648,10 @@ def run_pipeline(args: argparse.Namespace) -> None:
     # Dashboard — rendered and pushed every day
     logger.info("Step 3c-dash: Rendering and pushing dashboard…")
     try:
-        deadlines_dash = get_upcoming_deadlines(days_ahead=180)
+        deadlines_dash = (
+            watchdog["enriched"][:30]
+            if watchdog else get_upcoming_deadlines(days_ahead=180)
+        )
         dashboard_html = renderer.render_dashboard(
             pipeline_output, week_context=week_context,
             archive_weeks=archive_weeks, deadlines=deadlines_dash,

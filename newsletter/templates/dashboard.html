@@ -1415,15 +1415,34 @@
           <div style="padding:6px 14px;">
             {% if deadlines %}
               {% for dl in deadlines %}
+              {% set bucket = dl.bucket if dl.bucket is defined else 'upcoming' %}
+              {% set pipe_color = 'var(--red)' if bucket in ('overdue','critical') else 'var(--amber)' if bucket == 'urgent' else 'var(--amber-border)' if bucket == 'warning' else 'var(--border)' %}
               <div class="dl-item">
-                <div style="text-align:right;">
-                  <div class="dl-days {% if dl.urgency == 'HIGH' %}urgent{% elif dl.urgency == 'MEDIUM' %}soon{% else %}normal{% endif %}">
-                    {{ dl.date }}
-                  </div>
+                <div style="text-align:right;min-width:56px;">
+                  {% if dl.days_until is defined %}
+                    {% if dl.days_until < 0 %}
+                      <div class="dl-days urgent" title="Overdue">OVERDUE</div>
+                    {% elif dl.days_until == 0 %}
+                      <div class="dl-days urgent">TODAY</div>
+                    {% elif dl.days_until <= 14 %}
+                      <div class="dl-days urgent">{{ dl.days_until }}d</div>
+                    {% elif dl.days_until <= 30 %}
+                      <div class="dl-days soon">{{ dl.days_until }}d</div>
+                    {% elif dl.days_until <= 90 %}
+                      <div class="dl-days normal">{{ dl.days_until }}d</div>
+                    {% else %}
+                      <div class="dl-days normal" style="opacity:.6;">{{ dl.deadline_date }}</div>
+                    {% endif %}
+                  {% else %}
+                    <div class="dl-days {% if dl.urgency == 'HIGH' %}urgent{% elif dl.urgency == 'MEDIUM' %}soon{% else %}normal{% endif %}">
+                      {{ dl.deadline_date }}
+                    </div>
+                  {% endif %}
                 </div>
-                <div class="dl-pipe" style="background:{% if dl.urgency == 'HIGH' %}var(--red){% elif dl.urgency == 'MEDIUM' %}var(--amber){% else %}var(--green){% endif %};"></div>
+                <div class="dl-pipe" style="background:{{ pipe_color }};"></div>
                 <div class="dl-body">
                   <div class="dl-title">{{ dl.title }}</div>
+                  {% if dl.jurisdiction %}<div style="font-size:10px;color:var(--text-muted);margin-top:2px;">{{ dl.jurisdiction }}{% if dl.topic %} · {{ dl.topic }}{% endif %}</div>{% endif %}
                 </div>
               </div>
               {% endfor %}
