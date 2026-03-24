@@ -642,6 +642,132 @@ def _infer_status(summary: str, urgency: str) -> str:
     return "active"
 
 
+def get_regulation_status_summary() -> dict:
+    """
+    Return per-topic regulation counts and upcoming effective dates.
+    Used by the dashboard status matrix.
+
+    Returns:
+        {
+          "counts": {"PFAS": 72, "EPR": 5, ...},
+          "upcoming": [...],   # regulations with future effective_date
+          "total": 100,
+        }
+    """
+    from subscribers.db import get_connection
+    conn = get_connection()
+
+    rows = conn.execute(
+        "SELECT topic, COUNT(*) as cnt FROM regulations GROUP BY topic"
+    ).fetchall()
+    counts = {r["topic"]: r["cnt"] for r in rows}
+
+    today = date.today().isoformat()
+    upcoming = conn.execute(
+        """SELECT topic, regulation_name, effective_date, current_status
+           FROM regulations
+           WHERE effective_date >= ?
+           ORDER BY effective_date ASC
+           LIMIT 10""",
+        (today,)
+    ).fetchall()
+    conn.close()
+
+    return {
+        "counts": counts,
+        "total": sum(counts.values()),
+        "upcoming": [dict(r) for r in upcoming],
+    }
+
+
+def get_key_regulation_milestones(limit: int = 12) -> list[dict]:
+    """
+    Return the most important upcoming regulation milestones for the dashboard
+    status cards. Joins regulations with their next future event.
+
+    Returns list of dicts:
+        {topic, regulation_name, jurisdiction, current_status,
+         next_event_type, next_event_date, next_event_desc, days_until,
+         source_url}
+    """
+    from subscribers.db import get_connection
+    today_str = date.today().isoformat()
+    today_d = date.today()
+
+    conn = get_connection()
+
+    # Fetch regulations with at least one future event
+    rows = conn.execute(
+        """
+        SELECT
+            r.id, r.topic, r.regulation_name, r.jurisdiction,
+            r.current_status, r.source_url,
+            e.event_type, e.event_date, e.description
+        FROM regulations r
+        JOIN regulation_events e ON e.regulation_id = r.id
+        WHERE e.event_date >= ?
+          AND e.event_type != 'article_mention'
+          AND r.topic NOT IN ('PFAS')   -- exclude per-state PFAS clutter
+        ORDER BY e.event_date ASC
+        """,
+        (today_str,)
+    ).fetchall()
+
+    # Also include PFAS Federal/California/Minnesota regulations (not all 98 states)
+    pfas_rows = conn.execute(
+        """
+        SELECT
+            r.id, r.topic, r.regulation_name, r.jurisdiction,
+            r.current_status, r.source_url,
+            e.event_type, e.event_date, e.description
+        FROM regulations r
+        JOIN regulation_events e ON e.regulation_id = r.id
+        WHERE e.event_date >= ?
+          AND e.event_type != 'article_mention'
+          AND r.topic = 'PFAS'
+          AND r.jurisdiction IN ('Federal', 'California', 'Minnesota', 'Washington')
+        ORDER BY e.event_date ASC
+        """,
+        (today_str,)
+    ).fetchall()
+
+    all_rows = list(rows) + list(pfas_rows)
+
+    # Deduplicate: one entry per regulation_id (take the soonest future event)
+    seen: set = set()
+    milestones = []
+    for row in sorted(all_rows, key=lambda r: r["event_date"] or "9999"):
+        reg_id = row["id"]
+        if reg_id in seen:
+            continue
+        seen.add(reg_id)
+
+        event_date_str = row["event_date"]
+        try:
+            event_date_d = date.fromisoformat(event_date_str)
+            days_until = (event_date_d - today_d).days
+        except Exception:
+            days_until = None
+
+        milestones.append({
+            "topic": row["topic"],
+            "regulation_name": row["regulation_name"],
+            "jurisdiction": row["jurisdiction"],
+            "current_status": row["current_status"] or "",
+            "next_event_type": row["event_type"],
+            "next_event_date": event_date_str,
+            "next_event_desc": row["description"] or "",
+            "days_until": days_until,
+            "source_url": row["source_url"] or "",
+        })
+
+        if len(milestones) >= limit:
+            break
+
+    conn.close()
+    return milestones
+
+
 # CLI entry point for seeding
 if __name__ == "__main__":
     import sys

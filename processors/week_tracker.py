@@ -55,12 +55,15 @@ def get_week_context(d: Optional[date] = None) -> dict:
     }
 
 
+ROLLING_DAYS = 39  # Dashboard and pipeline window
+
+
 def apply_weekly_window(articles: list) -> tuple[list, int, int]:
     """
-    Mark articles as new or carried-over within the current Sat-Fri week.
+    Mark articles as new or carried-over within a rolling 39-day window.
 
-    New articles are recorded in the DB. Articles from prior weeks are not
-    carried over.
+    New articles are recorded in the DB (still tagged with week_start for
+    archiving). Articles older than 39 days are not carried over.
 
     Returns:
         (filtered_articles, new_count, carried_count)
@@ -69,10 +72,11 @@ def apply_weekly_window(articles: list) -> tuple[list, int, int]:
     week_start_str = week_start.isoformat()
     conn = get_connection()
 
-    # Load article IDs already seen this week
+    # Load article IDs seen in the last 39 days (rolling window)
     rows = conn.execute(
-        "SELECT article_id, first_seen FROM weekly_articles WHERE week_start = ?",
-        (week_start_str,),
+        "SELECT article_id, first_seen FROM weekly_articles "
+        "WHERE first_seen > datetime('now', ?)",
+        (f"-{ROLLING_DAYS} days",),
     ).fetchall()
     seen_this_week: dict[str, str] = {r["article_id"]: r["first_seen"] for r in rows}
 

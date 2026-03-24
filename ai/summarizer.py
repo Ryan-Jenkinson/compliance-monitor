@@ -61,10 +61,18 @@ class Summarizer:
             logger.info(f"Processing {topic_name}: {len(topic_articles)} articles")
 
             # Stage 1: filter with Haiku (only if we have articles)
+            # Skip for topic-specific scrapers whose content is pre-classified
+            # (CA AG notices, SEC Form SD filings, DHS/CBP pages don't look like
+            #  "regulatory news" to a generic filter but are definitionally on-topic)
+            _STAGE1_BYPASS = {"Prop65", "ConflictMinerals", "ForcedLabor"}
             filtered_articles = []
             if topic_articles:
-                filtered_articles = self._stage1_filter(topic_articles, topic_name)
-                logger.info(f"  Stage 1 kept {len(filtered_articles)}/{len(topic_articles)}")
+                if topic_name in _STAGE1_BYPASS:
+                    filtered_articles = topic_articles
+                    logger.info(f"  Stage 1 bypassed for {topic_name} (trusted scraper): {len(filtered_articles)} articles")
+                else:
+                    filtered_articles = self._stage1_filter(topic_articles, topic_name)
+                    logger.info(f"  Stage 1 kept {len(filtered_articles)}/{len(topic_articles)}")
 
             # Stage 2: summarize with Sonnet
             summary = self._stage2_summarize(filtered_articles, topic_config)

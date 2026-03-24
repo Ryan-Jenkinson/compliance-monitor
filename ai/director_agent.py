@@ -271,6 +271,7 @@ def run_director_critique(
 
     logger.info("Director critique: running weekly analysis...")
 
+    today = date.today()
     client = ClaudeClient()
     prompt = _build_prompt(pipeline_output, watchdog, legiscan_report, daily_changes)
     cache_key = f"director_critique_{today.isoformat()}"
@@ -390,5 +391,46 @@ def _write_report(critique: dict, today: str) -> Path:
 </html>"""
 
     report_path.write_text(html, encoding="utf-8")
-    logger.info(f"Director review written to {report_path}")
+
+    # Also save a dated archive copy so reviews accumulate over time
+    archive_dir = Path(Config.DATA_DIR) / "director_reviews"
+    archive_dir.mkdir(exist_ok=True)
+    archive_path = archive_dir / f"director_review_{today}.html"
+    archive_path.write_text(html, encoding="utf-8")
+
+    # Write/update the archive index
+    _write_review_index(archive_dir)
+
+    logger.info(f"Director review written to {report_path} + archived to {archive_path}")
     return report_path
+
+
+def _write_review_index(archive_dir: Path) -> None:
+    """Write a simple HTML index of all archived director reviews."""
+    reviews = sorted(archive_dir.glob("director_review_*.html"), reverse=True)
+    if not reviews:
+        return
+
+    items_html = ""
+    for p in reviews:
+        date_str = p.stem.replace("director_review_", "")
+        items_html += (
+            f'<li style="padding:6px 0;border-bottom:1px solid #e5e7eb;">'
+            f'<a href="{p.name}" style="color:#1565C0;font-weight:600;">'
+            f'Director Review — {date_str}</a>'
+            f'</li>\n'
+        )
+
+    index_html = f"""<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Director Reviews Archive</title>
+<style>body{{font-family:-apple-system,sans-serif;max-width:600px;margin:40px auto;padding:0 20px;}}
+h1{{font-size:18px;color:#0F766E;}} ul{{list-style:none;padding:0;margin:0;}}</style>
+</head>
+<body>
+<h1>Director Reviews Archive</h1>
+<p style="color:#6b7280;font-size:12px;">{len(reviews)} review(s) saved</p>
+<ul>{items_html}</ul>
+</body></html>"""
+
+    (archive_dir / "index.html").write_text(index_html, encoding="utf-8")

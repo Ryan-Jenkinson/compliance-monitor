@@ -48,6 +48,11 @@ from scrapers.product_stewardship import ProductStewardshipScraper
 from scrapers.oehha import OEHHAScraper
 from scrapers.forced_labor import ForcedLaborScraper
 from scrapers.conflict_minerals import ConflictMineralsScraper
+from scrapers.pfas_legislative_intel import (
+    NCSLPFASScraper, EWGPFASScraper, LawFirmPFASScraper,
+    AdvocacyOrgScraper, LegalNewsPFASScraper,
+)
+from scrapers.chemycal import ChemycalScraper
 from processors.deduplicator import deduplicate
 from processors.relevance_filter import keyword_filter
 from processors.week_tracker import apply_weekly_window, get_week_context, last_week_is_archived
@@ -89,6 +94,8 @@ def parse_args() -> argparse.Namespace:
                         help="Render HTML and open in browser, no email sent")
     parser.add_argument("--force", action="store_true",
                         help="Send even if already sent today")
+    parser.add_argument("--no-email", action="store_true",
+                        help="Run full pipeline and push to GitHub Pages, but skip all email sends")
     parser.add_argument("--finalize-week", action="store_true",
                         help="Manually trigger end-of-week archive (if Friday run failed)")
     parser.add_argument("--send-reminder", action="store_true",
@@ -101,6 +108,10 @@ def parse_args() -> argparse.Namespace:
                         help="Override today's date (e.g. use last Friday to archive last week)")
     parser.add_argument("--director-review", action="store_true",
                         help="Run director critique now (ignores Monday gate) and open report")
+    parser.add_argument("--cross-state", action="store_true",
+                        help="Run cross-state pattern analysis now (ignores weekly gate)")
+    parser.add_argument("--glossary", action="store_true",
+                        help="Rebuild the regulatory abbreviation glossary and open it")
     return parser.parse_args()
 
 
@@ -129,6 +140,12 @@ def scrape_all() -> list:
         OEHHAScraper(),
         ForcedLaborScraper(),
         ConflictMineralsScraper(),
+        NCSLPFASScraper(),
+        EWGPFASScraper(),
+        LawFirmPFASScraper(),
+        AdvocacyOrgScraper(),
+        LegalNewsPFASScraper(),
+        ChemycalScraper(),
     ]
     all_articles = []
     for scraper in scrapers:
@@ -482,9 +499,25 @@ def run_pipeline(args: argparse.Namespace) -> None:
 
     logger.info("=" * 60)
     logger.info(f"Compliance Intelligence — {week_context['today_name']}, week of {week_context['week_label']}")
-    logger.info(f"Mode: {'finalize-week' if is_finalize else 'dry-run' if args.dry_run else 'preview' if args.preview else 'full'}")
+    logger.info(f"Mode: {'finalize-week' if is_finalize else 'dry-run' if args.dry_run else 'preview' if args.preview else 'no-email' if args.no_email else 'full'}")
 
     init_db()
+
+    # Seed regulation registry (idempotent — only adds missing rows)
+    try:
+        from processors.regulation_registry import seed_all
+        from subscribers.db import get_regulation_count
+        if get_regulation_count() < 10:
+            logger.info("Regulation registry empty — seeding known regulations…")
+            result = seed_all()
+            logger.info(
+                f"Registry seeded: {result['regulations_after']} regulations "
+                f"({result['new_regulations']} new)"
+            )
+        else:
+            logger.debug(f"Regulation registry: {get_regulation_count()} regulations already seeded")
+    except Exception as e:
+        logger.warning(f"Regulation registry seed failed (non-fatal): {e}")
 
     # Deadline watchdog (deduplicate DB + compute threshold status)
     try:
@@ -500,6 +533,27 @@ def run_pipeline(args: argparse.Namespace) -> None:
 
     # LegiScan weekly pull (Mondays, or if overdue)
     _run_legiscan_if_due(today)
+
+    # Cross-state pattern analysis (weekly on Mondays, or --cross-state flag)
+    if week_context["is_monday"] or args.cross_state:
+        try:
+            from ai.cross_state_agent import run_cross_state_analysis
+            logger.info("Cross-state analysis: running weekly…")
+            run_cross_state_analysis(force=args.cross_state)
+        except Exception as e:
+            logger.warning(f"Cross-state analysis failed (non-fatal): {e}")
+
+    # Glossary: seed on first run, or rebuild on --glossary flag
+    if args.glossary:
+        try:
+            from ai.glossary_agent import run_glossary_agent
+            logger.info("Glossary: rebuilding…")
+            run_glossary_agent()
+            import subprocess, sys
+            subprocess.Popen([sys.executable, "-c",
+                "import webbrowser; webbrowser.open('data/glossary.html')"])
+        except Exception as e:
+            logger.warning(f"Glossary build failed (non-fatal): {e}")
 
     # Monday check: warn if last week's archive is missing
     if week_context["is_monday"] and not last_week_is_archived():
@@ -523,7 +577,23 @@ def run_pipeline(args: argparse.Namespace) -> None:
     summarizer = Summarizer()
     pipeline_output = summarizer.run(articles, week_context=week_context)
 
-    # Step 2b: Change detection
+    # Step 2b: Extract new regulations from this week's articles (lightweight, no Claude call)
+    try:
+        from processors.regulation_registry import extract_from_pipeline
+        n_extracted = extract_from_pipeline(pipeline_output.get("topics", []))
+        if n_extracted:
+            logger.info(f"Regulation registry: {n_extracted} records updated from articles")
+    except Exception as e:
+        logger.warning(f"Regulation extraction failed (non-fatal): {e}")
+
+    # Step 2c: Update abbreviation glossary from this week's articles
+    try:
+        from ai.glossary_agent import run_glossary_agent
+        run_glossary_agent(pipeline_output=pipeline_output)
+    except Exception as e:
+        logger.warning(f"Glossary update failed (non-fatal): {e}")
+
+    # Step 2d: Change detection
     daily_changes = []
     try:
         from processors.change_detector import detect_and_save
@@ -532,7 +602,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
     except Exception as e:
         logger.warning(f"Change detection failed (non-fatal): {e}")
 
-    # Step 2c: Director's critique (daily — writes to data/director_review.html)
+    # Step 2d: Director's critique (daily — writes to data/director_review.html)
     try:
         from ai.director_agent import run_director_critique
         run_director_critique(
@@ -638,7 +708,6 @@ def run_pipeline(args: argparse.Namespace) -> None:
             )
             review_path = Config.DATA_DIR / "director_review.html"
             if review_path.exists():
-                webbrowser.open(f"file://{review_path.resolve()}")
                 print(f"Director review: {review_path}")
         except Exception as e:
             logger.warning(f"Director critique skipped in preview: {e}")
@@ -731,8 +800,15 @@ def run_pipeline(args: argparse.Namespace) -> None:
     )
 
     # Step 4: Send emails
+    if args.no_email:
+        logger.info("Step 4: Skipped (--no-email)")
+        logger.info(f"Done. Sent: 0, Skipped: all (--no-email)")
+        logger.info("=" * 60)
+        return
+
     sender = GmailSender()
-    subject = GmailSender.subject_for_date(today, week_label=week_context["week_label"])
+    dash_url = f"{_PAGES_BASE}/dashboard.html"
+    date_display = today.strftime("%B %-d, %Y")
     sent_count = 0
     skip_count = 0
 
@@ -740,18 +816,11 @@ def run_pipeline(args: argparse.Namespace) -> None:
         logger.info(f"Step 4: Sending TEST emails to {args.test_email}…")
         for email in args.test_email:
             name = email.split("@")[0].split(".")[0].title()
-            html = renderer.render(
-                pipeline_output, subscriber_name=name, map_url=pfas_map_url,
-                epr_map_url=epr_map_url, reach_map_url=reach_map_url, exec_summary_url=weekly_briefing_url,
-                week_context=week_context, archive_weeks=archive_weeks, archive_url=archive_url,
-                calendar_url=calendar_url,
-            )
-            test_subject = args.test_subject or f"[TEST] {subject}"
-            success = sender.send(email, test_subject, html)
+            success = sender.send_dashboard_notification(email, name, dash_url, date_display)
             if success:
                 sent_count += 1
     else:
-        logger.info("Step 4: Sending emails to subscribers…")
+        logger.info("Step 4: Sending dashboard notification emails to subscribers…")
         repo = SubscriberRepository()
         subscribers = repo.list_active(include_scheduled_only=not args.force)
 
@@ -762,14 +831,9 @@ def run_pipeline(args: argparse.Namespace) -> None:
                 if not args.force and repo.already_sent_today(sub.id):
                     skip_count += 1
                     continue
-                html = renderer.render(
-                    pipeline_output, subscriber_name=sub.first_name,
-                    map_url=pfas_map_url, epr_map_url=epr_map_url, reach_map_url=reach_map_url,
-                    exec_summary_url=weekly_briefing_url,
-                    week_context=week_context, archive_weeks=archive_weeks, archive_url=archive_url,
-                    calendar_url=calendar_url,
+                success = sender.send_dashboard_notification(
+                    sub.email, sub.first_name, dash_url, date_display
                 )
-                success = sender.send(sub.email, subject, html)
                 if success:
                     repo.log_send(sub.id, "success")
                     sent_count += 1

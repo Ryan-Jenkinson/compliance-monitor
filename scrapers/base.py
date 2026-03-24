@@ -25,7 +25,7 @@ class BaseScraper(ABC):
 
     name: str = "base"  # Override in subclass
 
-    def __init__(self, lookback_hours: int = 720):
+    def __init__(self, lookback_hours: int = 936):  # 39 days
         self.lookback_hours = lookback_hours
         self.since = datetime.now(tz=timezone.utc) - timedelta(hours=lookback_hours)
 

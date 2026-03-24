@@ -21,6 +21,7 @@
       --text-primary: #111318;
       --text-secondary: #4A4F5C;
       --text-tertiary: #7A8194;
+      --text-muted: #7A8194;
       --text-inverse: #E4E7ED;
       --text-inverse-dim: #7A8194;
       --red: #D63031;
@@ -37,7 +38,8 @@
       --teal: #0F766E;
       --sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       --mono: 'IBM Plex Mono', 'Consolas', 'Monaco', monospace;
-      --rail-w: 56px;
+      --rail-w: 200px;
+      --rail-w-collapsed: 56px;
       --topbar-h: 44px;
       --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
       --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
@@ -47,10 +49,15 @@
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
+    html {
+      /* Fluid root size: 14px on small screens, scales up to 16px on large.
+         This means Cmd+Plus / browser zoom settings scale EVERYTHING. */
+      font-size: clamp(14px, 1.1vw, 16px);
+    }
     body {
       background: var(--bg);
       font-family: var(--sans);
-      font-size: 13px;
+      font-size: 0.875rem; /* ~14px at default, scales with root */
       line-height: 1.5;
       color: var(--text-primary);
       -webkit-font-smoothing: antialiased;
@@ -74,8 +81,17 @@
       transition: width 0.2s var(--ease);
       overflow: hidden;
     }
-    .rail:hover { width: 200px; }
-    .rail:hover .rail-label { opacity: 1; }
+    .rail .rail-label { opacity: 1; }
+    /* Collapsed state */
+    body.sidebar-collapsed .rail { width: var(--rail-w-collapsed); }
+    body.sidebar-collapsed .rail .rail-label { opacity: 0; }
+    body.sidebar-collapsed .rail .rail-brand-text { opacity: 0; }
+    body.sidebar-collapsed .rail .rail-footer-text { opacity: 0; }
+    body.sidebar-collapsed .topbar { left: var(--rail-w-collapsed); }
+    body.sidebar-collapsed .main { margin-left: var(--rail-w-collapsed); }
+    body.sidebar-collapsed .rail-toggle-btn .toggle-open { display: none; }
+    body.sidebar-collapsed .rail-toggle-btn .toggle-close { display: block; }
+    .rail-toggle-btn .toggle-close { display: none; }
 
     .rail-brand {
       padding: 14px 0;
@@ -88,7 +104,8 @@
       gap: 10px;
       padding-left: 0;
     }
-    .rail:hover .rail-brand { justify-content: flex-start; padding-left: 16px; }
+    .rail-brand { justify-content: flex-start; padding-left: 16px; }
+    body.sidebar-collapsed .rail-brand { justify-content: center; padding-left: 0; }
 
     .rail-brand-icon {
       width: 28px; height: 28px;
@@ -105,16 +122,15 @@
     }
     .rail-brand-text {
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 600;
       color: var(--text-inverse);
       letter-spacing: 1px;
       text-transform: uppercase;
       white-space: nowrap;
-      opacity: 0;
+      opacity: 1;
       transition: opacity 0.15s;
     }
-    .rail:hover .rail-brand-text { opacity: 1; }
 
     .rail-nav { flex: 1; padding: 8px 0; overflow-y: auto; }
 
@@ -141,9 +157,17 @@
       flex-shrink: 0;
     }
     .rail-label {
-      opacity: 0;
+      opacity: 1;
       transition: opacity 0.15s;
     }
+    .rail-toggle-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; padding: 8px 0;
+      background: none; border: none; border-top: 1px solid var(--border-dark);
+      color: var(--text-inverse-dim); cursor: pointer; font-size: 14px;
+      transition: color 0.12s;
+    }
+    .rail-toggle-btn:hover { color: var(--text-inverse); }
 
     .rail-divider {
       height: 1px;
@@ -157,13 +181,12 @@
     }
     .rail-footer-text {
       font-family: var(--mono);
-      font-size: 9px;
+      font-size: 13px;
       color: rgba(255,255,255,0.25);
       white-space: nowrap;
-      opacity: 0;
+      opacity: 1;
       transition: opacity 0.15s;
     }
-    .rail:hover .rail-footer-text { opacity: 1; }
 
     /* ============================================================
        TOP BAR
@@ -190,7 +213,7 @@
     }
     .topbar-date {
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 500;
       color: var(--text-tertiary);
       letter-spacing: 0.3px;
@@ -224,36 +247,43 @@
     }
     .topbar-search-count {
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 12px;
       color: var(--text-tertiary);
       white-space: nowrap;
     }
-    .topbar-filters {
+    .topbar-actions {
       display: flex;
-      gap: 2px;
+      gap: 4px;
       align-items: center;
     }
-    .f-btn {
+    .topbar-action-btn {
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 600;
-      padding: 4px 8px;
+      padding: 4px 10px;
       border-radius: 3px;
       border: 1px solid var(--border);
       background: var(--surface);
-      color: var(--text-tertiary);
+      color: var(--text-secondary);
       cursor: pointer;
-      transition: all 0.1s;
+      text-decoration: none;
+      transition: all 0.15s;
       text-transform: uppercase;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.5px;
       white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
-    .f-btn:hover { border-color: var(--text-tertiary); color: var(--text-secondary); }
-    .f-btn.active { background: var(--text-primary); border-color: var(--text-primary); color: #fff; }
-    .f-btn.topic-f { border-left-width: 3px; }
-    .f-btn.topic-f.active { background: var(--surface); color: var(--text-primary); border-color: var(--border); font-weight: 700; }
-    .f-btn.topic-f:not(.active) { opacity: 0.45; }
-    .f-sep { width: 1px; height: 16px; background: var(--border); margin: 0 4px; }
+    .topbar-action-btn:hover {
+      background: var(--surface-raised);
+      border-color: var(--text-tertiary);
+      color: var(--text-primary);
+    }
+    .topbar-action-dot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    }
+    .director-dot { background: var(--teal); }
 
     /* ============================================================
        MOBILE HEADER
@@ -265,7 +295,7 @@
       z-index: 200; align-items: center;
       justify-content: space-between; padding: 0 14px;
     }
-    .mobile-brand { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--teal); }
+    .mobile-brand { font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--teal); }
     .mobile-toggle { background: none; border: 1px solid rgba(255,255,255,0.15); color: var(--text-inverse); font-size: 14px; padding: 4px 10px; border-radius: 3px; cursor: pointer; }
 
     /* ============================================================
@@ -284,29 +314,35 @@
     /* ============================================================
        KPI ROW
        ============================================================ */
-    /* ============================================================
-       PANEL GRID — 3 column dashboard layout
-       ============================================================ */
-    .panel-grid-top {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    .panel-grid-top .panel-span-2 { grid-column: span 2; }
-
     .grid-main {
       display: grid;
-      grid-template-columns: 1fr 380px;
+      grid-template-columns: 1fr clamp(300px, 30%, 400px);
       gap: 16px;
       margin-bottom: 16px;
+      align-items: start;
     }
+
+    /* Sticky sidebar: sticks below topbar, scrolls independently */
+    .grid-main-sidebar {
+      position: sticky;
+      top: 57px;
+      max-height: calc(100vh - 65px);
+      overflow-y: auto;
+      overflow-x: hidden;
+      /* Thin custom scrollbar */
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .grid-main-sidebar::-webkit-scrollbar { width: 4px; }
+    .grid-main-sidebar::-webkit-scrollbar-track { background: transparent; }
+    .grid-main-sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .grid-main-sidebar::-webkit-scrollbar-thumb:hover { background: var(--border-dark); }
 
     /* Collapsible exec summary */
     .exec-collapsed .exec-expand-body { display: none; }
     .exec-toggle-btn {
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 600;
       color: var(--teal);
       background: none;
@@ -325,6 +361,10 @@
     }
     .exec-collapsed .exec-toggle-chevron { transform: rotate(-90deg); }
 
+    /* Collapsible deadlines panel */
+    .deadlines-collapsed .deadlines-expand-body { display: none; }
+    .deadlines-collapsed .dl-toggle-chevron { transform: rotate(-90deg); }
+
     .panel {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -342,7 +382,7 @@
     }
     .panel-title {
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 700;
       letter-spacing: 1.2px;
       text-transform: uppercase;
@@ -350,7 +390,7 @@
     }
     .panel-title-accent {
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 700;
       letter-spacing: 1.2px;
       text-transform: uppercase;
@@ -359,7 +399,7 @@
     .panel-badge {
       margin-left: auto;
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 600;
       color: var(--text-tertiary);
     }
@@ -372,7 +412,7 @@
     .exec-section:last-child { margin-bottom: 0; }
     .exec-label {
       font-family: var(--mono);
-      font-size: 9px;
+      font-size: 13px;
       font-weight: 700;
       letter-spacing: 1.5px;
       text-transform: uppercase;
@@ -397,7 +437,7 @@
       background: var(--blue-bg);
       border-left: 3px solid var(--blue);
       border-radius: 0 4px 4px 0;
-      font-size: 11px;
+      font-size: 13px;
       color: var(--text-secondary);
       line-height: 1.6;
       font-style: italic;
@@ -468,7 +508,7 @@
       margin-bottom: 1px;
     }
     .map-link-desc {
-      font-size: 11px;
+      font-size: 13px;
       color: var(--text-tertiary);
       line-height: 1.4;
     }
@@ -488,7 +528,7 @@
     .chart-section:last-child { margin-bottom: 0; }
     .chart-title {
       font-family: var(--mono);
-      font-size: 9px;
+      font-size: 13px;
       font-weight: 700;
       letter-spacing: 1px;
       text-transform: uppercase;
@@ -500,7 +540,7 @@
     .hbar { margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
     .hbar-label {
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 500;
       color: var(--text-secondary);
       min-width: 70px;
@@ -527,45 +567,12 @@
     .hbar-fill.slate { background: var(--text-tertiary); }
     .hbar-val {
       font-family: var(--mono);
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 700;
       color: var(--text-primary);
       min-width: 24px;
     }
 
-    /* Donut chart */
-    .donut-row { display: flex; align-items: center; gap: 16px; }
-    .donut {
-      width: 72px; height: 72px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      position: relative;
-    }
-    .donut::after {
-      content: '';
-      position: absolute;
-      inset: 12px;
-      background: var(--surface);
-      border-radius: 50%;
-    }
-    .donut-legend { flex: 1; }
-    .donut-legend-item {
-      display: flex; align-items: center; gap: 6px;
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--text-secondary);
-      padding: 2px 0;
-    }
-    .donut-legend-dot {
-      width: 8px; height: 8px;
-      border-radius: 2px;
-      flex-shrink: 0;
-    }
-    .donut-legend-val {
-      margin-left: auto;
-      font-weight: 700;
-      color: var(--text-primary);
-    }
 
     /* ============================================================
        TOPIC CARDS — compact grid
@@ -596,7 +603,7 @@
     }
     .topic-card-name {
       font-family: var(--mono);
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 700;
       letter-spacing: 0.8px;
       text-transform: uppercase;
@@ -611,7 +618,7 @@
     }
     .topic-card-count-label {
       font-family: var(--mono);
-      font-size: 9px;
+      font-size: 13px;
       color: var(--text-tertiary);
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -644,7 +651,7 @@
       justify-content: center;
       padding: 6px;
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 12px;
       color: var(--text-tertiary);
       border-top: 1px solid var(--border-light);
       background: var(--surface-sunken);
@@ -677,7 +684,7 @@
     }
     .topic-meta-label {
       font-family: var(--mono);
-      font-size: 9px;
+      font-size: 13px;
       font-weight: 700;
       letter-spacing: 1.2px;
       text-transform: uppercase;
@@ -688,7 +695,7 @@
     .impact-row + .impact-row { border-top: 1px solid var(--border-light); padding-top: 6px; }
     .impact-label {
       font-family: var(--mono);
-      font-size: 9px;
+      font-size: 13px;
       font-weight: 700;
       letter-spacing: 1px;
       text-transform: uppercase;
@@ -749,7 +756,7 @@
     .badge {
       display: inline-block;
       font-family: var(--mono);
-      font-size: 9px;
+      font-size: 13px;
       font-weight: 700;
       letter-spacing: 0.3px;
       padding: 1px 6px;
@@ -764,7 +771,7 @@
     .badge-medium { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
     .badge-low { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
     .badge-impact {
-      font-family: var(--mono); font-size: 10px; font-weight: 700;
+      font-family: var(--mono); font-size: 12px; font-weight: 700;
       padding: 1px 5px; border-radius: 3px; letter-spacing: .03em;
       border: 1px solid transparent;
     }
@@ -774,7 +781,7 @@
 
     .article-meta {
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 12px;
       color: var(--text-tertiary);
       display: flex;
       align-items: center;
@@ -791,7 +798,7 @@
     .article-deadline-tag {
       margin-top: 6px;
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 600;
       color: var(--amber);
       padding: 2px 8px;
@@ -842,7 +849,9 @@
     }
     .dl-body { flex: 1; min-width: 0; }
     .dl-title { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 1px; }
-    .dl-desc { font-size: 10px; color: var(--text-tertiary); line-height: 1.4; }
+    .dl-title a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--border); }
+    .dl-title a:hover { border-bottom-color: var(--text-primary); }
+    .dl-desc { font-size: 12px; color: var(--text-tertiary); line-height: 1.4; }
 
     /* ============================================================
        DOWNLOADS ROW
@@ -850,7 +859,7 @@
     .downloads-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
     .dl-link {
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 600;
       letter-spacing: 0.3px;
       text-transform: uppercase;
@@ -878,13 +887,13 @@
     .archive-item:last-child { border-bottom: none; }
     .archive-week {
       font-family: var(--mono);
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 600;
       color: var(--text-primary);
       min-width: 100px;
     }
     .archive-links { display: flex; gap: 12px; }
-    .archive-link { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .archive-link { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; }
 
     /* ============================================================
        TIMELINE LINKS
@@ -892,7 +901,7 @@
     .timeline-links { display: flex; flex-wrap: wrap; gap: 6px; }
     .tl-link {
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 500;
       padding: 4px 10px;
       border: 1px solid var(--border);
@@ -908,8 +917,12 @@
        ============================================================ */
     @media (max-width: 1100px) {
       .grid-main { grid-template-columns: 1fr; }
-      .panel-grid-top { grid-template-columns: 1fr 1fr; }
-      .panel-grid-top > div:last-child { grid-column: 1 / -1; }
+      /* Disable sticky sidebar when stacked — just scroll normally */
+      .grid-main-sidebar {
+        position: static;
+        max-height: none;
+        overflow: visible;
+      }
     }
     @media (max-width: 768px) {
       .rail { display: none; }
@@ -919,7 +932,6 @@
       .main { padding-top: calc(var(--topbar-h) + 44px); }
       .topbar { top: 44px; flex-wrap: wrap; height: auto; padding: 8px 12px; }
       .dashboard { padding: 12px 12px 60px; }
-      .panel-grid-top { grid-template-columns: 1fr; }
       .topic-grid { grid-template-columns: 1fr; }
       .impact-row { flex-direction: column; gap: 2px; }
       .impact-label { min-width: auto; }
@@ -931,7 +943,8 @@
     @media print {
       .rail, .mobile-header, .topbar { display: none !important; }
       .main { margin-left: 0; padding-top: 0; }
-      body { background: #fff; color: #111; font-size: 10px; }
+      .grid-main-sidebar { position: static; max-height: none; overflow: visible; }
+      body { background: #fff; color: #111; font-size: 12px; }
       .dashboard { padding: 0; max-width: none; }
       .panel, .topic-card, .kpi-card, .map-link {
         background: #fff; border-color: #ccc;
@@ -976,7 +989,7 @@
     }
     .intel-stage-label {
       font-family: var(--mono);
-      font-size: 9px;
+      font-size: 13px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -997,7 +1010,7 @@
     }
     .intel-stage-val {
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 700;
       min-width: 20px;
       color: var(--text-primary);
@@ -1036,13 +1049,19 @@
     }
     .intel-state-chip {
       font-family: var(--mono);
-      font-size: 9px;
+      font-size: 13px;
       font-weight: 600;
       padding: 2px 6px;
       border-radius: 2px;
       background: var(--red-bg);
       color: var(--red);
       border: 1px solid var(--red-border);
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .intel-state-chip:hover {
+      background: var(--red);
+      color: #fff;
     }
 
     /* ============================================================
@@ -1052,7 +1071,7 @@
       width: 100%;
       border-collapse: collapse;
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 12px;
     }
     .status-matrix th {
       padding: 6px 8px;
@@ -1062,7 +1081,7 @@
       text-transform: uppercase;
       color: var(--text-tertiary);
       border-bottom: 2px solid var(--border);
-      font-size: 9px;
+      font-size: 13px;
     }
     .status-matrix th:first-child { text-align: left; }
     .status-matrix td {
@@ -1102,6 +1121,308 @@
     .kpi-card:nth-child(4) { animation-delay: 120ms; }
     .kpi-card:nth-child(5) { animation-delay: 160ms; }
     .kpi-card:nth-child(6) { animation-delay: 200ms; }
+
+    /* ============================================================
+       EXPAND MODAL
+       ============================================================ */
+    .expand-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 3px;
+      background: transparent; border: 1px solid var(--border);
+      color: var(--text-tertiary); cursor: pointer; font-size: 13px;
+      line-height: 1; transition: background .15s, color .15s;
+      margin-left: auto; flex-shrink: 0;
+    }
+    .expand-btn:hover { background: var(--border); color: var(--text-primary); }
+
+    /* Sidebar collapse toggle */
+    .sidebar-collapse-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; margin-bottom: 8px;
+      background: none; border: 1px solid var(--border); border-radius: 4px;
+      padding: 5px 0; cursor: pointer; color: var(--text-tertiary);
+      font-size: 12px; font-family: var(--mono); font-weight: 600;
+      letter-spacing: .04em; transition: background .15s, color .15s;
+      gap: 6px;
+    }
+    .sidebar-collapse-btn::before { content: 'hide sidebar'; }
+    .sidebar-collapse-btn:hover { background: var(--surface-hover); color: var(--text-secondary); }
+    /* When sidebar is hidden, tweak grid */
+    .grid-main.sidebar-hidden {
+      grid-template-columns: 1fr;
+    }
+    .grid-main.sidebar-hidden .grid-main-sidebar {
+      display: none;
+    }
+    /* Sidebar show button — floats in top-right of main content */
+    .sidebar-show-btn {
+      display: none;
+      position: fixed; top: 66px; right: 12px; z-index: 100;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 4px; padding: 5px 10px;
+      font-size: 12px; font-family: var(--mono); font-weight: 600;
+      color: var(--text-muted); cursor: pointer; letter-spacing: .04em;
+      box-shadow: 0 2px 8px rgba(0,0,0,.1);
+    }
+    .sidebar-show-btn:hover { background: var(--surface-hover); }
+    .grid-main.sidebar-hidden ~ .sidebar-show-btn,
+    .grid-main.sidebar-hidden + .sidebar-show-btn { display: block; }
+
+    /* Resources collapsible */
+    .resources-open .resources-body { display: block !important; }
+    .resources-open .resources-chevron { display: inline-block; transform: rotate(90deg); }
+
+    .expand-modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 2000;
+      background: rgba(0,0,0,.5); backdrop-filter: blur(3px);
+      align-items: center; justify-content: center;
+    }
+    .expand-modal-overlay.open { display: flex; }
+    .expand-modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,.3);
+      width: min(900px, 92vw); max-height: 85vh;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .expand-modal-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 18px; border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .expand-modal-title {
+      font-size: 13px; font-weight: 700; color: var(--text-primary);
+      font-family: var(--mono); letter-spacing: -.01em; flex: 1;
+    }
+    .expand-modal-close {
+      background: none; border: 1px solid var(--border); border-radius: 4px;
+      padding: 3px 8px; font-size: 13px; color: var(--text-secondary);
+      cursor: pointer; font-weight: 600;
+    }
+    .expand-modal-close:hover { background: var(--border); }
+    .expand-modal-body {
+      padding: 16px 18px; overflow-y: auto; flex: 1;
+    }
+
+    /* ============================================================
+       CUSTOMIZE DRAWER
+       ============================================================ */
+    .customize-btn {
+      display: flex; align-items: center; gap: 5px;
+      background: var(--surface-sunken); border: 1px solid var(--border);
+      color: var(--text-secondary); border-radius: 4px;
+      padding: 4px 10px; font-size: 13px; font-weight: 600;
+      cursor: pointer; letter-spacing: .04em; white-space: nowrap;
+      transition: color .15s, border-color .15s, background .15s;
+      font-family: var(--mono);
+    }
+    .customize-btn:hover { background: var(--border); color: var(--text-primary); border-color: var(--border); }
+    .customize-btn .cog { font-size: 13px; line-height: 1; }
+
+    .customize-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4); z-index: 200;
+    }
+    .customize-overlay.open { display: block; }
+
+    .customize-drawer {
+      position: fixed; top: 0; right: -340px;
+      width: 320px; height: 100vh;
+      background: var(--surface); border-left: 1px solid var(--border);
+      z-index: 201; display: flex; flex-direction: column;
+      transition: right 0.25s var(--ease);
+      box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+    }
+    .customize-drawer.open { right: 0; }
+
+    .drawer-header {
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .drawer-title { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+    .drawer-close {
+      background: none; border: none; cursor: pointer;
+      color: var(--text-tertiary); font-size: 18px; line-height: 1;
+      padding: 2px 6px; border-radius: 4px;
+    }
+    .drawer-close:hover { background: var(--surface-sunken); color: var(--text-primary); }
+
+    .drawer-body { flex: 1; overflow-y: auto; padding: 12px 20px; }
+    .drawer-section-label {
+      font-size: 12px; font-weight: 700; letter-spacing: .08em;
+      color: var(--text-tertiary); text-transform: uppercase;
+      margin: 16px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border-light);
+    }
+    .drawer-section-label:first-child { margin-top: 4px; }
+
+    .widget-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 7px 0; border-bottom: 1px solid var(--border-light);
+    }
+    .widget-row:last-child { border-bottom: none; }
+    .widget-toggle {
+      position: relative; width: 32px; height: 18px;
+      flex-shrink: 0; cursor: pointer;
+    }
+    .widget-toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .widget-toggle-track {
+      position: absolute; inset: 0; border-radius: 9px;
+      background: var(--border); transition: background .15s;
+    }
+    .widget-toggle input:checked + .widget-toggle-track { background: var(--teal); }
+    .widget-toggle-thumb {
+      position: absolute; top: 2px; left: 2px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #fff; transition: left .15s;
+      pointer-events: none;
+    }
+    .widget-toggle input:checked ~ .widget-toggle-thumb { left: 16px; }
+    .widget-label { font-size: 12px; color: var(--text-primary); flex: 1; }
+    .widget-hidden { display: none !important; }
+
+    .drawer-footer {
+      padding: 12px 20px;
+      border-top: 1px solid var(--border);
+    }
+    .drawer-reset {
+      width: 100%; padding: 8px; border-radius: var(--radius);
+      border: 1px solid var(--border); background: var(--surface-sunken);
+      font-size: 12px; font-weight: 600; color: var(--text-secondary);
+      cursor: pointer;
+    }
+    .drawer-reset:hover { background: var(--border); color: var(--text-primary); }
+
+    /* ============================================================
+       7-TOPIC COMMAND STRIP
+       ============================================================ */
+    .cmd-strip {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
+    .cmd-strip::-webkit-scrollbar { display: none; }
+    .cmd-chip {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 120px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: box-shadow .15s, border-color .15s;
+      text-decoration: none;
+      color: inherit;
+    }
+    .cmd-chip:hover {
+      box-shadow: var(--shadow-md);
+      border-color: var(--border-dark);
+    }
+    .cmd-chip-top {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .cmd-chip-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .cmd-chip-label {
+      font-size: 12px;
+      font-weight: 700;
+      font-family: var(--mono);
+      letter-spacing: .04em;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      flex: 1;
+    }
+    .cmd-chip-count {
+      font-size: 20px;
+      font-weight: 800;
+      font-family: var(--mono);
+      color: var(--text-primary);
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+    .cmd-chip-meta {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      line-height: 1.3;
+    }
+    .cmd-chip-urgency {
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 2px;
+      margin-top: 2px;
+    }
+
+    /* ============================================================
+       REGULATORY CALENDAR
+       ============================================================ */
+    .cal-nav {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .cal-nav-btn {
+      background: var(--surface-sunken); border: 1px solid var(--border);
+      border-radius: 4px; width: 26px; height: 26px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 13px; color: var(--text-secondary);
+      line-height: 1; flex-shrink: 0;
+    }
+    .cal-nav-btn:hover { background: var(--border); color: var(--text-primary); }
+    .cal-month-label {
+      font-size: 13px; font-weight: 700; color: var(--text-primary);
+      font-family: var(--mono); min-width: 120px;
+    }
+    .cal-grid {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      gap: 2px; margin-top: 8px;
+    }
+    .cal-dow {
+      text-align: center; font-size: 13px; font-weight: 700;
+      color: var(--text-tertiary); letter-spacing: .06em;
+      padding: 4px 0; text-transform: uppercase;
+    }
+    .cal-day {
+      min-height: 52px; padding: 4px 5px; border-radius: 4px;
+      border: 1px solid transparent; position: relative;
+      background: var(--surface);
+    }
+    .cal-day:hover { border-color: var(--border); background: var(--surface-sunken); }
+    .cal-day.today { border-color: var(--teal); background: #f0fdfa; }
+    .cal-day.other-month { background: transparent; opacity: .4; }
+    .cal-day.has-deadlines { cursor: pointer; }
+    .cal-day-num {
+      font-size: 13px; font-weight: 600; color: var(--text-secondary); line-height: 1;
+    }
+    .cal-day.today .cal-day-num { color: var(--teal); }
+    .cal-dots { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 3px; }
+    .cal-dot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    }
+    .cal-detail {
+      margin-top: 12px; padding: 10px 14px;
+      border-top: 1px solid var(--border); min-height: 48px;
+    }
+    .cal-detail-empty { color: var(--text-tertiary); font-size: 13px; font-style: italic; }
+    .cal-detail-item {
+      display: flex; gap: 8px; align-items: flex-start;
+      padding: 6px 0; border-bottom: 1px solid var(--border-light);
+    }
+    .cal-detail-item:last-child { border-bottom: none; }
+    .cal-detail-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+    .cal-detail-body { flex: 1; }
+    .cal-detail-title { font-size: 13px; font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+    .cal-detail-meta { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
   </style>
 </head>
 <body>
@@ -1144,14 +1465,24 @@
       <span class="rail-dot" style="background:var(--blue);"></span>
       <span class="rail-label">Maps & Data</span>
     </a>
-    <a class="rail-link" data-target="section-feed" onclick="scrollToSection('section-feed')">
+    <a class="rail-link" href="archive/index.html">
       <span class="rail-dot" style="background:var(--text-tertiary);"></span>
-      <span class="rail-label">Article Feed</span>
+      <span class="rail-label">All Articles</span>
+    </a>
+    <a class="rail-link" href="glossary.html">
+      <span class="rail-dot" style="background:var(--blue);"></span>
+      <span class="rail-label">Definitions</span>
     </a>
     <a class="rail-link" data-target="section-deadlines" onclick="scrollToSection('section-deadlines')">
       <span class="rail-dot" style="background:var(--amber);"></span>
       <span class="rail-label">Deadlines</span>
     </a>
+    {% if deadlines %}
+    <a class="rail-link" data-target="section-calendar" onclick="scrollToSection('section-calendar')">
+      <span class="rail-dot" style="background:var(--teal);"></span>
+      <span class="rail-label">Calendar</span>
+    </a>
+    {% endif %}
     <a class="rail-link" data-target="section-archive" onclick="scrollToSection('section-archive')">
       <span class="rail-dot" style="background:var(--text-tertiary);"></span>
       <span class="rail-label">Archive</span>
@@ -1159,22 +1490,26 @@
 
     {% if timelines %}
     <div class="rail-divider"></div>
-    {% if timelines.all %}<a class="rail-link" href="{{ timelines.all }}" target="_blank"><span class="rail-dot" style="background:var(--text-inverse-dim);"></span><span class="rail-label">All Timelines</span></a>{% endif %}
-    {% if timelines.pfas %}<a class="rail-link" href="{{ timelines.pfas }}" target="_blank"><span class="rail-dot" style="background:var(--text-inverse-dim);"></span><span class="rail-label">PFAS Timeline</span></a>{% endif %}
-    {% if timelines.epr %}<a class="rail-link" href="{{ timelines.epr }}" target="_blank"><span class="rail-dot" style="background:var(--text-inverse-dim);"></span><span class="rail-label">EPR Timeline</span></a>{% endif %}
-    {% if timelines.reach %}<a class="rail-link" href="{{ timelines.reach }}" target="_blank"><span class="rail-dot" style="background:var(--text-inverse-dim);"></span><span class="rail-label">REACH Timeline</span></a>{% endif %}
-    {% if timelines.tsca %}<a class="rail-link" href="{{ timelines.tsca }}" target="_blank"><span class="rail-dot" style="background:var(--text-inverse-dim);"></span><span class="rail-label">TSCA Timeline</span></a>{% endif %}
+    {% if timelines.all %}<a class="rail-link" href="{{ timelines.all }}"><span class="rail-dot" style="background:var(--text-inverse-dim);"></span><span class="rail-label">All Timelines</span></a>{% endif %}
+    {% if timelines.pfas %}<a class="rail-link" href="{{ timelines.pfas }}"><span class="rail-dot" style="background:var(--text-inverse-dim);"></span><span class="rail-label">PFAS Timeline</span></a>{% endif %}
+    {% if timelines.epr %}<a class="rail-link" href="{{ timelines.epr }}"><span class="rail-dot" style="background:var(--text-inverse-dim);"></span><span class="rail-label">EPR Timeline</span></a>{% endif %}
+    {% if timelines.reach %}<a class="rail-link" href="{{ timelines.reach }}"><span class="rail-dot" style="background:var(--text-inverse-dim);"></span><span class="rail-label">REACH Timeline</span></a>{% endif %}
+    {% if timelines.tsca %}<a class="rail-link" href="{{ timelines.tsca }}"><span class="rail-dot" style="background:var(--text-inverse-dim);"></span><span class="rail-label">TSCA Timeline</span></a>{% endif %}
     {% endif %}
   </div>
 
   <div class="rail-footer">
     {% if calendar_url %}
-    <a class="rail-link" href="{{ calendar_url }}" target="_blank" style="padding-left:14px;">
+    <a class="rail-link" href="{{ calendar_url }}" style="padding-left:14px;">
       <span class="rail-dot" style="background:var(--teal);"></span>
       <span class="rail-label">Calendar .ics</span>
     </a>
     {% endif %}
     <div class="rail-footer-text">Updated {{ run_timestamp }}</div>
+    <button class="rail-toggle-btn" onclick="toggleSidebarPersist()" title="Collapse sidebar">
+      <span class="toggle-open">&#171;</span>
+      <span class="toggle-close">&#187;</span>
+    </button>
   </div>
 </nav>
 
@@ -1188,17 +1523,59 @@
   </div>
   <span class="topbar-search-count" id="search-count"></span>
 
-  <div class="topbar-filters">
-    {% for topic in topics %}
-    <button class="f-btn topic-f active"
-            data-topic="{{ topic.topic|lower }}"
-            style="border-left-color:{{ topic.color }};"
-            onclick="toggleTopicFilter(this, '{{ topic.topic|lower }}')">{{ topic.topic }}</button>
-    {% endfor %}
-    <span class="f-sep"></span>
-    <button class="f-btn active" data-urgency="ALL" onclick="setUrgencyFilter('ALL', this)">All</button>
-    <button class="f-btn" data-urgency="MEDIUM" onclick="setUrgencyFilter('MEDIUM', this)">Med+</button>
-    <button class="f-btn" data-urgency="HIGH" onclick="setUrgencyFilter('HIGH', this)">High</button>
+  <div class="topbar-actions">
+    <a class="topbar-action-btn" href="director_review.html" title="Latest AI director critique of this dashboard">
+      <span class="topbar-action-dot director-dot"></span>Director Review
+    </a>
+    {% if timelines and timelines.all %}
+    <a class="topbar-action-btn" href="{{ timelines.all }}" title="Full regulatory deadline timeline">Timeline</a>
+    {% endif %}
+    {% if maps %}
+    <a class="topbar-action-btn" href="{{ maps.pfas_url }}" title="PFAS state regulation map">PFAS Map</a>
+    {% endif %}
+    <a class="topbar-action-btn" href="archive/index.html" title="Weekly briefing archive">Archive</a>
+  </div>
+  <!-- Source health indicator in topbar -->
+  {% if source_health %}
+  {% set stale_count = source_health | selectattr('status', 'eq', 'stale') | list | length %}
+  {% set ok_count = source_health | selectattr('status', 'eq', 'ok') | list | length %}
+  <div style="display:flex;align-items:center;gap:5px;font-size: 13px;color:var(--text-secondary);
+              border:1px solid var(--border);border-radius:4px;padding:4px 8px;
+              cursor:default;"
+       title="{{ ok_count }} sources OK{% if stale_count %}, {{ stale_count }} stale{% endif %}">
+    <span style="width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0;
+                 background:{% if stale_count > 0 %}var(--amber){% else %}var(--green){% endif %};"></span>
+    <span style="font-family:var(--mono);font-weight:600;">{{ ok_count }}/{{ source_health|length }}</span>
+  </div>
+  {% endif %}
+  <button class="customize-btn" onclick="openCustomize()" title="Customize panels">
+    <span class="cog">&#9881;</span> Customize
+  </button>
+</div>
+
+<!-- ═══ CUSTOMIZE DRAWER ═══ -->
+<div class="customize-overlay" id="customize-overlay" onclick="closeCustomize()"></div>
+<div class="customize-drawer" id="customize-drawer">
+  <div class="drawer-header">
+    <span class="drawer-title">Customize Dashboard</span>
+    <button class="drawer-close" onclick="closeCustomize()">&#10005;</button>
+  </div>
+  <div class="drawer-body" id="drawer-body">
+    <!-- Generated by JS -->
+  </div>
+  <div class="drawer-footer">
+    <button class="drawer-reset" onclick="resetWidgets()">Reset to defaults</button>
+  </div>
+</div>
+
+<!-- ═══ EXPAND MODAL ═══ -->
+<div class="expand-modal-overlay" id="expand-modal-overlay" onclick="closeExpandModal(event)">
+  <div class="expand-modal" onclick="event.stopPropagation()">
+    <div class="expand-modal-header">
+      <span class="expand-modal-title" id="expand-modal-title">Details</span>
+      <button class="expand-modal-close" onclick="closeExpandModal()">Close</button>
+    </div>
+    <div class="expand-modal-body" id="expand-modal-body"></div>
   </div>
 </div>
 
@@ -1210,310 +1587,44 @@
     <span class="section-anchor" id="anchor-section-dashboard"></span>
     <span id="stat-articles" style="display:none;">{{ total_articles }}</span>
 
-    <!-- ────── TOP PANEL GRID (3-col) ────── -->
-    <div class="panel-grid-top">
-
-      <!-- PFAS Legislative Intel -->
-      {% if pfas_intel and pfas_intel.total_bills %}
-      <div class="panel animate-in">
-        <div class="panel-header">
-          <span class="panel-title-accent">PFAS Legislative Intel</span>
-          {% if maps and maps.pfas_intel_url %}
-          <a href="{{ maps.pfas_intel_url }}" target="_blank" style="margin-left:auto; font-family:var(--mono); font-size:10px; font-weight:600; color:var(--blue);">Full Map &rarr;</a>
-          {% endif %}
+    <!-- ═══ 7-TOPIC COMMAND STRIP ═══ -->
+    <div class="cmd-strip" data-widget-id="cmd-strip" data-widget-label="Topic Command Strip">
+      {% for topic in topics %}
+      {% set high_count = topic.developments | selectattr('urgency', 'eq', 'HIGH') | list | length %}
+      {% set med_count = topic.developments | selectattr('urgency', 'eq', 'MEDIUM') | list | length %}
+      {% set art_count = topic.developments | length %}
+      <div class="cmd-chip" onclick="expandTopic('{{ topic.topic|lower }}');">
+        <div class="cmd-chip-top">
+          <span class="cmd-chip-dot" style="background:{{ topic.color }};"></span>
+          <span class="cmd-chip-label">{{ topic.topic }}</span>
         </div>
-        <div class="panel-body">
-          <div class="intel-header-row">
-            <div>
-              <div class="intel-big-num">{{ pfas_intel.total_bills }}</div>
-              <div class="intel-big-label">bills tracked</div>
-            </div>
-            <div style="margin-left:16px;">
-              <div class="intel-big-num">{{ pfas_intel.active_states }}</div>
-              <div class="intel-big-label">active states</div>
-            </div>
-            <div style="margin-left:16px;">
-              <div class="intel-big-num" style="color:var(--red);">{{ pfas_intel.relevance.high }}</div>
-              <div class="intel-big-label">high relevance</div>
-            </div>
-          </div>
-
-          <div class="chart-title">Bills by Legislative Stage</div>
-          {% for stage_name, stage_count in pfas_intel.stages %}
-          <div class="intel-stage-row">
-            <span class="intel-stage-label">{{ stage_name|replace('_', ' ') }}</span>
-            <div class="intel-stage-track">
-              <div class="intel-stage-fill" style="width:{{ (stage_count / (pfas_intel.active_states or 1) * 100)|int }}%; background:{% if stage_name in ['enacted_watching'] %}var(--green){% elif stage_name in ['advanced', 'passed_one'] %}var(--amber){% elif stage_name in ['committee', 'introduced'] %}var(--blue){% elif stage_name in ['rulemaking'] %}var(--red){% else %}var(--text-tertiary){% endif %};"></div>
-            </div>
-            <span class="intel-stage-val">{{ stage_count }}</span>
-          </div>
-          {% endfor %}
-
-          <div class="intel-relevance-row">
-            <div class="intel-rel-card" style="border-color:var(--red-border); background:var(--red-bg);">
-              <div class="intel-rel-num" style="color:var(--red);">{{ pfas_intel.relevance.high }}</div>
-              <div class="intel-rel-label">High</div>
-            </div>
-            <div class="intel-rel-card" style="border-color:var(--amber-border); background:var(--amber-bg);">
-              <div class="intel-rel-num" style="color:var(--amber);">{{ pfas_intel.relevance.medium }}</div>
-              <div class="intel-rel-label">Medium</div>
-            </div>
-            <div class="intel-rel-card" style="border-color:var(--green-border); background:var(--green-bg);">
-              <div class="intel-rel-num" style="color:var(--green);">{{ pfas_intel.relevance.low }}</div>
-              <div class="intel-rel-label">Low</div>
-            </div>
-          </div>
-
-          {% if pfas_intel.high_relevance_states %}
-          <div class="chart-title" style="margin-top:10px;">High Relevance States</div>
-          <div class="intel-states-list">
-            {% for st in pfas_intel.high_relevance_states %}
-            <span class="intel-state-chip">{{ st.code }}</span>
-            {% endfor %}
-          </div>
+        <div class="cmd-chip-count">{{ art_count }}</div>
+        <div class="cmd-chip-meta">
+          articles this week
+          {% if high_count > 0 %}
+          <br><span class="cmd-chip-urgency" style="background:var(--red-bg);color:var(--red);">{{ high_count }} HIGH</span>
+          {% elif med_count > 0 %}
+          <span class="cmd-chip-urgency" style="background:var(--amber-bg);color:var(--amber);">{{ med_count }} MED</span>
           {% endif %}
         </div>
       </div>
-      {% endif %}
-
-      <!-- Interactive Maps -->
-      <div class="panel animate-in" id="section-maps">
-        <span class="section-anchor" id="anchor-section-maps"></span>
-        <div class="panel-header">
-          <span class="panel-title">Interactive Maps</span>
-        </div>
-        <div style="padding:10px 14px;">
-          <div class="map-stack">
-            {% if maps and maps.pfas_map_url %}
-            <a class="map-link" href="{{ maps.pfas_map_url }}" target="_blank">
-              <div class="map-link-visual pfas"><div class="map-usa"></div></div>
-              <div class="map-link-info">
-                <div class="map-link-title">PFAS State Map</div>
-                <div class="map-link-desc">Legislation and regulatory activity by state</div>
-              </div>
-              <span class="map-link-arrow">&rarr;</span>
-            </a>
-            {% endif %}
-            {% if maps and maps.pfas_intel_url %}
-            <a class="map-link" href="{{ maps.pfas_intel_url }}" target="_blank">
-              <div class="map-link-visual intel"><div class="map-usa"></div></div>
-              <div class="map-link-info">
-                <div class="map-link-title">PFAS Legislative Intel</div>
-                <div class="map-link-desc">Forward-looking bill tracking and engagement</div>
-              </div>
-              <span class="map-link-arrow">&rarr;</span>
-            </a>
-            {% endif %}
-            {% if maps and maps.epr_map_url %}
-            <a class="map-link" href="{{ maps.epr_map_url }}" target="_blank">
-              <div class="map-link-visual epr"><div class="map-usa"></div></div>
-              <div class="map-link-info">
-                <div class="map-link-title">EPR State Map</div>
-                <div class="map-link-desc">Extended Producer Responsibility tracking</div>
-              </div>
-              <span class="map-link-arrow">&rarr;</span>
-            </a>
-            {% endif %}
-            {% if maps and maps.reach_map_url %}
-            <a class="map-link" href="{{ maps.reach_map_url }}" target="_blank">
-              <div class="map-link-visual reach"><div class="map-usa"></div></div>
-              <div class="map-link-info">
-                <div class="map-link-title">REACH Map</div>
-                <div class="map-link-desc">EU substance restrictions and timelines</div>
-              </div>
-              <span class="map-link-arrow">&rarr;</span>
-            </a>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-
-      <!-- Stacked: Status Matrix + Urgency + Deadlines -->
-      <div>
-        <!-- Traffic-Light Status Matrix -->
-        <div class="panel animate-in" style="margin-bottom:12px;">
-          <div class="panel-header">
-            <span class="panel-title">Regulatory Status</span>
-          </div>
-          <div class="panel-body" style="padding:10px 12px;">
-            <table class="status-matrix">
-              <thead>
-                <tr>
-                  <th></th>
-                  {% for t in topics %}
-                  <th style="color:{{ t.color }};">{{ t.topic }}</th>
-                  {% endfor %}
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Activity</td>
-                  {% for t in topics %}
-                  {% set dev_count = t.developments|default([])|length %}
-                  <td><span class="status-dot {% if dev_count >= 5 %}s-red{% elif dev_count >= 2 %}s-amber{% elif dev_count >= 1 %}s-green{% else %}s-gray{% endif %}"></span></td>
-                  {% endfor %}
-                </tr>
-                <tr>
-                  <td>High Urgency</td>
-                  {% for t in topics %}
-                  {%- set ns_h = namespace(c=0) -%}
-                  {%- for d in t.developments|default([]) -%}{%- if d.urgency == 'HIGH' -%}{%- set ns_h.c = ns_h.c + 1 -%}{%- endif -%}{%- endfor -%}
-                  <td><span class="status-dot {% if ns_h.c >= 3 %}s-red{% elif ns_h.c >= 1 %}s-amber{% else %}s-green{% endif %}"></span></td>
-                  {% endfor %}
-                </tr>
-                <tr>
-                  <td>Deadlines</td>
-                  {% for t in topics %}
-                  {%- set ns_dl = namespace(c=0) -%}
-                  {%- for dl in deadlines -%}{%- if dl.topic == t.topic|lower -%}{%- set ns_dl.c = ns_dl.c + 1 -%}{%- endif -%}{%- endfor -%}
-                  <td><span class="status-dot {% if ns_dl.c >= 1 %}s-amber{% else %}s-none{% endif %}"></span></td>
-                  {% endfor %}
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Urgency Donut -->
-        <div class="panel animate-in" style="margin-bottom:12px;">
-          <div class="panel-header">
-            <span class="panel-title">Urgency</span>
-          </div>
-          <div class="panel-body" style="padding:10px 14px;">
-            {%- set ns_u = namespace(high=0, medium=0, low=0, total=0) -%}
-            {%- for t in topics -%}
-              {%- for d in t.developments|default([]) -%}
-                {%- set ns_u.total = ns_u.total + 1 -%}
-                {%- if d.urgency == 'HIGH' -%}{%- set ns_u.high = ns_u.high + 1 -%}
-                {%- elif d.urgency == 'MEDIUM' -%}{%- set ns_u.medium = ns_u.medium + 1 -%}
-                {%- else -%}{%- set ns_u.low = ns_u.low + 1 -%}{%- endif -%}
-              {%- endfor -%}
-            {%- endfor -%}
-
-            <div class="donut-row">
-              <div class="donut" style="background: conic-gradient(var(--red) 0deg {{ (ns_u.high / (ns_u.total or 1) * 360)|int }}deg, var(--amber) {{ (ns_u.high / (ns_u.total or 1) * 360)|int }}deg {{ ((ns_u.high + ns_u.medium) / (ns_u.total or 1) * 360)|int }}deg, var(--green) {{ ((ns_u.high + ns_u.medium) / (ns_u.total or 1) * 360)|int }}deg 360deg);"></div>
-              <div class="donut-legend">
-                <div class="donut-legend-item">
-                  <span class="donut-legend-dot" style="background:var(--red);"></span>
-                  <span>High</span>
-                  <span class="donut-legend-val">{{ ns_u.high }}</span>
-                </div>
-                <div class="donut-legend-item">
-                  <span class="donut-legend-dot" style="background:var(--amber);"></span>
-                  <span>Medium</span>
-                  <span class="donut-legend-val">{{ ns_u.medium }}</span>
-                </div>
-                <div class="donut-legend-item">
-                  <span class="donut-legend-dot" style="background:var(--green);"></span>
-                  <span>Low</span>
-                  <span class="donut-legend-val">{{ ns_u.low }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Upcoming Deadlines (compact) -->
-        <div class="panel animate-in" id="section-deadlines">
-          <span class="section-anchor" id="anchor-section-deadlines"></span>
-          <div class="panel-header">
-            <span class="panel-title">Deadlines</span>
-            <span class="panel-badge">{{ deadlines|length }}</span>
-          </div>
-          <div style="padding:6px 14px;">
-            {% if deadlines %}
-              {% for dl in deadlines %}
-              {% set bucket = dl.bucket if dl.bucket is defined else 'upcoming' %}
-              {% set pipe_color = 'var(--red)' if bucket in ('overdue','critical') else 'var(--amber)' if bucket == 'urgent' else 'var(--amber-border)' if bucket == 'warning' else 'var(--border)' %}
-              <div class="dl-item">
-                <div style="text-align:right;min-width:56px;">
-                  {% if dl.days_until is defined %}
-                    {% if dl.days_until < 0 %}
-                      <div class="dl-days urgent" title="Overdue">OVERDUE</div>
-                    {% elif dl.days_until == 0 %}
-                      <div class="dl-days urgent">TODAY</div>
-                    {% elif dl.days_until <= 14 %}
-                      <div class="dl-days urgent">{{ dl.days_until }}d</div>
-                    {% elif dl.days_until <= 30 %}
-                      <div class="dl-days soon">{{ dl.days_until }}d</div>
-                    {% elif dl.days_until <= 90 %}
-                      <div class="dl-days normal">{{ dl.days_until }}d</div>
-                    {% else %}
-                      <div class="dl-days normal" style="opacity:.6;">{{ dl.deadline_date }}</div>
-                    {% endif %}
-                  {% else %}
-                    <div class="dl-days {% if dl.urgency == 'HIGH' %}urgent{% elif dl.urgency == 'MEDIUM' %}soon{% else %}normal{% endif %}">
-                      {{ dl.deadline_date }}
-                    </div>
-                  {% endif %}
-                </div>
-                <div class="dl-pipe" style="background:{{ pipe_color }};"></div>
-                <div class="dl-body">
-                  <div class="dl-title">{{ dl.title }}</div>
-                  {% if dl.jurisdiction %}<div style="font-size:10px;color:var(--text-muted);margin-top:2px;">{{ dl.jurisdiction }}{% if dl.topic %} · {{ dl.topic }}{% endif %}</div>{% endif %}
-                </div>
-              </div>
-              {% endfor %}
-            {% else %}
-              <div class="no-articles">No upcoming deadlines.</div>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-
-    </div><!-- .panel-grid-top -->
-
-    <!-- ────── WHAT CHANGED TODAY ────── -->
-    {% if daily_changes %}
-    <div class="panel animate-in" id="section-changes" style="margin-bottom:16px;">
-      <span class="section-anchor" id="anchor-section-changes"></span>
-      <div class="panel-header">
-        <span class="panel-title">What Changed Today</span>
-        <span class="panel-badge">{{ daily_changes|length }}</span>
-      </div>
-      <div class="panel-body" style="padding:0;">
-        <table style="width:100%;border-collapse:collapse;font-size:12px;">
-          {% for ch in daily_changes %}
-          <tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:8px 12px;width:90px;white-space:nowrap;">
-              {% if ch.change_type == 'urgency_spike' %}
-                <span style="background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:.04em;">SPIKE</span>
-              {% elif ch.change_type == 'new_deadline' %}
-                <span style="background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:.04em;">DEADLINE</span>
-              {% elif ch.change_type == 'bill_change' %}
-                <span style="background:#dbeafe;color:#1e40af;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:.04em;">BILL</span>
-              {% elif ch.change_type == 'new_bills' %}
-                <span style="background:#e0e7ff;color:#3730a3;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:.04em;">BILLS</span>
-              {% else %}
-                <span style="background:#d1fae5;color:#065f46;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:.04em;">UPDATE</span>
-              {% endif %}
-            </td>
-            <td style="padding:8px 6px;width:70px;color:var(--text-muted);font-size:11px;">
-              {% if ch.topic %}{{ ch.topic }}{% endif %}
-            </td>
-            <td style="padding:8px 12px 8px 6px;color:var(--text-primary);line-height:1.4;">
-              {{ ch.description }}
-            </td>
-          </tr>
-          {% endfor %}
-        </table>
-      </div>
+      {% endfor %}
     </div>
-    {% endif %}
+
 
     <!-- ────── EXEC SUMMARY (collapsible) + TOPIC CARDS ────── -->
     <div class="grid-main">
 
       <!-- LEFT COLUMN -->
       <div>
-        <!-- Exec Summary — collapsed by default -->
-        <div class="panel exec-collapsed" id="exec-panel" style="margin-bottom:16px;">
+        <!-- Exec Summary — open by default, FIRST -->
+        <div class="panel" id="exec-panel" data-widget-id="exec" data-widget-label="Executive Briefing" style="margin-bottom:16px;">
           <div class="panel-header" style="cursor:pointer;" onclick="toggleExec()">
             <span class="panel-title-accent">Executive Briefing</span>
             <span class="panel-badge">{{ date_display }}</span>
             <button class="exec-toggle-btn" style="margin-left:auto;">
               <span class="exec-toggle-chevron">&#9660;</span>
-              <span class="exec-toggle-label">expand</span>
+              <span class="exec-toggle-label">collapse</span>
             </button>
           </div>
           <div class="exec-expand-body">
@@ -1562,8 +1673,8 @@
           </div>
         </div>
 
-        <!-- Topic Cards Grid -->
-        <div class="topic-grid">
+        <!-- Topic Cards Grid — SECOND -->
+        <div class="topic-grid" data-widget-id="topics" data-widget-label="Topic Cards">
           {% for topic in topics %}
           <div class="topic-card topic-section"
                id="section-{{ topic.topic|lower }}"
@@ -1594,7 +1705,7 @@
             <!-- Latest headline -->
             {% if topic.developments %}
             <div class="topic-card-latest">
-              <a href="{{ topic.developments[0].url }}" target="_blank" onclick="event.stopPropagation();">{{ topic.developments[0].headline }}</a>
+              <a href="{{ topic.developments[0].url }}" onclick="event.stopPropagation();">{{ topic.developments[0].headline }}</a>
             </div>
             {% endif %}
 
@@ -1661,7 +1772,7 @@
                        data-headline="{{ dev.headline|lower }}" data-summary="{{ dev.summary|lower if dev.summary else '' }}" data-source="{{ dev.source|lower if dev.source else '' }}">
                     <div class="article-head">
                       {% if dev.is_new %}<span class="badge badge-new">New</span>{% endif %}
-                      <span class="article-headline"><a href="{{ dev.url }}" target="_blank">{{ dev.headline }}</a></span>
+                      <span class="article-headline"><a href="{{ dev.url }}">{{ dev.headline }}</a></span>
                       <span class="badge badge-{{ dev.urgency|lower }}">{{ dev.urgency }}</span>
                       {% if dev.impact_score is defined %}
                       <span class="badge badge-impact {% if dev.impact_score >= 7 %}hi{% elif dev.impact_score >= 4 %}mid{% else %}lo{% endif %}" title="Company impact score">{{ dev.impact_score }}</span>
@@ -1691,49 +1802,384 @@
           {% endfor %}
         </div>
 
-        <!-- Full Article Feed Section -->
-        <div class="panel article-section" id="section-feed">
-          <span class="section-anchor" id="anchor-section-feed"></span>
+        <!-- Regulation Status Cards — THIRD -->
+        {% if reg_milestones %}
+        <div class="panel animate-in" data-widget-id="reg-status" data-widget-label="Regulation Status Cards" style="margin-bottom:16px;margin-top:16px;">
           <div class="panel-header">
-            <span class="panel-title">All Articles</span>
-            <span class="panel-badge" id="feed-count">{{ total_articles }} items</span>
+            <span class="panel-title-accent">Key Regulation Milestones</span>
+            <span class="panel-badge">{{ reg_milestones|length }}</span>
+            <button class="expand-btn" onclick="openExpandModal('reg-status', 'Key Regulation Milestones')" title="Expand">&#x26F6;</button>
           </div>
-          {% for topic in topics %}
-            {% if topic.developments %}
-              {% for dev in topic.developments %}
-              <div class="article-item" data-urgency="{{ dev.urgency }}" data-topic="{{ topic.topic|lower }}"
-                   data-headline="{{ dev.headline|lower }}" data-summary="{{ dev.summary|lower if dev.summary else '' }}" data-source="{{ dev.source|lower if dev.source else '' }}">
-                <div class="article-head">
-                  {% if dev.is_new %}<span class="badge badge-new">New</span>{% endif %}
-                  <span class="badge badge-{{ dev.urgency|lower }}" style="margin-right:4px;">{{ dev.urgency }}</span>
-                  <span class="article-headline"><a href="{{ dev.url }}" target="_blank">{{ dev.headline }}</a></span>
-                  <span class="badge" style="background:{{ topic.color }}20; color:{{ topic.color }}; border:1px solid {{ topic.color }}40;">{{ topic.topic }}</span>
-                </div>
-                <div class="article-meta">
-                  <span>{{ dev.source }}</span>
-                  {% if dev.date %}
-                  <span class="article-meta-sep">&middot;</span>
-                  <span>{{ dev.date }}</span>
-                  {% endif %}
-                </div>
-                {% if dev.summary %}
-                <div class="article-summary">{{ dev.summary }}</div>
-                {% endif %}
-                {% if dev.deadline %}
-                <span class="article-deadline-tag">{{ dev.deadline }}</span>
+          <div class="panel-body" style="padding:0;">
+            {% for m in reg_milestones %}
+            {%- set topic_obj = topics|selectattr('topic','eq',m.topic)|first -%}
+            {%- set t_color = topic_obj.color if topic_obj else '#718096' -%}
+            {%- set days = m.days_until -%}
+            {%- set urgency_color = 'var(--red)' if days is not none and days <= 30 else 'var(--amber)' if days is not none and days <= 90 else 'var(--text-tertiary)' -%}
+            <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border-light);">
+              <!-- Days countdown -->
+              <div style="min-width:48px;text-align:right;flex-shrink:0;">
+                {% if days is not none %}
+                  <div style="font-family:var(--mono);font-size:16px;font-weight:700;color:{{ urgency_color }};line-height:1;">{{ days }}</div>
+                  <div style="font-size: 13px;color:var(--text-tertiary);letter-spacing:.04em;">days</div>
+                {% else %}
+                  <div style="font-family:var(--mono);font-size: 13px;color:var(--text-tertiary);">TBD</div>
                 {% endif %}
               </div>
-              {% endfor %}
-            {% endif %}
-          {% endfor %}
+              <!-- Left accent bar -->
+              <div style="width:3px;border-radius:2px;background:{{ t_color }};align-self:stretch;flex-shrink:0;min-height:36px;"></div>
+              <!-- Content -->
+              <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
+                  <span style="font-size: 13px;font-weight:700;color:var(--text-primary);line-height:1.3;">
+                    {% if m.source_url %}<a href="{{ m.source_url }}" style="color:inherit;">{{ m.regulation_name|truncate(55, true, '…') }}</a>{% else %}{{ m.regulation_name|truncate(55, true, '…') }}{% endif %}
+                  </span>
+                  <span style="font-size: 13px;font-weight:600;color:{{ t_color }};letter-spacing:.04em;white-space:nowrap;">{{ m.topic }}</span>
+                  <span style="font-size: 13px;color:var(--text-tertiary);white-space:nowrap;">{{ m.jurisdiction }}</span>
+                </div>
+                <div style="font-size: 12px;color:var(--text-secondary);margin-top:3px;line-height:1.4;">
+                  {{ m.next_event_desc|truncate(90, true, '…') }}
+                </div>
+                <div style="font-size: 12px;color:var(--text-tertiary);margin-top:2px;font-family:var(--mono);">{{ m.next_event_date }}</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
         </div>
+        {% endif %}
+
+        <!-- Upcoming Deadlines — FOURTH, collapsed by default -->
+        <div class="panel animate-in deadlines-collapsed" id="section-deadlines" data-widget-id="deadlines" style="margin-bottom:16px;margin-top:16px;">
+          <span class="section-anchor" id="anchor-section-deadlines"></span>
+          <div class="panel-header" style="cursor:pointer;" onclick="toggleDeadlines()">
+            <span class="panel-title">Deadlines</span>
+            <span class="panel-badge">{{ deadlines|length }}</span>
+            <button class="expand-btn" onclick="openExpandModal('deadlines', 'All Upcoming Deadlines');event.stopPropagation();" title="Expand all">&#x26F6;</button>
+            <button class="exec-toggle-btn" style="margin-left:8px;">
+              <span class="exec-toggle-chevron dl-toggle-chevron">&#9660;</span>
+              <span class="dl-toggle-label">expand</span>
+            </button>
+          </div>
+          <div class="deadlines-expand-body">
+          <div style="padding:6px 14px;">
+            {% if deadlines %}
+              {% for dl in deadlines[:15] %}
+              {% set bucket = dl.bucket if dl.bucket is defined else 'upcoming' %}
+              {% set pipe_color = 'var(--red)' if bucket in ('overdue','critical') else 'var(--amber)' if bucket == 'urgent' else 'var(--amber-border)' if bucket == 'warning' else 'var(--border)' %}
+              <div class="dl-item">
+                <div style="text-align:right;min-width:56px;">
+                  {% if dl.days_until is defined %}
+                    {% if dl.days_until < 0 %}
+                      <div class="dl-days urgent" title="Overdue">OVERDUE</div>
+                    {% elif dl.days_until == 0 %}
+                      <div class="dl-days urgent">TODAY</div>
+                    {% elif dl.days_until <= 14 %}
+                      <div class="dl-days urgent">{{ dl.days_until }}d</div>
+                    {% elif dl.days_until <= 30 %}
+                      <div class="dl-days soon">{{ dl.days_until }}d</div>
+                    {% elif dl.days_until <= 90 %}
+                      <div class="dl-days normal">{{ dl.days_until }}d</div>
+                    {% else %}
+                      <div class="dl-days normal" style="opacity:.6;">{{ dl.deadline_date }}</div>
+                    {% endif %}
+                  {% else %}
+                    <div class="dl-days {% if dl.urgency == 'HIGH' %}urgent{% elif dl.urgency == 'MEDIUM' %}soon{% else %}normal{% endif %}">
+                      {{ dl.deadline_date }}
+                    </div>
+                  {% endif %}
+                </div>
+                <div class="dl-pipe" style="background:{{ pipe_color }};"></div>
+                <div class="dl-body">
+                  <div class="dl-title">{% if dl.source_url %}<a href="{{ dl.source_url }}" style="color:inherit;text-decoration:none;border-bottom:1px solid var(--border);">{{ dl.title }}</a>{% else %}{{ dl.title }}{% endif %}</div>
+                  {% if dl.jurisdiction %}<div style="font-size: 12px;color:var(--text-muted);margin-top:2px;">{{ dl.jurisdiction }}{% if dl.topic %} · {{ dl.topic }}{% endif %}</div>{% endif %}
+                </div>
+              </div>
+              {% endfor %}
+              {% if deadlines|length > 15 %}
+              <div style="padding:8px 0 4px;text-align:center;">
+                <button onclick="openExpandModal('deadlines','All Upcoming Deadlines')"
+                        style="background:none;border:1px solid var(--border);border-radius:4px;
+                               padding:4px 12px;font-size: 13px;color:var(--text-secondary);
+                               cursor:pointer;font-weight:600;">
+                  + {{ deadlines|length - 15 }} more deadlines
+                </button>
+              </div>
+              {% endif %}
+            {% else %}
+              <div class="no-articles">No upcoming deadlines.</div>
+            {% endif %}
+          </div>
+        </div>
+
+        </div>
+
+        <!-- ── Mini Timeline Widget ── -->
+        {% if deadlines %}
+        {%- set ns_tl = namespace(max_days=1) -%}
+        {%- for dl in deadlines -%}{%- if dl.days_until is defined and dl.days_until is not none and dl.days_until > ns_tl.max_days -%}{%- set ns_tl.max_days = dl.days_until -%}{%- endif -%}{%- endfor -%}
+        <div class="panel animate-in" style="margin-bottom:16px;">
+          <div class="panel-header">
+            <span class="panel-title-accent">Deadline Timeline</span>
+            <span class="panel-badge">{{ deadlines|length }}</span>
+            {% if timelines and timelines.all %}
+            <a href="{{ timelines.all }}" style="margin-left:auto;font-family:var(--mono);font-size: 12px;font-weight:600;color:var(--blue);">Full View &rarr;</a>
+            {% endif %}
+          </div>
+          <div style="padding:10px 14px;">
+            {%- for topic in topics -%}
+            {%- set tdls = deadlines|selectattr('topic','eq',topic.topic|lower)|list -%}
+            {%- set topic_url = timelines[topic.topic|lower] if timelines and topic.topic|lower in timelines else '' -%}
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+              <span style="min-width:48px;font-size: 12px;font-weight:700;letter-spacing:.04em;color:{{ topic.color }};font-family:var(--mono);">{{ topic.topic }}</span>
+              <div style="flex:1;position:relative;height:22px;background:var(--surface-sunken);border-radius:3px;overflow:visible;">
+                {%- if tdls -%}
+                {%- for dl in tdls|sort(attribute='days_until') -%}
+                {%- if dl.days_until is defined and dl.days_until is not none and dl.days_until >= 0 -%}
+                {%- set pct = ((dl.days_until / ns_tl.max_days) * 96)|int -%}
+                <div title="{{ dl.title }} — {{ dl.deadline_date }}"
+                     style="position:absolute;left:{{ pct }}%;top:4px;width:3px;height:14px;border-radius:1px;
+                            background:{%- if dl.urgency == 'HIGH' -%}var(--red){%- elif dl.urgency == 'MEDIUM' -%}var(--amber){%- else -%}var(--green){%- endif -%};
+                            cursor:default;transform:translateX(-1px);"></div>
+                {%- endif -%}
+                {%- endfor -%}
+                {%- else -%}
+                <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size: 12px;color:var(--text-tertiary);font-family:var(--mono);">no data</span>
+                {%- endif -%}
+              </div>
+              {% if topic_url %}
+              <a href="{{ topic_url }}" style="font-size: 12px;font-family:var(--mono);font-weight:600;color:var(--blue);white-space:nowrap;flex-shrink:0;">Full &rarr;</a>
+              {% endif %}
+            </div>
+            {%- endfor -%}
+            <!-- Axis label row -->
+            <div style="display:flex;align-items:center;gap:10px;margin-top:2px;">
+              <span style="min-width:48px;"></span>
+              <div style="flex:1;position:relative;height:14px;">
+                <span style="position:absolute;left:0;font-size: 13px;color:var(--text-tertiary);font-family:var(--mono);">Today</span>
+                <span style="position:absolute;left:50%;transform:translateX(-50%);font-size: 13px;color:var(--text-tertiary);font-family:var(--mono);">{{ (ns_tl.max_days // 2) }}d</span>
+                <span style="position:absolute;right:0;font-size: 13px;color:var(--text-tertiary);font-family:var(--mono);">{{ ns_tl.max_days }}d</span>
+              </div>
+              <span style="min-width:44px;"></span>
+            </div>
+            <!-- Legend -->
+            <div style="display:flex;gap:14px;margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);">
+              <span style="font-size: 13px;color:var(--text-tertiary);font-family:var(--mono);">Each mark = one deadline</span>
+              <span style="display:flex;align-items:center;gap:4px;font-size: 13px;color:var(--red);font-family:var(--mono);"><span style="width:5px;height:12px;background:var(--red);border-radius:1px;display:inline-block;"></span>HIGH</span>
+              <span style="display:flex;align-items:center;gap:4px;font-size: 13px;color:var(--amber);font-family:var(--mono);"><span style="width:5px;height:12px;background:var(--amber);border-radius:1px;display:inline-block;"></span>MED</span>
+              <span style="display:flex;align-items:center;gap:4px;font-size: 13px;color:var(--green);font-family:var(--mono);"><span style="width:5px;height:12px;background:var(--green);border-radius:1px;display:inline-block;"></span>LOW</span>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
       </div>
 
-      <!-- RIGHT COLUMN -->
-      <div>
+      <!-- RIGHT COLUMN (sticky sidebar) -->
+      <div class="grid-main-sidebar" id="grid-sidebar">
+        <!-- Sidebar collapse toggle -->
+        <button class="sidebar-collapse-btn" onclick="toggleSidebarPanel()" title="Hide sidebar" id="sidebar-collapse-btn">
+          <span id="sidebar-collapse-icon">&#9654;</span>
+        </button>
+
+        <!-- Traffic-Light Status Matrix -->
+        <div class="panel animate-in" style="margin-bottom:12px;">
+          <div class="panel-header">
+            <span class="panel-title">Regulatory Status</span>
+          </div>
+          <div class="panel-body" style="padding:10px 12px;">
+            <table class="status-matrix">
+              <thead>
+                <tr>
+                  <th></th>
+                  {% for t in topics %}
+                  <th style="color:{{ t.color }};">{{ t.topic }}</th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Activity</td>
+                  {% for t in topics %}
+                  {% set dev_count = t.developments|default([])|length %}
+                  <td><span class="status-dot {% if dev_count >= 5 %}s-red{% elif dev_count >= 2 %}s-amber{% elif dev_count >= 1 %}s-green{% else %}s-gray{% endif %}"></span></td>
+                  {% endfor %}
+                </tr>
+                <tr>
+                  <td>High Urgency</td>
+                  {% for t in topics %}
+                  {%- set ns_h = namespace(c=0) -%}
+                  {%- for d in t.developments|default([]) -%}{%- if d.urgency == 'HIGH' -%}{%- set ns_h.c = ns_h.c + 1 -%}{%- endif -%}{%- endfor -%}
+                  <td><span class="status-dot {% if ns_h.c >= 3 %}s-red{% elif ns_h.c >= 1 %}s-amber{% else %}s-green{% endif %}"></span></td>
+                  {% endfor %}
+                </tr>
+                <tr>
+                  <td>Deadlines</td>
+                  {% for t in topics %}
+                  {%- set ns_dl = namespace(c=0) -%}
+                  {%- for dl in deadlines -%}{%- if dl.topic == t.topic|lower -%}{%- set ns_dl.c = ns_dl.c + 1 -%}{%- endif -%}{%- endfor -%}
+                  <td><span class="status-dot {% if ns_dl.c >= 1 %}s-amber{% else %}s-none{% endif %}"></span></td>
+                  {% endfor %}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- What Changed Today (compact card) -->
+        {% if daily_changes %}
+        <div class="panel animate-in" id="section-changes" data-widget-id="changes" data-widget-label="What Changed Today" style="margin-bottom:12px;">
+          <span class="section-anchor" id="anchor-section-changes"></span>
+          <div class="panel-header">
+            <span class="panel-title">What Changed Today</span>
+            <span class="panel-badge">{{ daily_changes|length }}</span>
+          </div>
+          <div style="padding:4px 0;">
+            {% for ch in daily_changes %}
+            <div style="display:flex;align-items:flex-start;gap:8px;padding:6px 14px;border-bottom:1px solid var(--border-light);">
+              <div style="flex-shrink:0;padding-top:1px;">
+                {% if ch.change_type == 'urgency_spike' %}
+                  <span style="background:#fee2e2;color:#991b1b;padding:1px 5px;border-radius:2px;font-size: 13px;font-weight:700;letter-spacing:.04em;white-space:nowrap;">SPIKE</span>
+                {% elif ch.change_type == 'new_deadline' %}
+                  <span style="background:#fef3c7;color:#92400e;padding:1px 5px;border-radius:2px;font-size: 13px;font-weight:700;letter-spacing:.04em;white-space:nowrap;">DEADLINE</span>
+                {% elif ch.change_type == 'bill_change' %}
+                  <span style="background:#dbeafe;color:#1e40af;padding:1px 5px;border-radius:2px;font-size: 13px;font-weight:700;letter-spacing:.04em;white-space:nowrap;">BILL</span>
+                {% elif ch.change_type == 'new_bills' %}
+                  <span style="background:#e0e7ff;color:#3730a3;padding:1px 5px;border-radius:2px;font-size: 13px;font-weight:700;letter-spacing:.04em;white-space:nowrap;">BILLS</span>
+                {% else %}
+                  <span style="background:#d1fae5;color:#065f46;padding:1px 5px;border-radius:2px;font-size: 13px;font-weight:700;letter-spacing:.04em;white-space:nowrap;">UPDATE</span>
+                {% endif %}
+              </div>
+              <div style="flex:1;min-width:0;">
+                {% set ch_url = ch.detail.url if ch.detail and ch.detail.url else (ch.detail.source_url if ch.detail and ch.detail.source_url else '') %}
+                <div style="font-size: 13px;color:var(--text-primary);line-height:1.4;">
+                  {% if ch_url %}<a href="{{ ch_url }}" style="color:inherit;text-decoration:none;border-bottom:1px solid var(--border);">{{ ch.description }}</a>{% else %}{{ ch.description }}{% endif %}
+                </div>
+                {% if ch.topic %}<div style="font-size: 12px;color:var(--text-muted);margin-top:1px;">{{ ch.topic }}</div>{% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- PFAS Legislative Intel -->
+        {% if pfas_intel and pfas_intel.total_bills %}
+        <div class="panel animate-in" style="margin-bottom:12px;">
+          <div class="panel-header">
+            <span class="panel-title-accent">PFAS Legislative Intel</span>
+            {% if maps and maps.pfas_intel_url %}
+            <a href="{{ maps.pfas_intel_url }}" style="margin-left:auto; font-family:var(--mono); font-size: 12px; font-weight:600; color:var(--blue);">Full Map &rarr;</a>
+            {% endif %}
+          </div>
+          <div class="panel-body">
+            <div class="intel-header-row">
+              <div>
+                <div class="intel-big-num">{{ pfas_intel.total_bills }}</div>
+                <div class="intel-big-label">bills tracked</div>
+              </div>
+              <div style="margin-left:16px;">
+                <div class="intel-big-num">{{ pfas_intel.active_states }}</div>
+                <div class="intel-big-label">active states</div>
+              </div>
+              <div style="margin-left:16px;">
+                <div class="intel-big-num" style="color:var(--red);">{{ pfas_intel.relevance.high }}</div>
+                <div class="intel-big-label">high relevance</div>
+              </div>
+            </div>
+
+            <div class="chart-title">Bills by Legislative Stage</div>
+            {% for stage_name, stage_count in pfas_intel.stages %}
+            <div class="intel-stage-row">
+              <span class="intel-stage-label">{{ stage_name|replace('_', ' ') }}</span>
+              <div class="intel-stage-track">
+                <div class="intel-stage-fill" style="width:{{ (stage_count / (pfas_intel.active_states or 1) * 100)|int }}%; background:{% if stage_name in ['enacted_watching'] %}var(--green){% elif stage_name in ['advanced', 'passed_one'] %}var(--amber){% elif stage_name in ['committee', 'introduced'] %}var(--blue){% elif stage_name in ['rulemaking'] %}var(--red){% else %}var(--text-tertiary){% endif %};"></div>
+              </div>
+              <span class="intel-stage-val">{{ stage_count }}</span>
+            </div>
+            {% endfor %}
+
+            <div class="intel-relevance-row">
+              <div class="intel-rel-card" style="border-color:var(--red-border); background:var(--red-bg);">
+                <div class="intel-rel-num" style="color:var(--red);">{{ pfas_intel.relevance.high }}</div>
+                <div class="intel-rel-label">High</div>
+              </div>
+              <div class="intel-rel-card" style="border-color:var(--amber-border); background:var(--amber-bg);">
+                <div class="intel-rel-num" style="color:var(--amber);">{{ pfas_intel.relevance.medium }}</div>
+                <div class="intel-rel-label">Medium</div>
+              </div>
+              <div class="intel-rel-card" style="border-color:var(--green-border); background:var(--green-bg);">
+                <div class="intel-rel-num" style="color:var(--green);">{{ pfas_intel.relevance.low }}</div>
+                <div class="intel-rel-label">Low</div>
+              </div>
+            </div>
+
+            {% if pfas_intel.high_relevance_states %}
+            <div class="chart-title" style="margin-top:10px;">High Relevance States</div>
+            <div class="intel-states-list">
+              {% for st in pfas_intel.high_relevance_states %}
+              <a href="{{ maps.pfas_intel_url }}#{{ st.code }}" style="text-decoration:none;"><span class="intel-state-chip" title="{{ st.name }} — {{ st.bills }} bill(s), {{ st.stage }}">{{ st.code }}</span></a>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Interactive Maps -->
+        <div class="panel animate-in" id="section-maps" style="margin-bottom:12px;">
+          <span class="section-anchor" id="anchor-section-maps"></span>
+          <div class="panel-header">
+            <span class="panel-title">Interactive Maps</span>
+          </div>
+          <div style="padding:10px 14px;">
+            <div class="map-stack">
+              {% if maps and maps.pfas_map_url %}
+              <a class="map-link" href="{{ maps.pfas_map_url }}">
+                <div class="map-link-visual pfas"><div class="map-usa"></div></div>
+                <div class="map-link-info">
+                  <div class="map-link-title">PFAS State Map</div>
+                  <div class="map-link-desc">Legislation and regulatory activity by state</div>
+                </div>
+                <span class="map-link-arrow">&rarr;</span>
+              </a>
+              {% endif %}
+              {% if maps and maps.pfas_intel_url %}
+              <a class="map-link" href="{{ maps.pfas_intel_url }}">
+                <div class="map-link-visual intel"><div class="map-usa"></div></div>
+                <div class="map-link-info">
+                  <div class="map-link-title">PFAS Legislative Intel</div>
+                  <div class="map-link-desc">Forward-looking bill tracking and engagement</div>
+                </div>
+                <span class="map-link-arrow">&rarr;</span>
+              </a>
+              {% endif %}
+              {% if maps and maps.epr_map_url %}
+              <a class="map-link" href="{{ maps.epr_map_url }}">
+                <div class="map-link-visual epr"><div class="map-usa"></div></div>
+                <div class="map-link-info">
+                  <div class="map-link-title">EPR State Map</div>
+                  <div class="map-link-desc">Extended Producer Responsibility tracking</div>
+                </div>
+                <span class="map-link-arrow">&rarr;</span>
+              </a>
+              {% endif %}
+              {% if maps and maps.reach_map_url %}
+              <a class="map-link" href="{{ maps.reach_map_url }}">
+                <div class="map-link-visual reach"><div class="map-usa"></div></div>
+                <div class="map-link-info">
+                  <div class="map-link-title">REACH Map</div>
+                  <div class="map-link-desc">EU substance restrictions and timelines</div>
+                </div>
+                <span class="map-link-arrow">&rarr;</span>
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
         <!-- 28-Day Trends -->
         {% if trend_data and trend_data.days_with_data >= 2 %}
-        <div class="panel animate-in" style="margin-bottom:12px;">
+        <div class="panel animate-in" data-widget-id="trends" data-widget-label="28-Day Trends" style="margin-bottom:12px;">
           <div class="panel-header">
             <span class="panel-title">28-Day Trends</span>
             <span class="panel-badge">{{ trend_data.days_with_data }}d</span>
@@ -1741,13 +2187,13 @@
           <div class="panel-body" style="padding:8px 14px;">
             <!-- Total articles sparkline -->
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-              <span style="font-size:11px;color:var(--text-secondary);min-width:80px;">Total Articles</span>
+              <span style="font-size: 13px;color:var(--text-secondary);min-width:80px;">Total Articles</span>
               <div style="flex:1;margin:0 8px;">{{ sparklines.total|safe }}</div>
               <span style="font-size:12px;font-weight:600;color:var(--text-primary);min-width:24px;text-align:right;">{{ trend_data.total[-1] if trend_data.total else 0 }}</span>
             </div>
             <!-- HIGH urgency sparkline -->
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-              <span style="font-size:11px;color:var(--text-secondary);min-width:80px;">HIGH Urgency</span>
+              <span style="font-size: 13px;color:var(--text-secondary);min-width:80px;">HIGH Urgency</span>
               <div style="flex:1;margin:0 8px;">{{ sparklines.high|safe }}</div>
               <span style="font-size:12px;font-weight:600;color:var(--red);min-width:24px;text-align:right;">{{ trend_data.high[-1] if trend_data.high else 0 }}</span>
             </div>
@@ -1756,9 +2202,9 @@
               {% for topic, svg in sparklines.by_topic.items() %}
               {% if svg %}
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
-                <span style="font-size:10px;color:var(--text-muted);min-width:80px;">{{ topic }}</span>
+                <span style="font-size: 12px;color:var(--text-muted);min-width:80px;">{{ topic }}</span>
                 <div style="flex:1;margin:0 8px;">{{ svg|safe }}</div>
-                <span style="font-size:11px;color:var(--text-secondary);min-width:24px;text-align:right;">
+                <span style="font-size: 13px;color:var(--text-secondary);min-width:24px;text-align:right;">
                   {{ trend_data.by_topic[topic][-1] if trend_data.by_topic[topic] else 0 }}
                 </span>
               </div>
@@ -1770,65 +2216,118 @@
         </div>
         {% endif %}
 
-        <!-- Downloads & Timelines -->
-        <div class="panel" style="margin-bottom:12px;">
+        <!-- Bill Pipeline Funnel -->
+        {% if bill_funnel and bill_funnel.by_topic %}
+        <div class="panel animate-in" data-widget-id="bill-funnel" data-widget-label="Bill Pipeline Funnel" style="margin-bottom:12px;">
           <div class="panel-header">
-            <span class="panel-title">Downloads & Timelines</span>
+            <span class="panel-title">Bill Pipeline</span>
+            <span class="panel-badge">{{ bill_funnel.totals.total }} active</span>
+            <button class="expand-btn" onclick="openExpandModal('bill-funnel', 'Bill Pipeline — Full Breakdown')" title="Expand">&#x26F6;</button>
           </div>
-          <div class="panel-body">
+          <div class="panel-body" style="padding:8px 14px;">
+            {%- set stage_colors = {
+              "introduced": "var(--text-tertiary)",
+              "committee": "var(--blue)",
+              "passed_one": "var(--amber)",
+              "advanced": "var(--red)",
+              "enacted_watching": "var(--green)",
+              "rulemaking": "#8E44AD"
+            } -%}
+            {%- set max_total = bill_funnel.by_topic.values()|map(attribute='total')|max or 1 -%}
+
+            {% for topic_name, stages in bill_funnel.by_topic.items() %}
+            {%- set topic_color = topics|selectattr('topic','eq',topic_name)|map(attribute='color')|first or '#718096' -%}
+            <div style="margin-bottom:10px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
+                <span style="font-size: 12px;font-weight:700;color:{{ topic_color }};letter-spacing:.04em;">{{ topic_name }}</span>
+                <span style="font-size: 12px;color:var(--text-tertiary);font-family:var(--mono);">{{ stages.total }}</span>
+              </div>
+              <div style="display:flex;height:10px;border-radius:3px;overflow:hidden;background:var(--surface-sunken);">
+                {% for stage in bill_funnel.stage_order %}
+                {%- set cnt = stages[stage] or 0 -%}
+                {% if cnt > 0 %}
+                <div style="width:{{ (cnt / (max_total) * 100)|round(1) }}%;background:{{ stage_colors.get(stage, 'var(--border)') }};transition:width .3s;" title="{{ bill_funnel.stage_labels[stage] }}: {{ cnt }}"></div>
+                {% endif %}
+                {% endfor %}
+              </div>
+            </div>
+            {% endfor %}
+
+            <!-- Legend -->
+            <div style="display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);">
+              {% for stage in bill_funnel.stage_order %}
+              {% if bill_funnel.totals[stage] > 0 %}
+              <div style="display:flex;align-items:center;gap:4px;">
+                <span style="width:8px;height:8px;border-radius:2px;background:{{ stage_colors.get(stage, 'var(--border)') }};flex-shrink:0;display:inline-block;"></span>
+                <span style="font-size: 12px;color:var(--text-tertiary);">{{ bill_funnel.stage_labels[stage] }} <span style="font-family:var(--mono);color:var(--text-secondary);">{{ bill_funnel.totals[stage] }}</span></span>
+              </div>
+              {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Resources (collapsed) -->
+        <div class="panel" id="section-archive" data-widget-id="resources" data-widget-label="Resources">
+          <span class="section-anchor" id="anchor-section-archive"></span>
+          <div class="panel-header" style="cursor:pointer;" onclick="this.parentElement.classList.toggle('resources-open')">
+            <span class="panel-title">Resources</span>
+            <span style="margin-left:auto;font-family:var(--mono);font-size: 12px;color:var(--text-muted);">timelines &middot; exports &middot; archive</span>
+            <span class="resources-chevron" style="margin-left:8px;font-size: 13px;color:var(--text-muted);transition:transform .2s;display:inline-block;transform:rotate(90deg);">&#9654;</span>
+          </div>
+          <div class="resources-body" style="display:block;">
             {% if timelines %}
-            <div class="chart-title">Regulatory Timelines</div>
-            <div class="timeline-links" style="margin-bottom:12px;">
-              {% if timelines.all %}<a class="tl-link" href="{{ timelines.all }}" target="_blank">All Topics</a>{% endif %}
-              {% if timelines.pfas %}<a class="tl-link" href="{{ timelines.pfas }}" target="_blank">PFAS</a>{% endif %}
-              {% if timelines.epr %}<a class="tl-link" href="{{ timelines.epr }}" target="_blank">EPR</a>{% endif %}
-              {% if timelines.reach %}<a class="tl-link" href="{{ timelines.reach }}" target="_blank">REACH</a>{% endif %}
-              {% if timelines.tsca %}<a class="tl-link" href="{{ timelines.tsca }}" target="_blank">TSCA</a>{% endif %}
+            <div style="padding:8px 14px 0;">
+              <div class="chart-title">Regulatory Timelines</div>
+              <div class="timeline-links" style="margin-bottom:8px;">
+                {% if timelines.all %}<a class="tl-link" href="{{ timelines.all }}">All Topics</a>{% endif %}
+                {% if timelines.pfas %}<a class="tl-link" href="{{ timelines.pfas }}">PFAS</a>{% endif %}
+                {% if timelines.epr %}<a class="tl-link" href="{{ timelines.epr }}">EPR</a>{% endif %}
+                {% if timelines.reach %}<a class="tl-link" href="{{ timelines.reach }}">REACH</a>{% endif %}
+                {% if timelines.tsca %}<a class="tl-link" href="{{ timelines.tsca }}">TSCA</a>{% endif %}
+              </div>
             </div>
             {% endif %}
 
             {% if downloads %}
-            <div class="chart-title">Data Exports</div>
-            <div class="downloads-row">
-              {% if downloads.pfas_xlsx %}<a class="dl-link" href="{{ downloads.pfas_xlsx }}" target="_blank">PFAS .xlsx</a>{% endif %}
-              {% if downloads.epr_xlsx %}<a class="dl-link" href="{{ downloads.epr_xlsx }}" target="_blank">EPR .xlsx</a>{% endif %}
-              {% if downloads.reach_xlsx %}<a class="dl-link" href="{{ downloads.reach_xlsx }}" target="_blank">REACH .xlsx</a>{% endif %}
+            <div style="padding:0 14px 8px;">
+              <div class="chart-title">Data Exports</div>
+              <div class="downloads-row">
+                {% if downloads.pfas_xlsx %}<a class="dl-link" href="{{ downloads.pfas_xlsx }}">PFAS .xlsx</a>{% endif %}
+                {% if downloads.epr_xlsx %}<a class="dl-link" href="{{ downloads.epr_xlsx }}">EPR .xlsx</a>{% endif %}
+                {% if downloads.reach_xlsx %}<a class="dl-link" href="{{ downloads.reach_xlsx }}">REACH .xlsx</a>{% endif %}
+              </div>
             </div>
             {% endif %}
 
             {% if calendar_url %}
-            <div style="margin-top:10px;">
-              <a class="dl-link" href="{{ calendar_url }}" target="_blank">Subscribe .ics Calendar</a>
+            <div style="padding:0 14px 8px;">
+              <a class="dl-link" href="{{ calendar_url }}">Subscribe .ics Calendar</a>
             </div>
             {% endif %}
-          </div>
-        </div>
 
-        <!-- Archive -->
-        <div class="panel" id="section-archive">
-          <span class="section-anchor" id="anchor-section-archive"></span>
-          <div class="panel-header">
-            <span class="panel-title">Archive</span>
-          </div>
-          <div style="padding:8px 14px;">
             {% if archive_weeks %}
-            <ul class="archive-list">
-              {% for week in archive_weeks %}
-              <li class="archive-item">
-                <span class="archive-week">{{ week.label }}</span>
-                <div class="archive-links">
-                  {% if week.newsletter_url %}
-                  <a class="archive-link" href="{{ week.newsletter_url }}" target="_blank">Newsletter</a>
-                  {% endif %}
-                  {% if week.weekly_briefing_url %}
-                  <a class="archive-link" href="{{ week.weekly_briefing_url }}" target="_blank">Briefing</a>
-                  {% endif %}
-                </div>
-              </li>
-              {% endfor %}
-            </ul>
+            <div style="padding:0 14px 8px;border-top:1px solid var(--border-light);margin-top:4px;">
+              <div class="chart-title" style="padding-top:8px;">Newsletter Archive</div>
+              <ul class="archive-list">
+                {% for week in archive_weeks %}
+                <li class="archive-item">
+                  <span class="archive-week">{{ week.label }}</span>
+                  <div class="archive-links">
+                    {% if week.newsletter_url %}
+                    <a class="archive-link" href="{{ week.newsletter_url }}">Newsletter</a>
+                    {% endif %}
+                    {% if week.weekly_briefing_url %}
+                    <a class="archive-link" href="{{ week.weekly_briefing_url }}">Briefing</a>
+                    {% endif %}
+                  </div>
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
             {% else %}
-            <div class="no-articles">No archived briefings yet.</div>
+            <div style="padding:8px 14px;"><div class="no-articles">No archived briefings yet.</div></div>
             {% endif %}
           </div>
         </div>
@@ -1836,7 +2335,47 @@
 
     </div><!-- .grid-main -->
 
+    <!-- Floating "show sidebar" button (only visible when sidebar is hidden) -->
+    <button class="sidebar-show-btn" id="sidebar-show-btn" onclick="toggleSidebarPanel()" style="display:none;">show sidebar</button>
+
+    <!-- ────── REGULATORY CALENDAR ────── -->
+    {% if deadlines %}
+    <div class="panel animate-in" id="section-calendar" data-widget-id="reg-calendar" data-widget-label="Regulatory Calendar" style="margin-top:16px;">
+      <span class="section-anchor" id="anchor-section-calendar"></span>
+      <div class="panel-header">
+        <span class="panel-title-accent">Regulatory Calendar</span>
+        <span class="panel-badge">{{ deadlines|length }} deadlines</span>
+        <div class="cal-nav" style="margin-left:auto;">
+          <button class="cal-nav-btn" onclick="calNav(-1)" title="Previous month">&lsaquo;</button>
+          <span class="cal-month-label" id="cal-month-label"></span>
+          <button class="cal-nav-btn" onclick="calNav(+1)" title="Next month">&rsaquo;</button>
+          <button class="cal-nav-btn" onclick="calNav(0)" title="Today" style="width:auto;padding:0 8px;font-size: 12px;font-weight:700;letter-spacing:.04em;">TODAY</button>
+        </div>
+      </div>
+      <div class="panel-body" style="padding:10px 14px 0;">
+        <div class="cal-grid" id="cal-grid"></div>
+        <div class="cal-detail" id="cal-detail">
+          <span class="cal-detail-empty">Click a day to see deadlines</span>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
   </div><!-- .dashboard -->
+
+  <!-- ── Dev Tools Footer ── -->
+  <div style="border-top:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:16px;font-size: 13px;color:var(--text-tertiary);">
+    <span>Last updated: {{ run_timestamp }}</span>
+    <span style="flex:1;"></span>
+    <a href="director_review.html"       style="color:var(--text-tertiary);text-decoration:none;border:1px solid var(--border);padding:4px 10px;border-radius:4px;font-family:var(--mono);font-size: 12px;font-weight:600;letter-spacing:.04em;"
+       title="Latest director critique">Director Review</a>
+    <a href="director_reviews/index.html"       style="color:var(--text-tertiary);text-decoration:none;border:1px solid var(--border);padding:4px 10px;border-radius:4px;font-family:var(--mono);font-size: 12px;font-weight:600;letter-spacing:.04em;"
+       title="Archived director reviews">Review Archive</a>
+    <a href="cross_state_report.html"       style="color:var(--text-tertiary);text-decoration:none;border:1px solid var(--border);padding:4px 10px;border-radius:4px;font-family:var(--mono);font-size: 12px;font-weight:600;letter-spacing:.04em;"
+       title="Weekly cross-state legislative pattern analysis">Cross-State Report</a>
+    <a href="glossary.html"       style="color:var(--text-tertiary);text-decoration:none;border:1px solid var(--border);padding:4px 10px;border-radius:4px;font-family:var(--mono);font-size: 12px;font-weight:600;letter-spacing:.04em;"
+       title="Regulatory abbreviation dictionary">Glossary</a>
+  </div>
 </main>
 
 <script>
@@ -1852,6 +2391,18 @@
 
   window.toggleSidebar = function() {
     document.getElementById('sidebar').classList.toggle('open');
+  };
+
+  window.toggleSidebarPanel = function() {
+    var gridMain = document.querySelector('.grid-main');
+    if (!gridMain) return;
+    var hidden = gridMain.classList.toggle('sidebar-hidden');
+    var btn = document.getElementById('sidebar-collapse-btn');
+    if (btn) {
+      btn.style.cssText = hidden ? 'display:none' : '';
+    }
+    var showBtn = document.getElementById('sidebar-show-btn');
+    if (showBtn) showBtn.style.display = hidden ? 'block' : 'none';
   };
 
   window.scrollToSection = function(id) {
@@ -1884,18 +2435,81 @@
     }
   });
 
-  /* ── Exec summary toggle ── */
+  /* ── Sidebar toggle (persisted) ── */
+  window.toggleSidebarPersist = function() {
+    document.body.classList.toggle('sidebar-collapsed');
+    localStorage.setItem('sidebarCollapsed', document.body.classList.contains('sidebar-collapsed') ? '1' : '0');
+  };
+  // Restore sidebar state on load
+  (function() {
+    if (localStorage.getItem('sidebarCollapsed') === '1') {
+      document.body.classList.add('sidebar-collapsed');
+    }
+  })();
+
+  /* ── Exec summary toggle (persisted) ── */
   window.toggleExec = function() {
     var panel = document.getElementById('exec-panel');
     panel.classList.toggle('exec-collapsed');
     var label = panel.querySelector('.exec-toggle-label');
-    if (label) label.textContent = panel.classList.contains('exec-collapsed') ? 'expand' : 'collapse';
+    var isCollapsed = panel.classList.contains('exec-collapsed');
+    if (label) label.textContent = isCollapsed ? 'expand' : 'collapse';
+    localStorage.setItem('execCollapsed', isCollapsed ? '1' : '0');
   };
+  // Restore exec state — default open
+  (function() {
+    if (localStorage.getItem('execCollapsed') === '1') {
+      var panel = document.getElementById('exec-panel');
+      if (panel) {
+        panel.classList.add('exec-collapsed');
+        var label = panel.querySelector('.exec-toggle-label');
+        if (label) label.textContent = 'expand';
+      }
+    }
+  })();
+
+  /* ── Deadlines toggle (persisted) ── */
+  window.toggleDeadlines = function() {
+    var panel = document.getElementById('section-deadlines');
+    panel.classList.toggle('deadlines-collapsed');
+    var label = panel.querySelector('.dl-toggle-label');
+    var isCollapsed = panel.classList.contains('deadlines-collapsed');
+    if (label) label.textContent = isCollapsed ? 'expand' : 'collapse';
+    localStorage.setItem('deadlinesCollapsed', isCollapsed ? '1' : '0');
+  };
+  // Restore deadlines state — default collapsed
+  (function() {
+    var panel = document.getElementById('section-deadlines');
+    if (!panel) return;
+    var stored = localStorage.getItem('deadlinesCollapsed');
+    // Default is collapsed (stored null = first visit = collapsed)
+    if (stored === '0') {
+      panel.classList.remove('deadlines-collapsed');
+      var label = panel.querySelector('.dl-toggle-label');
+      if (label) label.textContent = 'collapse';
+    }
+  })();
 
   /* ── Topic Card expand/collapse ── */
   window.toggleTopicCard = function(card, e) {
     if (e.target.tagName === 'A') return;
     card.classList.toggle('expanded');
+  };
+
+  /* Expand a specific topic card and scroll to it (used by cmd-strip chips) */
+  window.expandTopic = function(topicName) {
+    var card = document.getElementById('section-' + topicName);
+    if (!card) return;
+    // Expand if not already expanded
+    if (!card.classList.contains('expanded')) {
+      card.classList.add('expanded');
+    }
+    // Scroll into view with a small offset for the topbar
+    setTimeout(function() {
+      var rect = card.getBoundingClientRect();
+      var offset = rect.top + window.scrollY - 70;
+      window.scrollTo({ top: offset, behavior: 'smooth' });
+    }, 30);
   };
 
   /* ── Search ── */
@@ -1909,6 +2523,17 @@
     btn.classList.toggle('active');
     if (state.activeTopics.has(topic)) { state.activeTopics.delete(topic); }
     else { state.activeTopics.add(topic); }
+    applyFilters();
+  };
+
+  /* ── Set single topic filter (used by cmd-strip chips) ── */
+  window.setTopicFilter = function(topic) {
+    state.activeTopics = new Set([topic]);
+    document.querySelectorAll('.f-btn.topic-f').forEach(function(btn) {
+      var t = btn.dataset.topic;
+      if (t === topic) { btn.classList.add('active'); }
+      else { btn.classList.remove('active'); }
+    });
     applyFilters();
   };
 
@@ -2009,10 +2634,309 @@
     }
     if (e.key === 'Escape') {
       document.getElementById('search-input').blur();
+      closeCustomize();
     }
   });
 
   updateActiveRailLink();
+
+  /* ── Regulatory Calendar ── */
+  (function() {
+    // Deadlines serialized from Jinja2
+    var DEADLINES = {{ deadlines | tojson }};
+    if (!DEADLINES || !DEADLINES.length) return;
+
+    // Topic colors from Jinja2
+    var TOPIC_COLORS = {};
+    {% for t in topics %}TOPIC_COLORS['{{ t.topic|lower }}'] = '{{ t.color }}';{% endfor %}
+
+    var URGENCY_COLORS = { HIGH: '#D63031', MEDIUM: '#CB7B0A', LOW: '#0F7B3F' };
+    var DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    var MONTHS = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+
+    // Build lookup: "YYYY-MM-DD" → [deadline, ...]
+    var byDate = {};
+    DEADLINES.forEach(function(dl) {
+      var d = dl.deadline_date;
+      if (!d) return;
+      if (!byDate[d]) byDate[d] = [];
+      byDate[d].push(dl);
+    });
+
+    var today = new Date();
+    var curYear = today.getFullYear();
+    var curMonth = today.getMonth(); // 0-based
+
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    function dateKey(y, m, d) { return y + '-' + pad(m + 1) + '-' + pad(d); }
+    function dotColor(dl) {
+      return URGENCY_COLORS[dl.urgency] || TOPIC_COLORS[(dl.topic||'').toLowerCase()] || '#718096';
+    }
+
+    function renderCalendar(year, month) {
+      var label = document.getElementById('cal-month-label');
+      var grid  = document.getElementById('cal-grid');
+      var detail = document.getElementById('cal-detail');
+      if (!label || !grid) return;
+
+      label.textContent = MONTHS[month] + ' ' + year;
+      detail.innerHTML = '<span class="cal-detail-empty">Click a day to see deadlines</span>';
+
+      var html = '';
+      // Day-of-week headers
+      DAYS.forEach(function(d) {
+        html += '<div class="cal-dow">' + d + '</div>';
+      });
+
+      var first = new Date(year, month, 1).getDay(); // 0=Sun
+      var daysInMonth = new Date(year, month + 1, 0).getDate();
+      var daysInPrev  = new Date(year, month, 0).getDate();
+
+      // Prev-month fill
+      for (var i = 0; i < first; i++) {
+        var pDay = daysInPrev - first + i + 1;
+        html += '<div class="cal-day other-month"><div class="cal-day-num">' + pDay + '</div></div>';
+      }
+
+      // Current month
+      for (var d = 1; d <= daysInMonth; d++) {
+        var key = dateKey(year, month, d);
+        var dls = byDate[key] || [];
+        var isToday = (year === today.getFullYear() && month === today.getMonth() && d === today.getDate());
+        var cls = 'cal-day' + (isToday ? ' today' : '') + (dls.length ? ' has-deadlines' : '');
+        var dots = dls.map(function(dl) {
+          return '<span class="cal-dot" style="background:' + dotColor(dl) + ';" title="' + dl.title + '"></span>';
+        }).join('');
+        html += '<div class="' + cls + '" onclick="calSelectDay(\'' + key + '\')">' +
+          '<div class="cal-day-num">' + d + '</div>' +
+          (dots ? '<div class="cal-dots">' + dots + '</div>' : '') +
+          '</div>';
+      }
+
+      // Next-month fill to complete the grid
+      var total = first + daysInMonth;
+      var remainder = total % 7 === 0 ? 0 : 7 - (total % 7);
+      for (var n = 1; n <= remainder; n++) {
+        html += '<div class="cal-day other-month"><div class="cal-day-num">' + n + '</div></div>';
+      }
+
+      grid.innerHTML = html;
+    }
+
+    window.calNav = function(dir) {
+      if (dir === 0) { curYear = today.getFullYear(); curMonth = today.getMonth(); }
+      else {
+        curMonth += dir;
+        if (curMonth < 0)  { curMonth = 11; curYear--; }
+        if (curMonth > 11) { curMonth = 0;  curYear++; }
+      }
+      renderCalendar(curYear, curMonth);
+    };
+
+    window.calSelectDay = function(key) {
+      var detail = document.getElementById('cal-detail');
+      var dls = byDate[key] || [];
+      if (!dls.length) {
+        detail.innerHTML = '<span class="cal-detail-empty">No deadlines on ' + key + '</span>';
+        return;
+      }
+      var html = '';
+      dls.forEach(function(dl) {
+        var color = dotColor(dl);
+        var titleHtml = dl.source_url
+          ? '<a href="' + dl.source_url + '" style="color:inherit;text-decoration:none;border-bottom:1px solid rgba(0,0,0,.2);">' + dl.title + '</a>'
+          : dl.title;
+        html += '<div class="cal-detail-item">' +
+          '<span class="cal-detail-dot" style="background:' + color + ';"></span>' +
+          '<div class="cal-detail-body">' +
+            '<div class="cal-detail-title">' + titleHtml + '</div>' +
+            '<div class="cal-detail-meta">' +
+              (dl.jurisdiction ? dl.jurisdiction + ' &middot; ' : '') +
+              (dl.topic || '') +
+              (dl.days_until !== undefined && dl.days_until !== null ? ' &middot; <strong>' + dl.days_until + 'd</strong>' : '') +
+            '</div>' +
+          '</div></div>';
+      });
+      detail.innerHTML = html;
+    };
+
+    // Find the first month that has deadlines on or after today — start there
+    var todayKey = today.getFullYear() + '-' + pad(today.getMonth()+1) + '-' + pad(today.getDate());
+    var futureKeys = Object.keys(byDate).filter(function(k) { return k >= todayKey; }).sort();
+    if (futureKeys.length) {
+      var firstFuture = futureKeys[0];
+      var parts = firstFuture.split('-');
+      curYear  = parseInt(parts[0], 10);
+      curMonth = parseInt(parts[1], 10) - 1;
+    }
+
+    renderCalendar(curYear, curMonth);
+  })();
+
+  /* ── Widget Customization ── */
+  var WIDGET_PREFS_KEY = 'compliance_widget_prefs';
+
+  // All widgets with defaults — true = visible
+  var WIDGETS = [
+    { id: 'cmd-strip', label: 'Topic Command Strip', group: 'Top Row', default: true },
+    { id: 'top-grid',  label: 'Intelligence Overview', group: 'Top Row',      default: true },
+    { id: 'changes',   label: 'What Changed Today',    group: 'Top Row',      default: true },
+    { id: 'exec',       label: 'Executive Briefing',       group: 'Main Content', default: true },
+    { id: 'reg-status', label: 'Regulation Status Cards',  group: 'Main Content', default: true },
+    { id: 'deadlines',  label: 'Upcoming Deadlines',       group: 'Main Content', default: true },
+    { id: 'topics',     label: 'Topic Cards',              group: 'Main Content', default: true },
+    { id: 'feed',         label: 'All Articles Feed',     group: 'Main Content', default: true },
+    { id: 'reg-calendar', label: 'Regulatory Calendar',  group: 'Main Content', default: true },
+    { id: 'trends',     label: '28-Day Trends',         group: 'Sidebar',      default: true },
+    { id: 'bill-funnel', label: 'Bill Pipeline Funnel', group: 'Sidebar',     default: true },
+    { id: 'downloads',     label: 'Downloads & Timelines', group: 'Sidebar', default: true },
+    { id: 'archive',       label: 'Newsletter Archive',   group: 'Sidebar', default: true },
+  ];
+
+  function loadWidgetPrefs() {
+    try {
+      var saved = localStorage.getItem(WIDGET_PREFS_KEY);
+      return saved ? JSON.parse(saved) : {};
+    } catch(e) { return {}; }
+  }
+
+  function saveWidgetPrefs(prefs) {
+    try { localStorage.setItem(WIDGET_PREFS_KEY, JSON.stringify(prefs)); } catch(e) {}
+  }
+
+  function applyWidgetPrefs(prefs) {
+    WIDGETS.forEach(function(w) {
+      var visible = prefs.hasOwnProperty(w.id) ? prefs[w.id] : w.default;
+      var el = document.querySelector('[data-widget-id="' + w.id + '"]');
+      if (el) {
+        if (visible) { el.classList.remove('widget-hidden'); }
+        else { el.classList.add('widget-hidden'); }
+      }
+    });
+  }
+
+  function buildDrawerUI(prefs) {
+    var body = document.getElementById('drawer-body');
+    if (!body) return;
+    var groups = {};
+    WIDGETS.forEach(function(w) {
+      if (!groups[w.group]) groups[w.group] = [];
+      groups[w.group].push(w);
+    });
+    var html = '';
+    Object.keys(groups).forEach(function(group) {
+      html += '<div class="drawer-section-label">' + group + '</div>';
+      groups[group].forEach(function(w) {
+        // skip widgets that don't exist in the DOM (conditional Jinja blocks)
+        var el = document.querySelector('[data-widget-id="' + w.id + '"]');
+        if (!el) return;
+        var checked = prefs.hasOwnProperty(w.id) ? prefs[w.id] : w.default;
+        html += '<div class="widget-row">' +
+          '<label class="widget-toggle">' +
+            '<input type="checkbox"' + (checked ? ' checked' : '') +
+              ' onchange="toggleWidget(\'' + w.id + '\', this.checked)">' +
+            '<span class="widget-toggle-track"></span>' +
+            '<span class="widget-toggle-thumb"></span>' +
+          '</label>' +
+          '<span class="widget-label">' + w.label + '</span>' +
+        '</div>';
+      });
+    });
+    body.innerHTML = html;
+  }
+
+  window.toggleWidget = function(id, visible) {
+    var prefs = loadWidgetPrefs();
+    prefs[id] = visible;
+    saveWidgetPrefs(prefs);
+    applyWidgetPrefs(prefs);
+  };
+
+  window.openCustomize = function() {
+    var prefs = loadWidgetPrefs();
+    buildDrawerUI(prefs);
+    document.getElementById('customize-drawer').classList.add('open');
+    document.getElementById('customize-overlay').classList.add('open');
+  };
+
+  window.closeCustomize = function() {
+    document.getElementById('customize-drawer').classList.remove('open');
+    document.getElementById('customize-overlay').classList.remove('open');
+  };
+
+  window.resetWidgets = function() {
+    saveWidgetPrefs({});
+    applyWidgetPrefs({});
+    buildDrawerUI({});
+  };
+
+  // Apply saved prefs on load
+  (function() {
+    var prefs = loadWidgetPrefs();
+    applyWidgetPrefs(prefs);
+  })();
+
+})();
+</script>
+
+<script>
+/* ── Expand Modal ─────────────────────────────────────────── */
+(function() {
+  window.openExpandModal = function(widgetId, title) {
+    var overlay = document.getElementById('expand-modal-overlay');
+    var body    = document.getElementById('expand-modal-body');
+    var titleEl = document.getElementById('expand-modal-title');
+
+    // Find the widget panel
+    var panel = document.querySelector('[data-widget-id="' + widgetId + '"]');
+    if (!panel) { alert('Widget not found'); return; }
+
+    // Clone the panel-body content (first child with class panel-body, or any direct content)
+    var src = panel.querySelector('.panel-body') || panel.querySelector('[style*="padding"]');
+    if (!src) {
+      // Fall back: clone everything except the header
+      src = panel;
+    }
+    var clone = src.cloneNode(true);
+
+    // Remove expand buttons from cloned content so they don't nest
+    clone.querySelectorAll('.expand-btn').forEach(function(btn) { btn.remove(); });
+
+    // Widen any fixed-height containers in the clone
+    clone.style.maxHeight = 'none';
+    clone.style.overflow = 'visible';
+
+    titleEl.textContent = title;
+    body.innerHTML = '';
+    body.appendChild(clone);
+
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeExpandModal = function(e) {
+    if (e && e.target !== document.getElementById('expand-modal-overlay')) return;
+    document.getElementById('expand-modal-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  // Also allow calling without event (from close button)
+  var origClose = window.closeExpandModal;
+  window.closeExpandModal = function(e) {
+    if (!e || e.target === document.getElementById('expand-modal-overlay')) {
+      document.getElementById('expand-modal-overlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  };
+
+  // Escape key closes modal
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.getElementById('expand-modal-overlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  });
 })();
 </script>
 

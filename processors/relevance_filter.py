@@ -22,9 +22,19 @@ def keyword_filter(articles: List[RawArticle]) -> List[RawArticle]:
     """
     Keep articles where title or snippet contains at least one keyword
     for the article's assigned topic.
+
+    Articles from topic-specific scrapers (Prop65, ConflictMinerals, ForcedLabor)
+    bypass the keyword check — their content is pre-classified by the scraper.
     """
+    # These scrapers already guarantee topic relevance; their content often lacks
+    # the keyword terms (e.g. CA AG 60-day notice filings, SEC Form SD numbers).
+    _TRUSTED_TOPICS = {"Prop65", "ConflictMinerals", "ForcedLabor"}
+
     result = []
     for article in articles:
+        if article.topic in _TRUSTED_TOPICS:
+            result.append(article)
+            continue
         keywords = _KEYWORDS.get(article.topic, [])
         haystack = (article.title + " " + article.snippet).lower()
         if any(kw in haystack for kw in keywords):

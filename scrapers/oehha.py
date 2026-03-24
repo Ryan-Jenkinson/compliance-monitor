@@ -1,8 +1,17 @@
-"""OEHHA Proposition 65 scraper — new listings, safe harbor updates, settlements."""
+"""OEHHA / Proposition 65 scraper.
+
+OEHHA's own website uses JS rendering (returns ~843 bytes). We scrape
+the California AG Prop 65 portal instead, which returns full HTML:
+  - oag.ca.gov/prop65/60-day-notice-search-results  (recent 60-day notices)
+  - oag.ca.gov/prop65                                (general news/updates)
+
+Additionally monitor Federal Register for Prop 65-related notices.
+"""
 from __future__ import annotations
 import logging
 from datetime import datetime, timezone
 from typing import List
+from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
@@ -12,35 +21,31 @@ from processors.article import RawArticle
 
 logger = logging.getLogger(__name__)
 
-_BASE = "https://oehha.ca.gov"
+_HEADERS = {"User-Agent": "Mozilla/5.0 ComplianceMonitor/1.0"}
+_CA_AG_BASE = "https://oag.ca.gov"
 
-_FEEDS = [
-    # What's new on OEHHA
+_PAGES = [
     {
-        "url": "https://oehha.ca.gov/rss/oehha-news.xml",
-        "source": "OEHHA",
+        "url": "https://oag.ca.gov/prop65/60-day-notice-search-results",
+        "source": "CA AG — Prop 65 60-Day Notices",
         "topic": "Prop65",
+        "selector": ".views-row",
+        "filter_keywords": [],  # All items here are 60-day notices
     },
-    # Prop 65 news specifically
     {
-        "url": "https://oehha.ca.gov/rss/proposition-65-news.xml",
-        "source": "OEHHA Prop 65",
+        "url": "https://oag.ca.gov/prop65",
+        "source": "CA AG — Prop 65",
         "topic": "Prop65",
+        "selector": "article, .views-row, h2 a, h3 a",
+        "filter_keywords": ["proposition 65", "prop 65", "chemical", "listing",
+                            "settlement", "notice", "warning", "oehha"],
     },
 ]
 
-# Fallback HTML pages if RSS is unavailable
-_PAGES = [
-    {
-        "url": "https://oehha.ca.gov/proposition-65/new-proposition-65-listings",
-        "source": "OEHHA — New Listings",
-        "topic": "Prop65",
-    },
-    {
-        "url": "https://oehha.ca.gov/proposition-65/public-comments",
-        "source": "OEHHA — Public Comments",
-        "topic": "Prop65",
-    },
+_PROP65_KEYWORDS = [
+    "proposition 65", "prop 65", "oehha", "safe harbor", "60-day notice",
+    "chemical listing", "settlement", "warning label", "nsrl", "madl",
+    "carcinogen", "reproductive toxicant", "california chemical",
 ]
 
 
@@ -51,82 +56,69 @@ class OEHHAScraper(BaseScraper):
         articles = []
         seen_urls: set[str] = set()
 
-        # Try RSS feeds first
-        for feed in _FEEDS:
+        for page in _PAGES:
             try:
-                items = self._fetch_rss(feed["url"], feed["source"], feed["topic"])
+                items = self._scrape_page(
+                    page["url"], page["source"], page["topic"],
+                    page["selector"], page.get("filter_keywords", [])
+                )
                 for a in items:
                     if a.url not in seen_urls:
                         seen_urls.add(a.url)
                         articles.append(a)
             except Exception as e:
-                logger.warning(f"[oehha] RSS feed {feed['url']} failed: {e}")
-
-        # If RSS gave nothing, fall back to HTML scraping
-        if not articles:
-            for page in _PAGES:
-                try:
-                    items = self._scrape_page(page["url"], page["source"], page["topic"])
-                    for a in items:
-                        if a.url not in seen_urls:
-                            seen_urls.add(a.url)
-                            articles.append(a)
-                except Exception as e:
-                    logger.warning(f"[oehha] Page {page['url']} failed: {e}")
+                logger.warning(f"[oehha] Page {page['url']} failed: {e}")
 
         return articles
 
-    def _fetch_rss(self, url: str, source: str, topic: str) -> List[RawArticle]:
-        import feedparser
-        feed = feedparser.parse(url)
-        articles = []
-        for entry in feed.entries:
-            pub = entry.get("published_parsed") or entry.get("updated_parsed")
-            if pub:
-                dt = datetime(*pub[:6], tzinfo=timezone.utc)
-                if dt < self.since:
-                    continue
-            else:
-                dt = datetime.now(timezone.utc)
-
-            article_url = entry.get("link", "")
-            title = entry.get("title", "")
-            summary = entry.get("summary", "") or entry.get("description", "")
-            # Strip HTML from summary
-            if "<" in summary:
-                summary = BeautifulSoup(summary, "html.parser").get_text(" ", strip=True)
-
-            articles.append(RawArticle(
-                id=self.url_id(article_url),
-                title=title,
-                url=article_url,
-                source=source,
-                topic=topic,
-                snippet=summary[:500],
-                published_at=dt,
-            ))
-        return articles
-
-    def _scrape_page(self, url: str, source: str, topic: str) -> List[RawArticle]:
-        resp = requests.get(url, timeout=15, headers={"User-Agent": "ComplianceMonitor/1.0"})
+    def _scrape_page(self, url: str, source: str, topic: str,
+                     selector: str, filter_keywords: list[str]) -> List[RawArticle]:
+        resp = requests.get(url, timeout=20, headers=_HEADERS)
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "html.parser")
         articles = []
 
-        # Look for article/news links in main content
-        for item in soup.select("article, .views-row, .node--type-news, li.views-row"):
-            a_tag = item.find("a", href=True)
+        items = soup.select(selector)
+
+        if not items:
+            # Fallback: all links in main content
+            main = soup.select_one("main, #main-content, .region-content, .content")
+            if main:
+                items = main.find_all("a", href=True)
+
+        for item in items[:30]:
+            # Handle both container elements and direct <a> tags
+            if item.name == "a":
+                a_tag = item
+            else:
+                a_tag = item.find("a", href=True)
+
             if not a_tag:
                 continue
-            href = a_tag["href"]
+
+            href = a_tag.get("href", "")
+            if not href or "javascript:" in href or "mailto:" in href:
+                continue
             if not href.startswith("http"):
-                href = _BASE + href
+                href = urljoin(url, href)
 
             title = a_tag.get_text(strip=True)
-            if not title or len(title) < 10:
+            # For 60-day notices, build a richer title from the row
+            if "60-day" in source.lower() or "notice" in source.lower():
+                row_text = item.get_text(" ", strip=True) if hasattr(item, 'get_text') else title
+                # Extract filing details: "AG Number YYYY-XXXXX ... Date Filed: MM/DD"
+                if row_text and len(row_text) > len(title):
+                    title = row_text[:120].strip()
+
+            if not title or len(title) < 8:
                 continue
 
-            snippet = item.get_text(" ", strip=True)[:400]
+            snippet = item.get_text(" ", strip=True)[:400] if hasattr(item, 'get_text') else title
+
+            if filter_keywords:
+                text = (title + " " + snippet).lower()
+                if not any(kw.lower() in text for kw in filter_keywords):
+                    continue
 
             articles.append(RawArticle(
                 id=self.url_id(href),
@@ -138,4 +130,11 @@ class OEHHAScraper(BaseScraper):
                 published_at=datetime.now(timezone.utc),
             ))
 
-        return articles
+        # Deduplicate
+        seen: set[str] = set()
+        unique = []
+        for a in articles:
+            if a.url not in seen:
+                seen.add(a.url)
+                unique.append(a)
+        return unique[:20]

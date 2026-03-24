@@ -33,13 +33,17 @@ _STATE_ABBR: Dict[str, str] = {
 }
 
 _TOPIC_COLORS: Dict[str, str] = {
-    "pfas":  "#D64045",
-    "tsca":  "#7A9EB5",
-    "epr":   "#4A9062",
-    "reach": "#9E8540",
+    "pfas":             "#D64045",
+    "tsca":             "#7A9EB5",
+    "epr":              "#4A9062",
+    "reach":            "#9E8540",
+    "prop65":           "#8B4513",
+    "conflictminerals": "#5B4A72",
+    "forcedlabor":      "#2C5F6E",
 }
 _TOPIC_LABELS: Dict[str, str] = {
     "pfas": "PFAS", "tsca": "TSCA", "epr": "EPR", "reach": "REACH",
+    "prop65": "Prop 65", "conflictminerals": "Conflict Minerals", "forcedlabor": "Forced Labor",
 }
 _URGENCY_CFG: Dict[str, Dict[str, str]] = {
     "HIGH":   {"bg": "#3A1A1E", "border": "#7A3030", "text": "#F08080", "end": "#D64045"},
@@ -80,6 +84,30 @@ _TOPIC_CFG: Dict = {
         "filename": "tsca-timeline.html",
         "show_all_states": False,
         "back_links": [(f"{_PAGES_BASE}/index.html", "← PFAS Map")],
+    },
+    "prop65": {
+        "page_title": "Prop 65 Regulatory Deadline Timeline",
+        "eyebrow": "California Proposition 65",
+        "accent": "#8B4513",
+        "filename": "prop65-timeline.html",
+        "show_all_states": False,
+        "back_links": [],
+    },
+    "conflictminerals": {
+        "page_title": "Conflict Minerals Compliance Timeline",
+        "eyebrow": "SEC Dodd-Frank Section 1502 / Conflict Minerals",
+        "accent": "#5B4A72",
+        "filename": "conflict-minerals-timeline.html",
+        "show_all_states": False,
+        "back_links": [],
+    },
+    "forcedlabor": {
+        "page_title": "Forced Labor & Supply Chain Timeline",
+        "eyebrow": "UFLPA / Forced Labor Compliance",
+        "accent": "#2C5F6E",
+        "filename": "forced-labor-timeline.html",
+        "show_all_states": False,
+        "back_links": [],
     },
     None: {
         "page_title": "Regulatory Deadline Timeline",
@@ -201,7 +229,8 @@ def _h(text: str) -> str:
 def _render_bar(dl: Dict, tl_start: date, tl_end: date) -> str:
     dl_date = date.fromisoformat(dl["deadline_date"])
     width = _pct(dl_date, tl_start, tl_end)
-    cfg = _URGENCY_CFG.get(dl.get("urgency", "LOW"), _URGENCY_CFG["LOW"])
+    urg = dl.get("urgency", "LOW").upper()
+    urg_cls = urg.lower()  # "high", "medium", "low"
     topic = dl.get("topic", "").lower()
     tc = _TOPIC_COLORS.get(topic, "#888888")
     tl = _TOPIC_LABELS.get(topic, topic.upper())
@@ -214,14 +243,14 @@ def _render_bar(dl: Dict, tl_start: date, tl_end: date) -> str:
     return f"""
       <div class="dl-row" title="{title}&#10;Due: {month_str}&#10;{desc}">
         <div class="dl-chart-area">
-          <div class="dl-bar" style="width:{width:.2f}%;background:{cfg['bg']};border-color:{cfg['border']};">
-            <span class="dl-end-pip" style="background:{cfg['end']};"></span>
-            <span class="dl-title" style="color:{cfg['text']};">{_h(short_title)}</span>
+          <div class="dl-bar urg-{urg_cls}" style="width:{width:.2f}%;">
+            <span class="dl-end-pip pip-{urg_cls}"></span>
+            <span class="dl-title title-{urg_cls}">{_h(short_title)}</span>
           </div>
           <div class="dl-meta">
             <span class="dl-date">{month_str}</span>
             <span class="dl-badge" style="color:{tc};border-color:{tc}80;">{tl}</span>
-            <span class="dl-urg" style="color:{cfg['text']};">{dl.get('urgency','')}</span>
+            <span class="dl-urg urg-txt-{urg_cls}">{urg}</span>
             {source_link}
           </div>
         </div>
@@ -378,17 +407,44 @@ def generate_deadline_timeline(topic: Optional[str] = None, output_path: Optiona
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{_h(page_title)}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    :root {{
+      --bg: #F4F5F7;
+      --surface: #FFFFFF;
+      --surface-sunken: #EBEDF0;
+      --surface-dark: #1A1D23;
+      --surface-dark-2: #22252C;
+      --border: #D8DBE0;
+      --border-light: #E8EAED;
+      --text-primary: #111318;
+      --text-secondary: #4A4F5C;
+      --text-tertiary: #7A8194;
+      --red: #D63031;
+      --red-bg: #FEF0F0;
+      --red-border: #FACACA;
+      --amber: #CB7B0A;
+      --amber-bg: #FEF6E8;
+      --amber-border: #F5DFA6;
+      --green: #0F7B3F;
+      --green-bg: #EEFAF3;
+      --green-border: #B2E0C7;
+      --blue: #1565C0;
+      --teal: #0F766E;
+      --accent: {accent};
+      --sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'IBM Plex Mono', 'Consolas', monospace;
+    }}
     * {{ box-sizing: border-box; margin: 0; padding: 0; }}
     html, body {{
       height: 100%;
-      background: #131416;
-      color: #D4D0CA;
-      font-family: 'Source Sans 3', 'Trebuchet MS', Helvetica, sans-serif;
-      font-size: 14px;
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--sans);
+      font-size: 13px;
       -webkit-font-smoothing: antialiased;
-      overflow: hidden; /* scroll containers handle overflow */
+      overflow: hidden;
     }}
 
     /* ── Page layout ─────────────────────────── */
@@ -398,87 +454,101 @@ def generate_deadline_timeline(topic: Optional[str] = None, output_path: Optiona
       height: 100vh;
     }}
 
-    /* ── Page header ─────────────────────────── */
+    /* ── Topbar ─────────────────────────────── */
     .page-hdr {{
-      background: #111315;
+      background: var(--surface);
       border-bottom: 3px solid {accent};
-      padding: 16px 28px;
+      padding: 0 24px;
+      height: 50px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
+      gap: 16px;
+      flex-shrink: 0;
+    }}
+    .hdr-left {{
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }}
+    .hdr-brand {{
+      width: 26px; height: 26px;
+      background: linear-gradient(135deg, #0F766E, #1565C0);
+      border-radius: 5px;
       flex-shrink: 0;
     }}
     .hdr-eyebrow {{
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 9px;
-      font-weight: 600;
-      letter-spacing: 4px;
-      text-transform: uppercase;
-      color: {accent};
-      margin-bottom: 5px;
-    }}
-    .hdr-title {{
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 14px;
-      font-weight: 600;
-      color: #E4E0DA;
-      letter-spacing: 1px;
-    }}
-    .hdr-sub {{
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 9px;
-      color: #484C52;
-      letter-spacing: 1px;
-      margin-top: 4px;
-    }}
-    /* ── Site nav ─────────────────────────────── */
-    .site-nav {{
-      background: #0D0F11;
-      border-bottom: 1px solid #1E2226;
-      padding: 7px 28px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      flex-wrap: wrap;
-      flex-shrink: 0;
-    }}
-    .nav-section {{
-      font-family: 'IBM Plex Mono', monospace;
-      color: #2E3238;
+      font-family: var(--mono);
       font-size: 8px;
       font-weight: 600;
       letter-spacing: 3px;
       text-transform: uppercase;
-      padding: 0 6px 0 2px;
+      color: {accent};
+    }}
+    .hdr-title {{
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: .5px;
+    }}
+    .hdr-sub {{
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--text-tertiary);
+      letter-spacing: .5px;
+      margin-top: 2px;
+    }}
+    /* ── Site nav ─────────────────────────────── */
+    .site-nav {{
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex-shrink: 0;
+    }}
+    .nav-section {{
+      font-family: var(--mono);
+      color: var(--text-tertiary);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 0 8px 0 4px;
     }}
     .nav-sep {{
       width: 1px;
-      height: 12px;
-      background: #1E2226;
+      height: 14px;
+      background: var(--border);
       margin: 0 8px;
     }}
     .nav-item {{
-      font-family: 'IBM Plex Mono', monospace;
-      color: #4A5060;
-      font-size: 9px;
+      font-family: var(--mono);
+      color: var(--text-secondary);
+      font-size: 10px;
       font-weight: 500;
-      letter-spacing: 1px;
+      letter-spacing: .5px;
       text-decoration: none;
-      padding: 3px 9px;
-      border-radius: 2px;
+      padding: 4px 10px;
+      border-radius: 4px;
       transition: background 0.12s, color 0.12s;
     }}
-    .nav-item:hover {{ background: rgba(255,255,255,0.05); color: #9EA4B0; }}
-    .nav-item.active {{ background: rgba(214,64,69,0.12); color: {accent}; font-weight: 600; }}
+    .nav-item:hover {{ background: var(--surface-sunken); color: var(--text-primary); }}
+    .nav-item.active {{ background: var(--bg); color: {accent}; font-weight: 700; border: 1px solid var(--border); }}
 
     /* ── Gantt scroll container ───────────────── */
     .tl-scroll {{
       flex: 1;
       overflow: auto;
       position: relative;
+      background: var(--bg);
     }}
+    .tl-scroll::-webkit-scrollbar {{ width: 6px; height: 6px; }}
+    .tl-scroll::-webkit-scrollbar-track {{ background: transparent; }}
+    .tl-scroll::-webkit-scrollbar-thumb {{ background: var(--border); border-radius: 3px; }}
 
     /* ── Inner container — sets total width ────── */
     .tl-inner {{
@@ -491,39 +561,40 @@ def generate_deadline_timeline(topic: Optional[str] = None, output_path: Optiona
       position: sticky;
       top: 0;
       z-index: 50;
-      background: #0F1113;
-      border-bottom: 1px solid #232830;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     }}
     .axis-jx-col {{
       width: {label_px}px;
       flex-shrink: 0;
       padding: 8px 16px;
-      font-family: 'IBM Plex Mono', monospace;
+      font-family: var(--mono);
       font-size: 8px;
-      letter-spacing: 3px;
+      letter-spacing: 2px;
       text-transform: uppercase;
-      color: #343840;
-      border-right: 1px solid #1E2226;
+      color: var(--text-tertiary);
+      border-right: 1px solid var(--border);
       position: sticky;
       left: 0;
       z-index: 55;
-      background: #0F1113;
+      background: var(--surface);
     }}
     .axis-chart-col {{
       width: {chart_px}px;
       flex-shrink: 0;
       position: relative;
-      height: 42px;
+      height: 38px;
     }}
     .q-lbl {{
       position: absolute;
       top: 50%;
       transform: translate(-50%, -50%);
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 8px;
-      letter-spacing: 2px;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 1px;
       text-transform: uppercase;
-      color: #4A5060;
+      color: var(--text-tertiary);
       white-space: nowrap;
       pointer-events: none;
     }}
@@ -532,49 +603,49 @@ def generate_deadline_timeline(topic: Optional[str] = None, output_path: Optiona
       top: 0;
       bottom: 0;
       width: 1px;
-      background: #1A1E26;
+      background: var(--border-light);
       pointer-events: none;
     }}
 
     /* ── Jurisdiction group ──────────────────── */
     .jx-group {{
       display: flex;
-      border-bottom: 1px solid #191C20;
+      border-bottom: 1px solid var(--border-light);
     }}
     .jx-group:last-child {{ border-bottom: none; }}
-    .jx-group:hover {{ background: rgba(255,255,255,0.012); }}
-    .jx-group.inactive {{ opacity: 0.28; }}
+    .jx-group:hover {{ background: #FAFBFC; }}
+    .jx-group.inactive {{ opacity: 0.35; }}
 
     .jx-label {{
       width: {label_px}px;
       flex-shrink: 0;
-      padding: 12px 16px;
-      border-right: 1px solid #1E2226;
+      padding: 10px 16px;
+      border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
       justify-content: center;
       gap: 2px;
-      min-height: 56px;
+      min-height: 52px;
       position: sticky;
       left: 0;
       z-index: 5;
-      background: #131416;
+      background: var(--surface);
     }}
     .jx-name {{
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
-      color: #CCC8C2;
+      color: var(--text-primary);
       line-height: 1.2;
     }}
     .jx-abbr {{
-      font-family: 'IBM Plex Mono', monospace;
+      font-family: var(--mono);
       font-size: 8px;
       letter-spacing: 2px;
-      color: #383C42;
+      color: var(--text-tertiary);
       text-transform: uppercase;
       margin-top: 2px;
     }}
-    .jx-group.inactive .jx-name {{ color: #3A3E44; }}
+    .jx-group.inactive .jx-name {{ color: var(--text-tertiary); }}
 
     .jx-rows {{
       width: {chart_px}px;
@@ -587,28 +658,27 @@ def generate_deadline_timeline(topic: Optional[str] = None, output_path: Optiona
     .dl-row {{
       display: flex;
       align-items: stretch;
-      border-bottom: 1px solid #16191D;
-      min-height: 56px;
+      border-bottom: 1px solid var(--border-light);
+      min-height: 52px;
     }}
     .dl-row:last-child {{ border-bottom: none; }}
-    .dl-row.empty {{ min-height: 44px; align-items: center; }}
+    .dl-row.empty {{ min-height: 40px; align-items: center; }}
 
     .dl-chart-area {{
       width: {chart_px}px;
       flex-shrink: 0;
-      padding: 10px 20px;
+      padding: 8px 20px;
       display: flex;
       flex-direction: column;
-      gap: 7px;
+      gap: 6px;
       justify-content: center;
-      background-image: linear-gradient(to right, rgba(255,255,255,0.015) 0%, transparent 60%);
     }}
 
     .dl-bar {{
       position: relative;
-      height: 26px;
+      height: 24px;
       border: 1px solid;
-      border-radius: 2px;
+      border-radius: 3px;
       display: flex;
       align-items: center;
       padding-left: 10px;
@@ -617,15 +687,22 @@ def generate_deadline_timeline(topic: Optional[str] = None, output_path: Optiona
       min-width: 6px;
       max-width: 100%;
     }}
+    /* urgency bar colors — light-theme versions */
+    .dl-bar.urg-high   {{ background: var(--red-bg);   border-color: var(--red-border); }}
+    .dl-bar.urg-medium {{ background: var(--amber-bg); border-color: var(--amber-border); }}
+    .dl-bar.urg-low    {{ background: var(--green-bg); border-color: var(--green-border); }}
     .dl-end-pip {{
       position: absolute;
       right: 0;
       top: 0;
       bottom: 0;
       width: 4px;
-      border-radius: 0 1px 1px 0;
+      border-radius: 0 2px 2px 0;
       flex-shrink: 0;
     }}
+    .pip-high   {{ background: var(--red); }}
+    .pip-medium {{ background: var(--amber); }}
+    .pip-low    {{ background: var(--green); }}
     .dl-title {{
       font-size: 11px;
       font-weight: 500;
@@ -635,6 +712,9 @@ def generate_deadline_timeline(topic: Optional[str] = None, output_path: Optiona
       letter-spacing: 0.2px;
       padding-right: 8px;
     }}
+    .title-high   {{ color: var(--red); }}
+    .title-medium {{ color: #92400E; }}
+    .title-low    {{ color: var(--green); }}
 
     .dl-meta {{
       display: flex;
@@ -642,42 +722,44 @@ def generate_deadline_timeline(topic: Optional[str] = None, output_path: Optiona
       gap: 10px;
     }}
     .dl-date {{
-      font-family: 'IBM Plex Mono', monospace;
+      font-family: var(--mono);
       font-size: 9px;
-      color: #8A929E;
+      color: var(--text-secondary);
       letter-spacing: 0.5px;
     }}
     .dl-badge {{
-      font-family: 'IBM Plex Mono', monospace;
+      font-family: var(--mono);
       font-size: 8px;
       font-weight: 600;
       letter-spacing: 2px;
       text-transform: uppercase;
       padding: 1px 5px;
       border: 1px solid;
-      border-radius: 1px;
+      border-radius: 2px;
     }}
     .dl-urg {{
-      font-family: 'IBM Plex Mono', monospace;
+      font-family: var(--mono);
       font-size: 8px;
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing: 2px;
       text-transform: uppercase;
     }}
+    .urg-txt-high   {{ color: var(--red); }}
+    .urg-txt-medium {{ color: var(--amber); }}
+    .urg-txt-low    {{ color: var(--green); }}
     .dl-src {{
-      font-family: 'IBM Plex Mono', monospace;
+      font-family: var(--mono);
       font-size: 9px;
-      color: #7A9EB5;
+      color: var(--blue);
       text-decoration: none;
       letter-spacing: 0.5px;
-      opacity: 0.7;
     }}
-    .dl-src:hover {{ opacity: 1; text-decoration: underline; }}
+    .dl-src:hover {{ text-decoration: underline; }}
 
     .no-dl {{
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 9px;
-      color: #282C32;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-tertiary);
       letter-spacing: 1px;
       padding-left: 20px;
     }}
@@ -685,52 +767,55 @@ def generate_deadline_timeline(topic: Optional[str] = None, output_path: Optiona
     /* ── Legend ──────────────────────────────── */
     .legend {{
       flex-shrink: 0;
-      background: #0F1113;
-      border-top: 1px solid #1E2226;
-      padding: 11px 28px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 10px 24px;
       display: flex;
       align-items: center;
       gap: 20px;
       flex-wrap: wrap;
     }}
     .legend-title {{
-      font-family: 'IBM Plex Mono', monospace;
+      font-family: var(--mono);
       font-size: 8px;
       letter-spacing: 2px;
       text-transform: uppercase;
-      color: #3A3E44;
+      color: var(--text-tertiary);
       margin-right: 4px;
     }}
     .legend-item {{
       display: flex;
       align-items: center;
       gap: 6px;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 8px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .5px;
+      color: var(--text-secondary);
     }}
     .legend-swatch {{
       width: 14px;
       height: 10px;
       border: 1px solid;
-      border-radius: 1px;
+      border-radius: 2px;
     }}
-    .sw-high   {{ background:#3A1A1E; border-color:#7A3030; }}
-    .sw-medium {{ background:#2E2510; border-color:#7A6025; }}
-    .sw-low    {{ background:#0C201A; border-color:#2E7050; }}
+    .sw-high   {{ background: var(--red-bg);   border-color: var(--red-border); }}
+    .sw-medium {{ background: var(--amber-bg); border-color: var(--amber-border); }}
+    .sw-low    {{ background: var(--green-bg); border-color: var(--green-border); }}
   </style>
 </head>
 <body>
 <div class="page-wrap">
 
-<!-- Page header -->
+<!-- Topbar -->
 <div class="page-hdr">
-  <div>
-    <div class="hdr-eyebrow">{_h(eyebrow)}</div>
-    <div class="hdr-title">{_h(page_title)}</div>
-    <div class="hdr-sub">Generated {today_str} &nbsp;·&nbsp; {dl_count} tracked deadline{'s' if dl_count != 1 else ''} across {jx_count} jurisdiction{'s' if jx_count != 1 else ''}</div>
+  <div class="hdr-left">
+    <div class="hdr-brand"></div>
+    <div>
+      <div class="hdr-eyebrow">{_h(eyebrow)}</div>
+      <div class="hdr-title">{_h(page_title)}</div>
+    </div>
   </div>
+  <div class="hdr-sub">Generated {today_str} &nbsp;&middot;&nbsp; {dl_count} deadline{'s' if dl_count != 1 else ''} across {jx_count} jurisdiction{'s' if jx_count != 1 else ''}</div>
 </div>
 
 <!-- Site nav -->
@@ -763,9 +848,9 @@ def generate_deadline_timeline(topic: Optional[str] = None, output_path: Optiona
 <!-- Legend -->
 <div class="legend">
   <span class="legend-title">Urgency:</span>
-  <span class="legend-item"><span class="legend-swatch sw-high"></span><span style="color:#F08080">High (&lt;6 mo)</span></span>
-  <span class="legend-item"><span class="legend-swatch sw-medium"></span><span style="color:#D4A84B">Medium (6–12 mo)</span></span>
-  <span class="legend-item"><span class="legend-swatch sw-low"></span><span style="color:#5EB88A">Low (&gt;12 mo)</span></span>
+  <span class="legend-item"><span class="legend-swatch sw-high"></span>High (&lt;6 mo)</span>
+  <span class="legend-item"><span class="legend-swatch sw-medium"></span>Medium (6&ndash;12 mo)</span>
+  <span class="legend-item"><span class="legend-swatch sw-low"></span>Low (&gt;12 mo)</span>
   <span class="legend-title" style="margin-left:16px">Bar width = time remaining until deadline</span>
 </div>
 
@@ -796,7 +881,7 @@ def generate_deadline_timeline(topic: Optional[str] = None, output_path: Optiona
 def generate_all_timelines() -> Dict[str, Path]:
     """Generate timeline pages for all topics plus the combined view."""
     results = {}
-    for topic in (None, "pfas", "epr", "reach", "tsca"):
+    for topic in (None, "pfas", "epr", "reach", "tsca", "prop65", "conflictminerals", "forcedlabor"):
         try:
             path = generate_deadline_timeline(topic=topic)
             results[topic or "all"] = path

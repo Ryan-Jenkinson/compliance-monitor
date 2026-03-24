@@ -86,6 +86,66 @@ class GmailSender:
         """
         return self.send(_REMINDER_TO, subject, html)
 
+    def send_dashboard_notification(
+        self,
+        to_email: str,
+        subscriber_name: str,
+        dashboard_url: str,
+        date_display: str,
+    ) -> bool:
+        """Send a simple 'dashboard updated' notification email."""
+        subject = f"Compliance Dashboard Updated — {date_display}"
+        html = f"""<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
+    <tr><td align="center">
+      <table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:4px;overflow:hidden;">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:#1a1a2e;padding:28px 36px;">
+            <p style="margin:0;color:#a0aec0;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-family:Arial,sans-serif;">Compliance Intelligence</p>
+            <p style="margin:6px 0 0;color:#ffffff;font-size:20px;font-weight:bold;font-family:Arial,sans-serif;">{date_display}</p>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:36px 36px 12px;">
+            <p style="margin:0 0 20px;font-size:16px;color:#1a1a1a;line-height:1.6;">Hello {subscriber_name},</p>
+            <p style="margin:0 0 28px;font-size:15px;color:#333333;line-height:1.7;">
+              Your compliance intelligence dashboard has been updated with today's regulatory developments across PFAS, EPR, REACH, TSCA, and more.
+            </p>
+          </td>
+        </tr>
+
+        <!-- CTA Button -->
+        <tr>
+          <td align="center" style="padding:0 36px 32px;">
+            <a href="{dashboard_url}"
+               style="display:inline-block;background:#1a1a2e;color:#ffffff;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;letter-spacing:1px;text-decoration:none;padding:14px 36px;border-radius:3px;">
+              VIEW DASHBOARD
+            </a>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="padding:20px 36px 32px;border-top:1px solid #eeeeee;">
+            <p style="margin:0;font-size:14px;color:#666666;line-height:1.6;">Thank you,<br>
+            <span style="color:#1a1a1a;font-weight:bold;">Compliance Intelligence</span></p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>"""
+        return self.send(to_email, subject, html)
+
     @staticmethod
     def subject_for_date(d: Optional[date] = None, week_label: str = "") -> str:
         """Return a day-aware email subject line.

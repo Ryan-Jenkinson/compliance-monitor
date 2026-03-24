@@ -201,6 +201,99 @@ class NewsletterRenderer:
             logger.warning(f"Failed to load PFAS intel: {e}")
             return {}
 
+    @staticmethod
+    def _load_bill_funnel() -> dict:
+        """Load bill stage distribution across all topics for the pipeline funnel widget."""
+        try:
+            from subscribers.db import get_connection
+            conn = get_connection()
+            rows = conn.execute("""
+                SELECT topic, stage, COUNT(*) as cnt
+                FROM legiscan_bills
+                WHERE is_active = 1 AND stage IS NOT NULL AND stage != 'none'
+                GROUP BY topic, stage
+            """).fetchall()
+            conn.close()
+
+            stage_order = ["introduced", "committee", "passed_one", "advanced",
+                           "enacted_watching", "rulemaking"]
+            stage_labels = {
+                "introduced": "Introduced",
+                "committee": "Committee",
+                "passed_one": "Passed 1",
+                "advanced": "Advanced",
+                "enacted_watching": "Enacted",
+                "rulemaking": "Rulemaking",
+            }
+
+            by_topic: dict = {}
+            totals: dict = {s: 0 for s in stage_order}
+            totals["total"] = 0
+
+            for row in rows:
+                topic = row["topic"]
+                stage = row["stage"]
+                cnt = row["cnt"]
+                if topic not in by_topic:
+                    by_topic[topic] = {s: 0 for s in stage_order}
+                    by_topic[topic]["total"] = 0
+                if stage in by_topic[topic]:
+                    by_topic[topic][stage] += cnt
+                    totals[stage] += cnt
+                by_topic[topic]["total"] += cnt
+                totals["total"] += cnt
+
+            return {
+                "by_topic": by_topic,
+                "totals": totals,
+                "stage_order": stage_order,
+                "stage_labels": stage_labels,
+            }
+        except Exception as e:
+            logger.warning(f"Failed to load bill funnel data: {e}")
+            return {}
+
+    @staticmethod
+    def _load_source_health() -> list[dict]:
+        """
+        Scan dated scraper cache files to build a source health summary.
+        Returns list sorted by article_count desc.
+        """
+        import json
+        from datetime import date, timedelta
+        cache_dir = Path(__file__).parent.parent / "data" / "cache"
+        today = date.today()
+        today_str = today.isoformat()
+        yesterday_str = (today - timedelta(days=1)).isoformat()
+
+        import re as _re
+        _date_pat = _re.compile(r"^(.+)_(\d{4}-\d{2}-\d{2})$")
+
+        # Map source_name → {last_date, article_count, status}
+        health: dict = {}
+        for path in sorted(cache_dir.glob("*.json")):
+            name = path.stem  # e.g. "federal_register_2026-03-23"
+            m = _date_pat.match(name)
+            if not m:
+                continue
+            source_key = m.group(1)
+            date_str = m.group(2)
+            try:
+                articles = json.loads(path.read_text())
+                count = len(articles) if isinstance(articles, list) else 0
+            except Exception:
+                count = 0
+
+            if source_key not in health or date_str > health[source_key]["last_date"]:
+                health[source_key] = {
+                    "source": source_key.replace("_", " ").title(),
+                    "last_date": date_str,
+                    "article_count": count,
+                    "status": "ok" if date_str >= yesterday_str else "stale",
+                }
+
+        return sorted(health.values(), key=lambda x: x["article_count"], reverse=True)
+
     def render_dashboard(
         self,
         pipeline_output: dict,
@@ -216,6 +309,18 @@ class NewsletterRenderer:
         exec_text, fun_fact = _parse_fun_fact(pipeline_output.get("exec_summary", ""))
         enriched_topics = self._enrich_topics(pipeline_output)
         pfas_intel = self._load_pfas_intel()
+        bill_funnel = self._load_bill_funnel()
+
+        # Key regulation milestones for status cards
+        reg_milestones: list = []
+        try:
+            from processors.regulation_registry import get_key_regulation_milestones
+            reg_milestones = get_key_regulation_milestones(limit=10)
+        except Exception:
+            pass
+
+        # Source health (scraper cache scan)
+        source_health = self._load_source_health()
 
         # Trend data for sparklines
         trend_data: dict = {}
@@ -265,6 +370,9 @@ class NewsletterRenderer:
             daily_changes=daily_changes or [],
             trend_data=trend_data,
             sparklines=sparklines,
+            bill_funnel=bill_funnel,
+            reg_milestones=reg_milestones,
+            source_health=source_health,
         )
 
     # Keep old name as alias for any callers

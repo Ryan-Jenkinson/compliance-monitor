@@ -143,7 +143,7 @@ def _detect_changes(today_snap: dict, yesterday_snap: Optional[dict],
     # 3. New deadlines added today
     conn = _conn()
     new_dl_rows = conn.execute(
-        "SELECT topic, title, deadline_date, urgency FROM regulatory_deadlines "
+        "SELECT topic, title, deadline_date, urgency, source_url FROM regulatory_deadlines "
         "WHERE DATE(extracted_at) = ? ORDER BY deadline_date",
         (today,)
     ).fetchall()
@@ -156,13 +156,14 @@ def _detect_changes(today_snap: dict, yesterday_snap: Optional[dict],
                 "title": row["title"],
                 "date": row["deadline_date"],
                 "urgency": row["urgency"],
+                "source_url": row["source_url"] or "",
             }),
             "severity": "notable" if row["urgency"] == "HIGH" else "normal",
         })
 
     # 4. LegiScan bill status changes logged today
     bill_change_rows = conn.execute(
-        "SELECT cl.bill_id, b.topic, b.state, b.bill_number, b.title, "
+        "SELECT cl.bill_id, b.topic, b.state, b.bill_number, b.title, b.url, "
         "       cl.old_status, cl.new_status, cl.change_summary "
         "FROM legiscan_change_log cl "
         "JOIN legiscan_bills b ON b.bill_id = cl.bill_id "
@@ -183,6 +184,7 @@ def _detect_changes(today_snap: dict, yesterday_snap: Optional[dict],
                 "title": row["title"][:120],
                 "old_status": row["old_status"],
                 "new_status": row["new_status"],
+                "url": row["url"] or "",
             }),
             "severity": "notable",
         })

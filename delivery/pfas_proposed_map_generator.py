@@ -228,7 +228,8 @@ def generate_pfas_proposed_map(output_path: Path = None) -> Path:
 
     /* ---- Header ---- */
     .page-header {{
-      background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #172554 100%);
+      background: #fff;
+      border-bottom: 1px solid #E2E8F0;
       padding: 24px 32px 20px;
     }}
     .page-header .header-top {{
@@ -241,13 +242,13 @@ def generate_pfas_proposed_map(output_path: Path = None) -> Path:
       font-weight: 700;
       letter-spacing: 3px;
       text-transform: uppercase;
-      color: #A78BFA;
+      color: #7C3AED;
       margin: 0 0 6px;
     }}
     .page-header h1 {{
       font-size: 24px;
       font-weight: 800;
-      color: #fff;
+      color: #111827;
       margin: 0 0 6px;
     }}
     .export-btn {{
@@ -270,12 +271,12 @@ def generate_pfas_proposed_map(output_path: Path = None) -> Path:
     .export-btn svg {{ width: 16px; height: 16px; fill: currentColor; }}
     .page-header .sub {{
       font-size: 13px;
-      color: #93C5FD;
+      color: #4B5563;
       margin: 0 0 4px;
     }}
     .page-header .intent-note {{
       font-size: 12px;
-      color: #94A3B8;
+      color: #6B7280;
       margin: 10px 0 0;
       max-width: 720px;
       line-height: 1.6;
@@ -283,8 +284,8 @@ def generate_pfas_proposed_map(output_path: Path = None) -> Path:
 
     /* ---- Stats bar ---- */
     .stats-bar {{
-      background: #1E293B;
-      border-bottom: 1px solid #334155;
+      background: #F8FAFC;
+      border-bottom: 1px solid #E2E8F0;
       padding: 10px 32px;
       display: flex;
       gap: 24px;
@@ -295,10 +296,10 @@ def generate_pfas_proposed_map(output_path: Path = None) -> Path:
       align-items: center;
       gap: 6px;
       font-size: 12px;
-      color: #94A3B8;
+      color: #6B7280;
     }}
     .stat-chip strong {{
-      color: #F1F5F9;
+      color: #111827;
       font-weight: 700;
       font-size: 16px;
     }}
@@ -362,7 +363,7 @@ def generate_pfas_proposed_map(output_path: Path = None) -> Path:
     }}
     .state-cell.active {{
       transform: scale(1.15);
-      box-shadow: 0 0 0 3px #fff, 0 0 0 5px #1E1B4B;
+      box-shadow: 0 0 0 3px #fff, 0 0 0 5px #7C3AED;
       z-index: 20;
     }}
     .stage-none {{
