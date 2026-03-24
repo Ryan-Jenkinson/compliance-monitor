@@ -77,6 +77,13 @@ class Summarizer:
         if week_context:
             self._extract_deadlines(topic_summaries, week_context.get("week_start", ""))
 
+        # Extract regulation records from pipeline output
+        try:
+            from processors.regulation_registry import extract_from_pipeline
+            extract_from_pipeline(topic_summaries)
+        except Exception as e:
+            logger.warning(f"Regulation extraction failed (non-fatal): {e}")
+
         return {
             "exec_summary": exec_summary,
             "topics": topic_summaries,

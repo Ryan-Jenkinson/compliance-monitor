@@ -184,6 +184,97 @@ def upsert_deadline(topic: str, title: str, deadline_date: str,
     conn.close()
 
 
+def upsert_regulation(topic: str, jurisdiction: str, regulation_name: str,
+                      current_status: str, effective_date: str | None = None,
+                      source_url: str | None = None) -> int:
+    """Insert or update a regulation. Returns the regulation id."""
+    conn = get_connection()
+    # Check if it already exists
+    row = conn.execute(
+        """SELECT id FROM regulations
+           WHERE topic = ? AND jurisdiction = ? AND regulation_name = ?""",
+        (topic, jurisdiction, regulation_name)
+    ).fetchone()
+    if row:
+        conn.execute(
+            """UPDATE regulations SET current_status = ?, effective_date = ?,
+               source_url = ?, updated_at = datetime('now')
+               WHERE id = ?""",
+            (current_status, effective_date, source_url, row["id"])
+        )
+        conn.commit()
+        reg_id = row["id"]
+    else:
+        cursor = conn.execute(
+            """INSERT INTO regulations
+               (topic, jurisdiction, regulation_name, current_status, effective_date, source_url)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            (topic, jurisdiction, regulation_name, current_status, effective_date, source_url)
+        )
+        conn.commit()
+        reg_id = cursor.lastrowid
+    conn.close()
+    return reg_id
+
+
+def add_regulation_event(regulation_id: int, event_type: str,
+                         event_date: str | None = None, description: str | None = None,
+                         source_url: str | None = None) -> None:
+    """Add an event to a regulation. Skips if identical event already exists."""
+    conn = get_connection()
+    existing = conn.execute(
+        """SELECT id FROM regulation_events
+           WHERE regulation_id = ? AND event_type = ? AND event_date = ?""",
+        (regulation_id, event_type, event_date)
+    ).fetchone()
+    if not existing:
+        conn.execute(
+            """INSERT INTO regulation_events
+               (regulation_id, event_type, event_date, description, source_url)
+               VALUES (?, ?, ?, ?, ?)""",
+            (regulation_id, event_type, event_date, description, source_url)
+        )
+        conn.commit()
+    conn.close()
+
+
+def get_regulations(topic: str | None = None, jurisdiction: str | None = None) -> list[dict]:
+    """Query regulations with optional filters."""
+    conn = get_connection()
+    query = "SELECT * FROM regulations WHERE 1=1"
+    params = []
+    if topic:
+        query += " AND topic = ?"
+        params.append(topic)
+    if jurisdiction:
+        query += " AND jurisdiction = ?"
+        params.append(jurisdiction)
+    query += " ORDER BY topic, jurisdiction, regulation_name"
+    rows = conn.execute(query, params).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_regulation_events(regulation_id: int) -> list[dict]:
+    """Get all events for a regulation, ordered by date."""
+    conn = get_connection()
+    rows = conn.execute(
+        """SELECT * FROM regulation_events
+           WHERE regulation_id = ? ORDER BY event_date ASC""",
+        (regulation_id,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_regulation_count() -> int:
+    """Return total count of regulations in the registry."""
+    conn = get_connection()
+    count = conn.execute("SELECT COUNT(*) FROM regulations").fetchone()[0]
+    conn.close()
+    return count
+
+
 def get_upcoming_deadlines(days_ahead: int = 365) -> list[dict]:
     """Return deadlines from today through days_ahead, ordered by date."""
     from datetime import date, timedelta
