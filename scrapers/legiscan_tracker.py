@@ -1,15 +1,16 @@
 """
-LegiScan PFAS Bill Tracker — structured bill monitoring with change detection.
+LegiScan Multi-Topic Bill Tracker — structured bill monitoring with change detection.
 
-Searches for PFAS-related bills across all US states, tracks them in SQLite,
-detects week-over-week changes, and produces structured data for the
-legislative intelligence pipeline.
+Searches for bills across all US states for PFAS, EPR, and TSCA topics,
+tracks them in SQLite, detects week-over-week changes, and produces
+structured data for the legislative intelligence pipeline.
 
 Usage:
     from scrapers.legiscan_tracker import LegiScanTracker
     tracker = LegiScanTracker()
-    report = tracker.run()
-    # report = { "new_bills": [...], "changed_bills": [...], "all_active": [...] }
+    report = tracker.run()                # all topics
+    report = tracker.run(topic="PFAS")    # single topic
+    report = tracker.run(topic="EPR")     # EPR only
 """
 from __future__ import annotations
 import json
@@ -26,16 +27,41 @@ logger = logging.getLogger(__name__)
 
 _DB_PATH = Config.DB_PATH
 
-# PFAS-related search queries — cast a wide net
-_SEARCH_QUERIES = [
-    'PFAS OR "per- and polyfluoroalkyl"',
-    '"forever chemicals" OR perfluoro',
-    'PFAS AND (ban OR restriction OR prohibition)',
-    'PFAS AND (product OR packaging OR textile OR apparel OR cookware)',
-    'PFAS AND (firefighting OR foam OR AFFF)',
-    'PFAS AND (reporting OR disclosure OR transparency)',
-    'fluoropolymer OR fluorochemical',
-]
+# Topic-specific search queries
+_TOPIC_QUERIES: dict[str, list[str]] = {
+    "PFAS": [
+        'PFAS OR "per- and polyfluoroalkyl"',
+        '"forever chemicals" OR perfluoro',
+        'PFAS AND (ban OR restriction OR prohibition)',
+        'PFAS AND (product OR packaging OR textile OR apparel OR cookware)',
+        'PFAS AND (firefighting OR foam OR AFFF)',
+        'PFAS AND (reporting OR disclosure OR transparency)',
+        'fluoropolymer OR fluorochemical',
+    ],
+    "EPR": [
+        '"extended producer responsibility"',
+        '"producer responsibility" AND (packaging OR waste OR recycling)',
+        '"packaging stewardship" OR "packaging producer"',
+        '"recycled content" AND (packaging OR mandate OR requirement)',
+        '"product stewardship" AND (packaging OR waste)',
+        'EPR AND (packaging OR producer OR recycling)',
+        '"packaging waste" AND (fee OR obligation OR registration)',
+    ],
+    "TSCA": [
+        'TSCA OR "toxic substances control"',
+        '"chemical reporting" AND (manufacturer OR importer)',
+        '"risk evaluation" AND (chemical OR substance OR EPA)',
+        '"new chemicals" AND (review OR notification OR PMN)',
+        'TSCA AND (section OR reporting OR restriction)',
+        '"chemical safety" AND (reform OR regulation OR assessment)',
+    ],
+}
+
+# All valid topics
+TRACKED_TOPICS = list(_TOPIC_QUERIES.keys())
+
+# Backward compatibility
+_SEARCH_QUERIES = _TOPIC_QUERIES["PFAS"]
 
 # Map LegiScan status codes to our pipeline stages
 _STATUS_TO_STAGE = {
@@ -53,6 +79,7 @@ def _init_db(conn: sqlite3.Connection):
     conn.execute("""
         CREATE TABLE IF NOT EXISTS legiscan_bills (
             bill_id INTEGER PRIMARY KEY,
+            topic TEXT NOT NULL DEFAULT 'PFAS',
             state TEXT NOT NULL,
             bill_number TEXT NOT NULL,
             title TEXT NOT NULL,
@@ -92,13 +119,51 @@ def _init_db(conn: sqlite3.Connection):
             FOREIGN KEY (bill_id) REFERENCES legiscan_bills(bill_id)
         )
     """)
+    # Migration: add topic column if it doesn't exist
+    try:
+        conn.execute("ALTER TABLE legiscan_bills ADD COLUMN topic TEXT NOT NULL DEFAULT 'PFAS'")
+        conn.commit()
+    except Exception:
+        pass  # Column already exists
     conn.commit()
 
 
-def _classify_scope(title: str, description: str) -> str:
-    """Classify bill scope based on title and description."""
+def _classify_scope(title: str, description: str, topic: str = "PFAS") -> str:
+    """Classify bill scope based on title, description, and topic."""
     text = (title + " " + description).lower()
     scopes = []
+
+    if topic == "EPR":
+        if any(kw in text for kw in ["packaging", "container", "bottle", "wrap"]):
+            scopes.append("packaging")
+        if any(kw in text for kw in ["recycl", "compost", "recovery", "diversion"]):
+            scopes.append("recycling")
+        if any(kw in text for kw in ["fee", "assessment", "fund", "payment"]):
+            scopes.append("producer fees")
+        if any(kw in text for kw in ["recycled content", "post-consumer", "pcr"]):
+            scopes.append("recycled content mandate")
+        if any(kw in text for kw in ["stewardship", "producer responsibility", "epr"]):
+            scopes.append("producer responsibility")
+        if any(kw in text for kw in ["register", "report", "disclos"]):
+            scopes.append("reporting")
+        return ", ".join(scopes) if scopes else "general EPR"
+
+    if topic == "TSCA":
+        if any(kw in text for kw in ["risk evaluation", "risk assessment", "prioritiz"]):
+            scopes.append("risk evaluation")
+        if any(kw in text for kw in ["report", "disclos", "notification", "pmn"]):
+            scopes.append("reporting")
+        if any(kw in text for kw in ["ban", "prohibit", "restrict", "phase"]):
+            scopes.append("use restriction")
+        if any(kw in text for kw in ["new chemical", "premanufacture", "pmn", "snun"]):
+            scopes.append("new chemicals")
+        if any(kw in text for kw in ["import", "export", "trade"]):
+            scopes.append("import/export")
+        if any(kw in text for kw in ["test", "data", "information", "study"]):
+            scopes.append("testing/data")
+        return ", ".join(scopes) if scopes else "general TSCA"
+
+    # PFAS (default)
     if any(kw in text for kw in ["product", "consumer", "packaging", "textile", "apparel", "cookware", "cosmetic"]):
         scopes.append("product restrictions")
     if any(kw in text for kw in ["report", "disclos", "transparen", "notification", "register"]):
@@ -147,7 +212,8 @@ def _determine_stage(bill: dict) -> str:
 
 class LegiScanTracker:
     """
-    Track PFAS-related bills across all US states using the LegiScan API.
+    Track legislation across all US states using the LegiScan API.
+    Supports PFAS, EPR, and TSCA topics.
     Persists state to SQLite for change detection across runs.
     """
 
@@ -160,13 +226,12 @@ class LegiScanTracker:
     def close(self):
         self._conn.close()
 
-    def run(self) -> dict:
+    def run(self, topic: str | None = None) -> dict:
         """
-        Run the full tracking cycle:
-          1. Search for PFAS bills across all states
-          2. Fetch details for new/changed bills
-          3. Update local database
-          4. Return report of new, changed, and all active bills
+        Run the full tracking cycle for one or all topics.
+
+        Args:
+            topic: "PFAS", "EPR", "TSCA", or None for all topics.
 
         Returns:
             {
@@ -174,20 +239,66 @@ class LegiScanTracker:
                 "changed_bills": [...],
                 "all_active": [...],
                 "by_state": { "CA": [...], ... },
+                "by_topic": { "PFAS": [...], ... },
                 "api_calls": int,
                 "run_date": "2026-03-23",
             }
         """
+        topics_to_run = [topic] if topic else TRACKED_TOPICS
         today = date.today().isoformat()
-        logger.info("LegiScan Tracker: Starting PFAS bill search...")
 
-        # Step 1: Search for all PFAS-related bills
-        found_bills = self._search_all_queries()
-        logger.info(f"Found {len(found_bills)} unique PFAS bills across all states")
+        all_new = []
+        all_changed = []
+
+        for t in topics_to_run:
+            if t not in _TOPIC_QUERIES:
+                logger.warning(f"Unknown topic '{t}', skipping")
+                continue
+            logger.info(f"LegiScan Tracker: Starting {t} bill search...")
+            new, changed = self._run_topic(t, today)
+            all_new.extend(new)
+            all_changed.extend(changed)
+
+        # Build combined report
+        topic_filter = topic  # None means all
+        all_active = self._get_all_active(topic=topic_filter)
+        by_state = {}
+        by_topic = {}
+        for bill in all_active:
+            state = bill["state"]
+            btopic = bill.get("topic", "PFAS")
+            by_state.setdefault(state, []).append(bill)
+            by_topic.setdefault(btopic, []).append(bill)
+
+        report = {
+            "new_bills": all_new,
+            "changed_bills": all_changed,
+            "all_active": all_active,
+            "by_state": by_state,
+            "by_topic": by_topic,
+            "api_calls": self._client.call_count,
+            "run_date": today,
+            "total_tracked": len(all_active),
+            "states_with_bills": len(by_state),
+            "topics_run": topics_to_run,
+        }
+
+        logger.info(
+            f"Tracker complete: {len(all_active)} active bills across "
+            f"{len(by_state)} states ({self._client.call_count} API calls)"
+        )
+        return report
+
+    def _run_topic(self, topic: str, today: str) -> tuple[list[dict], list[dict]]:
+        """Run search + update cycle for a single topic. Returns (new_bills, changed_bills)."""
+
+        # Step 1: Search for all bills for this topic
+        found_bills = self._search_all_queries(topic)
+        logger.info(f"Found {len(found_bills)} unique {topic} bills across all states")
 
         # Step 2: Identify new and changed bills
         new_ids, changed_ids = self._detect_changes(found_bills)
-        logger.info(f"New: {len(new_ids)}, Changed: {len(changed_ids)}")
+        logger.info(f"  {topic}: New: {len(new_ids)}, Changed: {len(changed_ids)}")
 
         # Step 3: Fetch full details for new/changed bills
         bills_to_fetch = new_ids | changed_ids
@@ -200,14 +311,14 @@ class LegiScanTracker:
             except LegiScanError as e:
                 logger.warning(f"Failed to fetch bill {bill_id}: {e}")
 
-        logger.info(f"Fetched details for {len(fetched_details)} bills")
+        logger.info(f"  Fetched details for {len(fetched_details)} {topic} bills")
 
         # Step 4: Update database
         new_bills = []
         changed_bills = []
 
         for bill_id, detail in fetched_details.items():
-            record = self._bill_to_record(detail, today)
+            record = self._bill_to_record(detail, today, topic=topic)
             if bill_id in new_ids:
                 self._insert_bill(record)
                 new_bills.append(record)
@@ -219,37 +330,13 @@ class LegiScanTracker:
         # Step 5: Mark bills not found in search as potentially inactive
         self._mark_inactive(found_bills, today)
 
-        # Step 6: Build report
-        all_active = self._get_all_active()
-        by_state = {}
-        for bill in all_active:
-            state = bill["state"]
-            if state not in by_state:
-                by_state[state] = []
-            by_state[state].append(bill)
+        return new_bills, changed_bills
 
-        report = {
-            "new_bills": new_bills,
-            "changed_bills": changed_bills,
-            "all_active": all_active,
-            "by_state": by_state,
-            "api_calls": self._client.call_count,
-            "run_date": today,
-            "total_tracked": len(all_active),
-            "states_with_bills": len(by_state),
-        }
-
-        logger.info(
-            f"Tracker complete: {len(all_active)} active bills across "
-            f"{len(by_state)} states ({self._client.call_count} API calls)"
-        )
-
-        return report
-
-    def _search_all_queries(self) -> dict[int, dict]:
-        """Run all PFAS search queries and deduplicate by bill_id."""
+    def _search_all_queries(self, topic: str = "PFAS") -> dict[int, dict]:
+        """Run all search queries for a topic and deduplicate by bill_id."""
         found: dict[int, dict] = {}
-        for query in _SEARCH_QUERIES:
+        queries = _TOPIC_QUERIES.get(topic, _TOPIC_QUERIES["PFAS"])
+        for query in queries:
             try:
                 results = self._client.search_all_pages(
                     query=query, state="ALL", year=2, max_pages=5
@@ -283,7 +370,7 @@ class LegiScanTracker:
 
         return new_ids, changed_ids
 
-    def _bill_to_record(self, detail: dict, today: str) -> dict:
+    def _bill_to_record(self, detail: dict, today: str, topic: str = "PFAS") -> dict:
         """Convert a LegiScan bill detail response to a flat record."""
         sponsors = detail.get("sponsors", [])
         sponsors_clean = []
@@ -311,6 +398,7 @@ class LegiScanTracker:
 
         return {
             "bill_id": detail.get("bill_id"),
+            "topic": topic,
             "state": detail.get("state", ""),
             "bill_number": detail.get("bill_number", ""),
             "title": title,
@@ -330,7 +418,7 @@ class LegiScanTracker:
             "bill_type": detail.get("bill_type", ""),
             "body": detail.get("body", ""),
             "current_body": detail.get("current_body", ""),
-            "scope": _classify_scope(title, description),
+            "scope": _classify_scope(title, description, topic=topic),
             "first_seen_date": today,
             "last_updated": today,
             "is_active": 1 if detail.get("status", 0) not in (4, 5, 6) else 0,
@@ -404,11 +492,17 @@ class LegiScanTracker:
         # (they might just not match the search anymore but still be active)
         pass  # Conservative: don't auto-deactivate
 
-    def _get_all_active(self) -> list[dict]:
-        """Get all active bills from the database."""
-        rows = self._conn.execute(
-            "SELECT * FROM legiscan_bills WHERE is_active = 1 ORDER BY state, bill_number"
-        ).fetchall()
+    def _get_all_active(self, topic: str | None = None) -> list[dict]:
+        """Get all active bills from the database, optionally filtered by topic."""
+        if topic:
+            rows = self._conn.execute(
+                "SELECT * FROM legiscan_bills WHERE is_active = 1 AND topic = ? ORDER BY state, bill_number",
+                (topic,)
+            ).fetchall()
+        else:
+            rows = self._conn.execute(
+                "SELECT * FROM legiscan_bills WHERE is_active = 1 ORDER BY topic, state, bill_number"
+            ).fetchall()
         return [dict(r) for r in rows]
 
     def get_changes_since(self, since_date: str) -> list[dict]:
@@ -423,28 +517,46 @@ class LegiScanTracker:
         ).fetchall()
         return [dict(r) for r in rows]
 
-    def get_bills_by_state(self, state: str) -> list[dict]:
-        """Get all active bills for a specific state."""
-        rows = self._conn.execute(
-            "SELECT * FROM legiscan_bills WHERE state = ? AND is_active = 1 ORDER BY bill_number",
-            (state,)
-        ).fetchall()
+    def get_bills_by_state(self, state: str, topic: str | None = None) -> list[dict]:
+        """Get all active bills for a specific state, optionally filtered by topic."""
+        if topic:
+            rows = self._conn.execute(
+                "SELECT * FROM legiscan_bills WHERE state = ? AND topic = ? AND is_active = 1 ORDER BY bill_number",
+                (state, topic)
+            ).fetchall()
+        else:
+            rows = self._conn.execute(
+                "SELECT * FROM legiscan_bills WHERE state = ? AND is_active = 1 ORDER BY bill_number",
+                (state,)
+            ).fetchall()
         return [dict(r) for r in rows]
 
-    def get_state_summary(self) -> dict[str, dict]:
+    def get_state_summary(self, topic: str | None = None) -> dict[str, dict]:
         """
-        Get a summary of PFAS legislative activity by state.
+        Get a summary of legislative activity by state.
         Returns a dict keyed by state abbreviation with bill counts and most advanced stage.
         """
-        rows = self._conn.execute(
-            """SELECT state, COUNT(*) as bill_count,
-                      GROUP_CONCAT(bill_number, ', ') as bill_numbers,
-                      GROUP_CONCAT(DISTINCT stage) as stages
-               FROM legiscan_bills
-               WHERE is_active = 1
-               GROUP BY state
-               ORDER BY state"""
-        ).fetchall()
+        if topic:
+            rows = self._conn.execute(
+                """SELECT state, COUNT(*) as bill_count,
+                          GROUP_CONCAT(bill_number, ', ') as bill_numbers,
+                          GROUP_CONCAT(DISTINCT stage) as stages
+                   FROM legiscan_bills
+                   WHERE is_active = 1 AND topic = ?
+                   GROUP BY state
+                   ORDER BY state""",
+                (topic,)
+            ).fetchall()
+        else:
+            rows = self._conn.execute(
+                """SELECT state, COUNT(*) as bill_count,
+                          GROUP_CONCAT(bill_number, ', ') as bill_numbers,
+                          GROUP_CONCAT(DISTINCT stage) as stages
+                   FROM legiscan_bills
+                   WHERE is_active = 1
+                   GROUP BY state
+                   ORDER BY state"""
+            ).fetchall()
 
         stage_priority = {
             "enacted_watching": 7, "advanced": 6, "passed_one": 5,
@@ -463,12 +575,12 @@ class LegiScanTracker:
             }
         return summary
 
-    def export_for_pipeline(self) -> list[dict]:
+    def export_for_pipeline(self, topic: str | None = None) -> list[dict]:
         """
         Export bill data in a format ready for the legislative intel pipeline.
         Returns list of dicts with the fields Claude needs.
         """
-        bills = self._get_all_active()
+        bills = self._get_all_active(topic=topic)
         export = []
         for b in bills:
             sponsors = json.loads(b.get("sponsors_json", "[]"))
@@ -480,6 +592,7 @@ class LegiScanTracker:
 
             export.append({
                 "bill_id": b["bill_id"],
+                "topic": b.get("topic", "PFAS"),
                 "state": b["state"],
                 "bill_number": b["bill_number"],
                 "title": b["title"],
@@ -499,13 +612,22 @@ class LegiScanTracker:
 
 
 if __name__ == "__main__":
+    import sys
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+
+    # Parse optional topic argument: python -m scrapers.legiscan_tracker [PFAS|EPR|TSCA|ALL]
+    topic_arg = sys.argv[1].upper() if len(sys.argv) > 1 else None
+    if topic_arg == "ALL":
+        topic_arg = None  # Run all topics
+
     try:
         tracker = LegiScanTracker()
-        report = tracker.run()
+        report = tracker.run(topic=topic_arg)
 
+        topics_label = ", ".join(report.get("topics_run", ["ALL"]))
         print(f"\n{'='*60}")
-        print(f"LegiScan PFAS Bill Tracker Report — {report['run_date']}")
+        print(f"LegiScan Bill Tracker Report — {report['run_date']}")
+        print(f"Topics: {topics_label}")
         print(f"{'='*60}")
         print(f"Total active bills: {report['total_tracked']}")
         print(f"States with bills:  {report['states_with_bills']}")
@@ -513,23 +635,31 @@ if __name__ == "__main__":
         print(f"Changed this run:   {len(report['changed_bills'])}")
         print(f"API calls used:     {report['api_calls']}")
 
+        # Show by topic
+        if report.get("by_topic"):
+            print(f"\n--- Bills by Topic ---")
+            for t, bills in sorted(report["by_topic"].items()):
+                states = len(set(b["state"] for b in bills))
+                print(f"  {t}: {len(bills)} bills across {states} states")
+
         print(f"\n--- Bills by State ---")
         for state in sorted(report["by_state"]):
             bills = report["by_state"][state]
             print(f"\n  {state} ({len(bills)} bills):")
             for b in bills:
-                print(f"    {b['bill_number']}: {b['title'][:70]}")
+                topic_tag = f"[{b.get('topic', 'PFAS')}] " if not topic_arg else ""
+                print(f"    {topic_tag}{b['bill_number']}: {b['title'][:70]}")
                 print(f"      Stage: {b['stage']} | Status: {b['status_label']} | Scope: {b['scope']}")
 
         if report["new_bills"]:
             print(f"\n--- New Bills ---")
             for b in report["new_bills"]:
-                print(f"  [{b['state']}] {b['bill_number']}: {b['title'][:80]}")
+                print(f"  [{b.get('topic', 'PFAS')}][{b['state']}] {b['bill_number']}: {b['title'][:80]}")
 
         if report["changed_bills"]:
             print(f"\n--- Changed Bills ---")
             for b in report["changed_bills"]:
-                print(f"  [{b['state']}] {b['bill_number']}: {b['title'][:80]}")
+                print(f"  [{b.get('topic', 'PFAS')}][{b['state']}] {b['bill_number']}: {b['title'][:80]}")
 
         tracker.close()
     except LegiScanError as e:
