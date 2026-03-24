@@ -189,6 +189,159 @@ def seed_from_pfas_state_data() -> dict:
     }
 
 
+def seed_new_topic_regulations() -> dict:
+    """Seed known regulations for Prop 65, Conflict Minerals, and Forced Labor."""
+    new_topic_regs = [
+        # Prop 65 — California OEHHA
+        {
+            "topic": "Prop65",
+            "jurisdiction": "California",
+            "regulation_name": "Proposition 65 (Safe Drinking Water and Toxic Enforcement Act of 1986)",
+            "current_status": "enacted",
+            "effective_date": "1987-02-27",
+            "events": [
+                ("enacted", "1987-02-27", "Prop 65 takes effect — businesses must warn before knowingly exposing individuals to listed chemicals"),
+                ("milestone", "2018-08-30", "Updated warning language requirement takes effect — new Prop 65 warning format required"),
+                ("milestone", "2025-01-01", "Over 900 chemicals on the Prop 65 list including PFOA, PFOS, lead, cadmium, phthalates"),
+            ],
+        },
+        {
+            "topic": "Prop65",
+            "jurisdiction": "California",
+            "regulation_name": "OEHHA — PFAS Listings (Prop 65)",
+            "current_status": "enacted",
+            "effective_date": "2021-11-19",
+            "events": [
+                ("enacted", "2021-11-19", "PFOA listed as a Prop 65 reproductive toxicant"),
+                ("enacted", "2022-04-01", "PFOS listed as a Prop 65 reproductive toxicant"),
+                ("milestone", "2023-01-01", "Grace period for PFOA/PFOS warnings expires — labels required on covered products sold in CA"),
+            ],
+        },
+        {
+            "topic": "Prop65",
+            "jurisdiction": "California",
+            "regulation_name": "Prop 65 — Lead in Consumer Products",
+            "current_status": "enacted",
+            "events": [
+                ("enacted", "1988-01-01", "Lead listed as both a carcinogen and reproductive toxicant under Prop 65"),
+                ("milestone", "2024-01-01", "NSRL for inorganic lead: 0.5 micrograms/day — enforced via private plaintiff actions"),
+            ],
+        },
+        # Conflict Minerals — Federal SEC
+        {
+            "topic": "ConflictMinerals",
+            "jurisdiction": "Federal",
+            "regulation_name": "Dodd-Frank Section 1502 — Conflict Minerals Rule (SEC)",
+            "current_status": "enacted",
+            "effective_date": "2013-01-01",
+            "events": [
+                ("enacted", "2012-08-22", "SEC adopts final conflict minerals rule under Dodd-Frank Section 1502"),
+                ("reporting_deadline", "2013-11-04", "First Form SD conflict minerals reports due to SEC"),
+                ("milestone", "2017-04-07", "Court upholds constitutionality of disclosure requirement (D.C. Circuit)"),
+                ("reporting_deadline", "2025-05-31", "Annual Form SD due date — conflict minerals report for prior calendar year"),
+            ],
+        },
+        {
+            "topic": "ConflictMinerals",
+            "jurisdiction": "EU",
+            "regulation_name": "EU Conflict Minerals Regulation (EU 2017/821)",
+            "current_status": "enacted",
+            "effective_date": "2021-01-01",
+            "events": [
+                ("enacted", "2017-05-17", "EU Conflict Minerals Regulation adopted — mandatory due diligence for EU importers of 3TG"),
+                ("enacted", "2021-01-01", "Regulation fully applicable — all EU importers above thresholds must comply with OECD DD Guidance"),
+            ],
+        },
+        {
+            "topic": "ConflictMinerals",
+            "jurisdiction": "EU",
+            "regulation_name": "EU Corporate Sustainability Due Diligence Directive (CSDDD)",
+            "current_status": "enacted",
+            "effective_date": "2024-07-25",
+            "events": [
+                ("enacted", "2024-07-25", "CSDDD enters into force — mandatory human rights and environmental due diligence for large companies"),
+                ("reporting_deadline", "2026-07-26", "Member states must transpose CSDDD into national law"),
+                ("reporting_deadline", "2027-01-01", "Phase 1: Large EU companies (>5,000 employees, >1.5B turnover) must comply"),
+                ("reporting_deadline", "2028-01-01", "Phase 2: Smaller large companies (>3,000 employees) must comply"),
+                ("reporting_deadline", "2029-01-01", "Phase 3: Full scope companies (>1,000 employees) must comply"),
+            ],
+        },
+        # Forced Labor — Federal UFLPA
+        {
+            "topic": "ForcedLabor",
+            "jurisdiction": "Federal",
+            "regulation_name": "Uyghur Forced Labor Prevention Act (UFLPA)",
+            "current_status": "enacted",
+            "effective_date": "2022-06-21",
+            "events": [
+                ("enacted", "2021-12-23", "UFLPA signed into law — rebuttable presumption that goods produced in Xinjiang involve forced labor"),
+                ("enacted", "2022-06-21", "UFLPA enforcement begins — CBP begins detaining goods with Xinjiang nexus"),
+                ("milestone", "2022-06-17", "DHS publishes UFLPA Strategy and initial Entity List"),
+                ("milestone", "2024-01-01", "Entity List expanded — additional solar, polysilicon, cotton, aluminum companies added"),
+                ("milestone", "2025-01-01", "Over 70 entities on UFLPA Entity List across cotton, polysilicon, tomatoes, silica sectors"),
+            ],
+        },
+        {
+            "topic": "ForcedLabor",
+            "jurisdiction": "Federal",
+            "regulation_name": "CBP Withhold Release Orders — Forced Labor",
+            "current_status": "active",
+            "events": [
+                ("milestone", "2022-01-01", "CBP issued 52 Withhold Release Orders (WROs) in effect — ongoing enforcement mechanism prior to UFLPA"),
+                ("milestone", "2024-01-01", "CBP has processed over 8,000 UFLPA shipment detentions since June 2022"),
+            ],
+        },
+        {
+            "topic": "ForcedLabor",
+            "jurisdiction": "California",
+            "regulation_name": "California Transparency in Supply Chains Act (SB 657)",
+            "current_status": "enacted",
+            "effective_date": "2012-01-01",
+            "events": [
+                ("enacted", "2010-09-30", "SB 657 signed — requires retailers and manufacturers with >$100M global revenue and California operations to disclose supply chain anti-slavery efforts"),
+                ("enacted", "2012-01-01", "SB 657 disclosure requirements take effect"),
+            ],
+        },
+        {
+            "topic": "ForcedLabor",
+            "jurisdiction": "Federal",
+            "regulation_name": "Tariff Act Section 307 — Forced Labor Import Ban",
+            "current_status": "enacted",
+            "effective_date": "1930-06-17",
+            "events": [
+                ("enacted", "1930-06-17", "Tariff Act Section 307 — prohibits importation of goods made with forced labor (foundational law UFLPA builds on)"),
+                ("milestone", "2016-02-24", "Trade Facilitation and Trade Enforcement Act removes consumptive demand exception — Section 307 fully enforceable"),
+            ],
+        },
+    ]
+
+    reg_count = 0
+    event_count = 0
+
+    for reg_data in new_topic_regs:
+        reg_id = upsert_regulation(
+            topic=reg_data["topic"],
+            jurisdiction=reg_data["jurisdiction"],
+            regulation_name=reg_data["regulation_name"],
+            current_status=reg_data["current_status"],
+            effective_date=reg_data.get("effective_date"),
+        )
+        reg_count += 1
+
+        for event in reg_data.get("events", []):
+            event_type, event_date, description = event
+            add_regulation_event(
+                regulation_id=reg_id,
+                event_type=event_type,
+                event_date=event_date,
+                description=description,
+            )
+            event_count += 1
+
+    logger.info(f"New topic regulation seed: {reg_count} regulations, {event_count} events")
+    return {"regulations_added": reg_count, "events_added": event_count}
+
+
 def seed_federal_regulations() -> dict:
     """Seed known federal regulations (EPA, TSCA, REACH) into the registry.
 
@@ -352,6 +505,7 @@ def seed_all() -> dict:
     before = get_regulation_count()
     pfas_stats = seed_from_pfas_state_data()
     federal_stats = seed_federal_regulations()
+    new_topic_stats = seed_new_topic_regulations()
     after = get_regulation_count()
 
     total = {
@@ -360,6 +514,7 @@ def seed_all() -> dict:
         "new_regulations": after - before,
         "pfas_state_data": pfas_stats,
         "federal": federal_stats,
+        "new_topics": new_topic_stats,
     }
     logger.info(f"Registry seed complete: {before} → {after} regulations")
     return total

@@ -118,3 +118,142 @@ topics:
       TSCA Section 6 rules can restrict or require substitution of chemicals used in
       manufacturing processes and coatings. Section 8 reporting obligations apply if
       the company manufactures or imports covered chemicals above threshold quantities.
+
+  - name: Prop65
+    label: "California Proposition 65"
+    color: "#E67E22"        # Orange
+    badge_color: "#F39C12"
+    description: >
+      California Proposition 65 (Safe Drinking Water and Toxic Enforcement Act) —
+      new chemical listings, safe harbor level updates, enforcement settlements,
+      60-day notices, and warning label requirements from OEHHA.
+    keywords:
+      - "Proposition 65"
+      - "Prop 65"
+      - OEHHA
+      - "safe harbor"
+      - "NSRL"
+      - "MADL"
+      - "warning label"
+      - "California warning"
+      - "cancer warning"
+      - "reproductive harm"
+      - "Prop65 listing"
+      - "60-day notice"
+    federal_register_terms: []   # Prop 65 is state law; use OEHHA scraper
+    oehha_feed: true
+    company_relevance: >
+      DIRECT: The company sells products in California — the largest US market. Products
+      containing listed chemicals (including PFAS, lead, cadmium, phthalates, and other
+      substances present in coatings, hardware, vinyl, and adhesives) require Prop 65
+      warning labels if exposures exceed safe harbor levels. Failure to warn can result
+      in enforcement actions by the AG or private bounty hunters, with penalties up to
+      $2,500/day per violation.
+
+      SUPPLY CHAIN: Components purchased from suppliers may contain newly-listed
+      substances. When OEHHA adds a chemical to the list, the 12-month grace period
+      means compliance timelines are tight — supplier declarations of conformity must
+      be updated. Hardware, fasteners, coatings, adhesives, and vinyl profiles are
+      the highest-risk categories for Prop 65 listings.
+
+      CURRENT EXPOSURE: PFAS (PFOA, PFOS) are listed. Lead and cadmium are listed and
+      present in some hardware and coatings. Phthalates in vinyl profiles require
+      monitoring against DINP/DEHP safe harbor levels. Track all new listings against
+      the bill of materials for products sold in CA.
+
+  - name: ConflictMinerals
+    label: "Conflict Minerals (SEC/Dodd-Frank)"
+    color: "#1A7A87"        # Teal
+    badge_color: "#1ABC9C"
+    description: >
+      SEC Dodd-Frank Section 1502 conflict minerals reporting (3TG: tin, tantalum,
+      tungsten, gold from DRC/adjoining countries), OECD due diligence guidance,
+      EU Conflict Minerals Regulation, and emerging CSDDD supply chain due diligence.
+    keywords:
+      - "conflict minerals"
+      - "Dodd-Frank"
+      - "Section 1502"
+      - "3TG"
+      - "tantalum"
+      - "coltan"
+      - "DRC"
+      - "Congo"
+      - "Form SD"
+      - "CMRT"
+      - "responsible minerals"
+      - "RMAP"
+      - "RMI"
+      - "smelter"
+      - "CSDDD"
+      - "supply chain due diligence"
+    federal_register_terms:
+      - "conflict minerals"
+      - "Dodd-Frank section 1502"
+    company_relevance: >
+      DIRECT COMPLIANCE: As a manufacturer using tin (solder, hardware coatings),
+      tantalum (capacitors in automation electronics), tungsten (wear-resistant coatings,
+      tools), and gold (electronics contacts) — the company is very likely subject to
+      SEC conflict minerals reporting if publicly traded or filing as an issuer.
+      Even as a private company, major customers may require CMRT (Conflict Minerals
+      Reporting Template) submission as a condition of vendor compliance programs.
+
+      SUPPLY CHAIN: Electronics and automation components (sensors, motors, control
+      boards) contain 3TG from complex supply chains. Hardware (hinges, fasteners,
+      locks) may contain tin and tungsten. The requirement flows down from integrators
+      to component suppliers — the company must collect CMRTs from suppliers and
+      conduct reasonable country of origin inquiry (RCOI).
+
+      EMERGING RISK: EU CSDDD (Corporate Sustainability Due Diligence Directive) extends
+      supply chain due diligence obligations across all industries including manufacturing.
+      Companies selling into EU markets will face mandatory human rights and environmental
+      due diligence requirements. Track SEC enforcement actions, OECD guidance updates,
+      and CSDDD implementation timelines.
+
+  - name: ForcedLabor
+    label: "Forced Labor & Supply Chain Transparency"
+    color: "#7B241C"        # Dark red/maroon
+    badge_color: "#922B21"
+    description: >
+      Uyghur Forced Labor Prevention Act (UFLPA) CBP enforcement, UFLPA Entity List
+      updates, state supply chain transparency laws (CA SB 657, IL, etc.),
+      and emerging mandatory human rights due diligence requirements.
+    keywords:
+      - UFLPA
+      - "forced labor"
+      - "Uyghur"
+      - "Xinjiang"
+      - "supply chain transparency"
+      - "SB 657"
+      - "modern slavery"
+      - "human trafficking"
+      - "CBP detention"
+      - "withhold release order"
+      - "WRO"
+      - "supply chain due diligence"
+      - "forced labor prevention"
+    federal_register_terms:
+      - "forced labor"
+      - "Uyghur Forced Labor Prevention Act"
+      - "withhold release order"
+    company_relevance: >
+      DIRECT IMPORT RISK: The company imports components manufactured in or transiting
+      through Xinjiang, China — a region subject to UFLPA's rebuttable presumption of
+      forced labor. High-risk categories include: aluminum (windows/frames), glass
+      (solar-grade polysilicon supply chain), cotton (seals/gaskets), electronics
+      (automation components, sensors). Any goods touching Xinjiang can be detained
+      by CBP at the border — operational shutdown risk if critical components are held.
+
+      UFLPA ENTITY LIST: DHS adds companies to the Entity List on an ongoing basis.
+      If any tier-1 or tier-2 supplier is listed, all shipments from that supplier
+      are presumed to use forced labor and require extensive documentation to release.
+      Conduct proactive supplier mapping for components sourced from China.
+
+      STATE LAWS: California SB 657 (Transparency in Supply Chains Act) and Illinois
+      require disclosure of efforts to eradicate trafficking and forced labor in
+      supply chains. These apply to large retailers and manufacturers with California
+      operations or revenues above threshold.
+
+      PROACTIVE STEPS: Collect supplier country-of-origin declarations for all China-
+      sourced components. Map aluminum, glass, and electronics supply chains to
+      identify Xinjiang exposure. Maintain UFLPA compliance documentation for CBP
+      in case of detention inquiry.

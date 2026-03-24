@@ -45,6 +45,9 @@ from scrapers.state_agency_playwright import (
 from scrapers.state_agency_all_states import AllStatesPFASScraper
 from scrapers.assent import AssentScraper
 from scrapers.product_stewardship import ProductStewardshipScraper
+from scrapers.oehha import OEHHAScraper
+from scrapers.forced_labor import ForcedLaborScraper
+from scrapers.conflict_minerals import ConflictMineralsScraper
 from processors.deduplicator import deduplicate
 from processors.relevance_filter import keyword_filter
 from processors.week_tracker import apply_weekly_window, get_week_context, last_week_is_archived
@@ -120,6 +123,9 @@ def scrape_all() -> list:
         AllStatesPFASScraper(),
         AssentScraper(),
         ProductStewardshipScraper(),
+        OEHHAScraper(),
+        ForcedLaborScraper(),
+        ConflictMineralsScraper(),
     ]
     all_articles = []
     for scraper in scrapers:

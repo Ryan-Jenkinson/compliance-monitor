@@ -55,6 +55,14 @@ _TOPIC_QUERIES: dict[str, list[str]] = {
         'TSCA AND (section OR reporting OR restriction)',
         '"chemical safety" AND (reform OR regulation OR assessment)',
     ],
+    "ForcedLabor": [
+        '"forced labor" AND (supply chain OR manufacturer OR import)',
+        'UFLPA OR "Uyghur Forced Labor Prevention"',
+        '"supply chain transparency" AND (disclosure OR reporting OR act)',
+        '"modern slavery" AND (disclosure OR act OR reporting)',
+        '"withhold release order" OR "forced labor prevention"',
+        '"supply chain due diligence" AND (bill OR act OR law)',
+    ],
 }
 
 # All valid topics
