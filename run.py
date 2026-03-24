@@ -473,13 +473,21 @@ def _run_legiscan_if_due(today: date) -> None:
 # ── Dashboard ───────────────────────────────────────────────────────────────
 
 def _push_dashboard(dashboard_html: str, repo_dir: Path) -> Optional[str]:
-    """Push dashboard.html to GitHub Pages. Returns URL."""
+    """Push dashboard.html to GitHub Pages and set it as index. Returns URL."""
     logger = logging.getLogger("github_dashboard")
     try:
         dest = repo_dir / "dashboard.html"
         dest.write_text(dashboard_html, encoding="utf-8")
+        # index.html = instant redirect so root URL lands on the dashboard
+        index_redirect = (
+            '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+            '<meta http-equiv="refresh" content="0;url=dashboard.html">'
+            '<title>Compliance Intelligence Dashboard</title></head>'
+            '<body><a href="dashboard.html">Go to dashboard</a></body></html>'
+        )
+        (repo_dir / "index.html").write_text(index_redirect, encoding="utf-8")
         date_str = date.today().isoformat()
-        _git_push(repo_dir, ["dashboard.html"], f"Update dashboard {date_str}")
+        _git_push(repo_dir, ["dashboard.html", "index.html"], f"Update dashboard {date_str}")
         url = f"{_PAGES_BASE}/dashboard.html"
         logger.info(f"Dashboard pushed: {url}")
         return url
