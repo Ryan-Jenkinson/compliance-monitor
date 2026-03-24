@@ -348,7 +348,7 @@ class NewsletterRenderer:
             archive_weeks=archive_weeks or [],
             pfas_intel=pfas_intel,
             maps={
-                "pfas_map_url": f"{base_url}/",
+                "pfas_map_url": f"{base_url}/pfas-map.html",
                 "epr_map_url": f"{base_url}/epr-map.html",
                 "reach_map_url": f"{base_url}/reach-map.html",
                 "pfas_intel_url": f"{base_url}/pfas-legislative-intel.html",

@@ -305,6 +305,36 @@ def _push_archive_index(archive_html: str, repo_dir: Path) -> Optional[str]:
         return None
 
 
+def _push_auxiliary_pages(repo_dir: Path) -> None:
+    """Push glossary, director review, cross-state report, and new timelines to GitHub Pages."""
+    logger = logging.getLogger("github_aux")
+    data_dir = Path(__file__).parent / "data"
+    files_to_push = []
+
+    # Pages that live at the root of GitHub Pages
+    for src_name, dest_name in [
+        ("glossary.html", "glossary.html"),
+        ("director_review.html", "director_review.html"),
+        ("cross_state_report.html", "cross_state_report.html"),
+        ("prop65-timeline.html", "prop65-timeline.html"),
+        ("conflict-minerals-timeline.html", "conflict-minerals-timeline.html"),
+        ("forced-labor-timeline.html", "forced-labor-timeline.html"),
+    ]:
+        src = data_dir / src_name
+        if src.exists():
+            import shutil
+            shutil.copy2(src, repo_dir / dest_name)
+            files_to_push.append(dest_name)
+
+    if files_to_push:
+        try:
+            date_str = date.today().isoformat()
+            _git_push(repo_dir, files_to_push, f"Update auxiliary pages {date_str}")
+            logger.info(f"Pushed auxiliary pages: {files_to_push}")
+        except Exception as e:
+            logger.warning(f"Failed to push auxiliary pages: {e}")
+
+
 def _push_calendar_to_github(calendar_html: str, ics_path: Path, repo_dir: Path) -> Tuple[Optional[str], Optional[str]]:
     """Push deadline calendar HTML and .ics to GitHub Pages. Returns (html_url, ics_url)."""
     logger = logging.getLogger("calendar")
@@ -766,6 +796,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
             calendar_url=calendar_url, daily_changes=daily_changes,
         )
         _push_dashboard(dashboard_html, _GITHUB_REPO_DIR)
+        _push_auxiliary_pages(_GITHUB_REPO_DIR)
     except Exception as e:
         logger.warning(f"Dashboard render/push failed (non-fatal): {e}")
 
