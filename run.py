@@ -58,6 +58,7 @@ from delivery.state_map_generator import generate_pfas_map
 from subscribers.db import init_db, get_archive_weeks, save_archive_week, get_upcoming_deadlines
 from subscribers.repository import SubscriberRepository
 from delivery.calendar_generator import generate_ics
+from scrapers.legiscan_tracker import LegiScanTracker
 
 _PAGES_BASE = "https://ryan-jenkinson.github.io/compliance-maps"
 _GITHUB_REPO_DIR = Path("/tmp/compliance-maps")
@@ -410,6 +411,64 @@ def _generate_maps(repo_dir: Path, articles: Optional[List] = None) -> Tuple[Opt
     return None, None, None
 
 
+# ── LegiScan weekly gate ────────────────────────────────────────────────────
+
+def _run_legiscan_if_due(today: date) -> None:
+    """Run LegiScan full pull on Mondays, or if it hasn't run in 7+ days."""
+    logger = logging.getLogger("legiscan_gate")
+    import sqlite3
+    try:
+        conn = sqlite3.connect(str(Config.DB_PATH))
+        row = conn.execute(
+            "SELECT MAX(last_updated) as last_run FROM legiscan_bills"
+        ).fetchone()
+        conn.close()
+        last_run_str = row[0] if row and row[0] else None
+        last_run = date.fromisoformat(last_run_str[:10]) if last_run_str else None
+    except Exception:
+        last_run = None
+
+    is_monday = today.weekday() == 0
+    days_since = (today - last_run).days if last_run else 999
+
+    if not is_monday and days_since < 7:
+        logger.info(
+            f"LegiScan: skipping (last run {days_since}d ago, not Monday)"
+        )
+        return
+
+    reason = "Monday" if is_monday else f"{days_since}d since last run"
+    logger.info(f"LegiScan: running full pull ({reason})…")
+    try:
+        tracker = LegiScanTracker()
+        report = tracker.run()
+        tracker.close()
+        logger.info(
+            f"LegiScan complete: {report['total_tracked']} bills, "
+            f"{len(report['new_bills'])} new, {report['api_calls']} API calls"
+        )
+    except Exception as e:
+        logger.warning(f"LegiScan pull failed (non-fatal): {e}")
+
+
+# ── Dashboard ───────────────────────────────────────────────────────────────
+
+def _push_dashboard(dashboard_html: str, repo_dir: Path) -> Optional[str]:
+    """Push dashboard.html to GitHub Pages. Returns URL."""
+    logger = logging.getLogger("github_dashboard")
+    try:
+        dest = repo_dir / "dashboard.html"
+        dest.write_text(dashboard_html, encoding="utf-8")
+        date_str = date.today().isoformat()
+        _git_push(repo_dir, ["dashboard.html"], f"Update dashboard {date_str}")
+        url = f"{_PAGES_BASE}/dashboard.html"
+        logger.info(f"Dashboard pushed: {url}")
+        return url
+    except Exception as e:
+        logger.warning(f"Failed to push dashboard: {e}")
+        return None
+
+
 # ── Main pipeline ──────────────────────────────────────────────────────────
 
 def run_pipeline(args: argparse.Namespace) -> None:
@@ -424,6 +483,9 @@ def run_pipeline(args: argparse.Namespace) -> None:
     logger.info(f"Mode: {'finalize-week' if is_finalize else 'dry-run' if args.dry_run else 'preview' if args.preview else 'full'}")
 
     init_db()
+
+    # LegiScan weekly pull (Mondays, or if overdue)
+    _run_legiscan_if_due(today)
 
     # Monday check: warn if last week's archive is missing
     if week_context["is_monday"] and not last_week_is_archived():
@@ -508,7 +570,17 @@ def run_pipeline(args: argparse.Namespace) -> None:
         archive_path = data_dir / f"preview_archive_{ts}.html"
         archive_path.write_text(archive_html, encoding="utf-8")
 
-        webbrowser.open(f"file://{web_path.resolve()}")
+        # Render dashboard
+        deadlines_preview = get_upcoming_deadlines(days_ahead=180)
+        dashboard_html = renderer.render_dashboard(
+            pipeline_output, week_context=week_context,
+            archive_weeks=archive_weeks, deadlines=deadlines_preview,
+        )
+        dashboard_path = data_dir / f"preview_dashboard_{ts}.html"
+        dashboard_path.write_text(dashboard_html, encoding="utf-8")
+
+        webbrowser.open(f"file://{dashboard_path.resolve()}")
+        print(f"Dashboard:       {dashboard_path}")
         print(f"Web version:     {web_path}")
         print(f"Weekly briefing: {briefing_path}")
         print(f"Email version:   {email_path}")
@@ -545,6 +617,19 @@ def run_pipeline(args: argparse.Namespace) -> None:
         briefing_html, _GITHUB_REPO_DIR, week_context,
         is_archive=(is_friday or is_finalize),
     )
+
+    # Dashboard — rendered and pushed every day
+    logger.info("Step 3c-dash: Rendering and pushing dashboard…")
+    try:
+        deadlines_dash = get_upcoming_deadlines(days_ahead=180)
+        dashboard_html = renderer.render_dashboard(
+            pipeline_output, week_context=week_context,
+            archive_weeks=archive_weeks, deadlines=deadlines_dash,
+            calendar_url=calendar_url,
+        )
+        _push_dashboard(dashboard_html, _GITHUB_REPO_DIR)
+    except Exception as e:
+        logger.warning(f"Dashboard render/push failed (non-fatal): {e}")
 
     # Friday / finalize: save archive entry and push archive index
     if is_friday or is_finalize:
