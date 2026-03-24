@@ -202,7 +202,78 @@ def init_db() -> None:
         conn.commit()
     except Exception:
         pass
+    # Migration: add bill_analyses table
+    try:
+        conn.execute("""CREATE TABLE IF NOT EXISTS bill_analyses (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            state           TEXT NOT NULL,
+            bill_number     TEXT NOT NULL,
+            bill_id         INTEGER,
+            trigger_action  TEXT,
+            analysis_json   TEXT NOT NULL DEFAULT '{}',
+            model_used      TEXT DEFAULT 'claude-sonnet-4-6',
+            analyzed_at     TEXT NOT NULL DEFAULT (datetime('now')),
+            UNIQUE(state, bill_number)
+        )""")
+        conn.commit()
+    except Exception:
+        pass
     conn.close()
+
+
+def save_bill_analysis(state: str, bill_number: str, bill_id: int | None,
+                       trigger_action: str | None, analysis: dict) -> None:
+    """Insert or replace a bill analysis."""
+    import json as _json
+    conn = get_connection()
+    conn.execute(
+        """INSERT INTO bill_analyses
+               (state, bill_number, bill_id, trigger_action, analysis_json, analyzed_at)
+           VALUES (?, ?, ?, ?, ?, datetime('now'))
+           ON CONFLICT(state, bill_number) DO UPDATE SET
+               bill_id = excluded.bill_id,
+               trigger_action = excluded.trigger_action,
+               analysis_json = excluded.analysis_json,
+               analyzed_at = excluded.analyzed_at""",
+        (state, bill_number, bill_id, trigger_action, _json.dumps(analysis)),
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_bill_analysis(state: str, bill_number: str) -> dict | None:
+    """Return the stored analysis for a bill, or None."""
+    import json as _json
+    conn = get_connection()
+    row = conn.execute(
+        "SELECT analysis_json FROM bill_analyses WHERE state=? AND bill_number=?",
+        (state, bill_number),
+    ).fetchone()
+    conn.close()
+    if not row:
+        return None
+    try:
+        return _json.loads(row["analysis_json"])
+    except Exception:
+        return None
+
+
+def get_all_bill_analyses() -> dict:
+    """Return all analyses keyed by '{state}_{bill_number}' (spaces replaced with _)."""
+    import json as _json
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT state, bill_number, analysis_json FROM bill_analyses"
+    ).fetchall()
+    conn.close()
+    result = {}
+    for r in rows:
+        key = f"{r['state']}_{r['bill_number'].replace(' ', '_')}"
+        try:
+            result[key] = _json.loads(r["analysis_json"])
+        except Exception:
+            pass
+    return result
 
 
 def get_archive_weeks() -> list[dict]:
@@ -481,3 +552,113 @@ def get_bill_calendar_events(days_past: int = 30, days_ahead: int = 180) -> list
 
     results.sort(key=lambda x: x["deadline_date"])
     return results
+
+
+# ── Action outcome classification ──────────────────────────────────────────
+
+def _classify_action(action: str) -> dict:
+    """Classify a bill action text into a structured outcome type and display label."""
+    a = action.lower()
+
+    # Vote outcomes — most important
+    if any(x in a for x in ("prevailed", "passed; ", "passed on ", "passed by", "do pass")):
+        return {"outcome": "PASSED", "color": "#0A7C4B", "bg": "#F0FFF8"}
+    if any(x in a for x in ("failed", "do not pass", "defeated", "tabled", "laid on table")):
+        return {"outcome": "FAILED", "color": "#C0392B", "bg": "#FFF0F0"}
+    if any(x in a for x in ("signed by governor", "signed by the governor", "chaptered", "enacted")):
+        return {"outcome": "SIGNED", "color": "#1A5276", "bg": "#EBF5FF"}
+    if "vetoed" in a:
+        return {"outcome": "VETOED", "color": "#7D3C98", "bg": "#F9F0FF"}
+    if any(x in a for x in ("passed house", "passed senate", "passed assembly", "passed chamber",
+                              "concurred", "third reading", "third reading passed")):
+        return {"outcome": "ADVANCED", "color": "#1E8449", "bg": "#F0FFF4"}
+    if any(x in a for x in ("roll call", "voice vote", "division of the house", "recorded vote", "yeas", "nays")):
+        return {"outcome": "VOTE", "color": "#784212", "bg": "#FEFAE0"}
+    if any(x in a for x in ("public hearing", "hearing scheduled", "hearing set")):
+        return {"outcome": "HEARING", "color": "#1F618D", "bg": "#EBF5FB"}
+    if any(x in a for x in ("introduced", "first reading", "prefiled")):
+        return {"outcome": "INTRODUCED", "color": "#717D7E", "bg": "#F8F9FA"}
+    if any(x in a for x in ("referred to", "assigned to", "rereferred")):
+        return {"outcome": "REFERRED", "color": "#717D7E", "bg": "#F8F9FA"}
+    if any(x in a for x in ("amendment", "amended")):
+        return {"outcome": "AMENDMENT", "color": "#9C640C", "bg": "#FEFAE0"}
+
+    return {"outcome": "ACTION", "color": "#717D7E", "bg": "#F8F9FA"}
+
+
+_HIGH_SIGNAL_OUTCOMES = {"PASSED", "FAILED", "SIGNED", "VETOED", "ADVANCED", "VOTE"}
+_ALL_OUTCOMES = _HIGH_SIGNAL_OUTCOMES | {"HEARING", "AMENDMENT", "REFERRED", "INTRODUCED", "ACTION"}
+
+
+def get_bill_activity_feed(days_past: int = 60, limit: int = 200) -> list[dict]:
+    """Return structured legislative activity feed from LegiScan bill history.
+
+    Returns one entry per bill action, classified by outcome type.
+    Sorted newest-first. High-signal actions (votes, passage, signing) are
+    flagged so the UI can surface them prominently.
+    """
+    from datetime import date, timedelta
+    import json as _json
+
+    today = date.today()
+    past_cutoff = (today - timedelta(days=days_past)).isoformat()
+    today_str = today.isoformat()
+
+    conn = get_connection()
+    rows = conn.execute(
+        """SELECT state, bill_number, title, topic, url, state_link,
+                  stage, last_action, last_action_date, history_json
+           FROM legiscan_bills
+           WHERE last_action_date >= ?
+             AND stage != 'none'
+           ORDER BY last_action_date DESC""",
+        (past_cutoff,),
+    ).fetchall()
+    conn.close()
+
+    results = []
+    seen = set()
+
+    for r in rows:
+        r = dict(r)
+        bill_label = f"{r['state']} {r['bill_number']}"
+        topic_lc = (r.get("topic") or "").lower()
+        source_url = r.get("url") or r.get("state_link") or ""
+        bill_title = (r.get("title") or "")[:120]
+        stage = r.get("stage", "")
+
+        history = []
+        try:
+            history = _json.loads(r.get("history_json") or "[]")
+        except Exception:
+            pass
+
+        for entry in sorted(history, key=lambda x: x.get("date", ""), reverse=True):
+            h_date = (entry.get("date") or "").strip()
+            h_action = (entry.get("action") or "").strip()
+            if not h_date or not h_action or h_date < past_cutoff:
+                continue
+            key = (bill_label, h_date, h_action[:50])
+            if key in seen:
+                continue
+            seen.add(key)
+
+            classification = _classify_action(h_action)
+            results.append({
+                "bill": bill_label,
+                "bill_title": bill_title,
+                "topic": topic_lc,
+                "state": r["state"],
+                "date": h_date,
+                "action": h_action,
+                "stage": stage,
+                "outcome": classification["outcome"],
+                "outcome_color": classification["color"],
+                "outcome_bg": classification["bg"],
+                "is_high_signal": classification["outcome"] in _HIGH_SIGNAL_OUTCOMES,
+                "source_url": source_url,
+            })
+
+    # Sort newest first, high-signal actions bubble up within same date
+    results.sort(key=lambda x: (x["date"], x["is_high_signal"]), reverse=True)
+    return results[:limit]

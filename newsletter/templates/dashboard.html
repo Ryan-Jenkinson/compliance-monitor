@@ -1255,6 +1255,169 @@
       padding: 16px 18px; overflow-y: auto; flex: 1;
     }
 
+    /* ── Legislative Activity ── */
+    .la-filter-btn {
+      background: none; border: 1px solid var(--border); border-radius: 3px;
+      padding: 2px 8px; font-size: 11px; font-family: var(--mono);
+      font-weight: 600; color: var(--text-secondary); cursor: pointer;
+      white-space: nowrap; letter-spacing: .03em;
+    }
+    .la-filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .la-filter-active {
+      background: var(--accent) !important; color: #fff !important;
+      border-color: var(--accent) !important;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,.25);
+    }
+    .la-item {
+      display: flex; align-items: flex-start; gap: 8px;
+      padding: 7px 14px; border-bottom: 1px solid var(--border-light);
+      transition: background .1s;
+    }
+    .la-item:hover { background: var(--surface-hover); }
+    .la-item.la-high-signal { background: var(--surface-sunken); }
+    .la-item.la-high-signal:hover { background: var(--border-light); }
+    .la-item.la-hidden { display: none !important; }
+    .la-date {
+      min-width: 52px; font-size: 11px; font-family: var(--mono);
+      color: var(--text-tertiary); padding-top: 2px; flex-shrink: 0;
+    }
+    .la-badge-col { flex-shrink: 0; padding-top: 1px; }
+    .la-badge {
+      display: inline-block; padding: 1px 5px; border-radius: 3px;
+      font-size: 10px; font-weight: 700; font-family: var(--mono);
+      letter-spacing: .06em; white-space: nowrap;
+    }
+    .la-content { flex: 1; min-width: 0; }
+    .la-bill-line {
+      display: flex; align-items: center; gap: 5px;
+      flex-wrap: wrap; margin-bottom: 2px;
+    }
+    .la-bill-link, .la-bill-ref {
+      font-size: 12px; font-weight: 700; font-family: var(--mono);
+      color: var(--blue); text-decoration: none; white-space: nowrap;
+    }
+    .la-bill-link:hover { text-decoration: underline; }
+    .la-state-tag {
+      font-size: 11px; font-family: var(--mono); font-weight: 600;
+      color: var(--text-tertiary); white-space: nowrap;
+    }
+    .la-topic-tag {
+      font-size: 11px; font-family: var(--mono); font-weight: 700;
+      letter-spacing: .04em; white-space: nowrap;
+    }
+    .la-stage-tag {
+      font-size: 10px; font-family: var(--mono); color: var(--text-tertiary);
+      background: var(--surface-sunken); border: 1px solid var(--border-light);
+      border-radius: 2px; padding: 0 4px; white-space: nowrap;
+    }
+    .la-title {
+      font-size: 12px; font-weight: 600; color: var(--text-primary);
+      line-height: 1.35; margin-bottom: 1px;
+    }
+    .la-action {
+      font-size: 11px; color: var(--text-secondary); line-height: 1.3;
+    }
+
+    /* ── Bill Detail Modal ── */
+    .bd-overlay {
+      display: none; position: fixed; inset: 0; z-index: 2100;
+      background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
+      align-items: flex-start; justify-content: center;
+      padding: 32px 16px; overflow-y: auto;
+    }
+    .bd-overlay.open { display: flex; }
+    .bd-modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; box-shadow: 0 24px 80px rgba(0,0,0,.35);
+      width: min(820px, 96vw); max-height: none;
+      display: flex; flex-direction: column;
+    }
+    .bd-header {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 14px 18px; border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .bd-header-left { display: flex; align-items: center; gap: 8px; flex: 1; flex-wrap: wrap; }
+    .bd-bill-label {
+      font-size: 14px; font-weight: 700; font-family: var(--mono);
+      color: var(--text-primary); letter-spacing: -.01em;
+    }
+    .bd-topic-badge {
+      font-size: 11px; font-weight: 700; font-family: var(--mono);
+      letter-spacing: .05em; padding: 2px 6px; border-radius: 3px;
+      background: var(--surface-sunken); color: var(--text-secondary);
+    }
+    .bd-severity-badge {
+      font-size: 11px; font-weight: 700; font-family: var(--mono);
+      letter-spacing: .05em; padding: 2px 6px; border-radius: 3px;
+    }
+    .bd-body { padding: 0; overflow-y: visible; }
+    .bd-section {
+      padding: 14px 18px; border-bottom: 1px solid var(--border-light);
+    }
+    .bd-section:last-child { border-bottom: none; }
+    .bd-section-title {
+      font-size: 10px; font-weight: 700; font-family: var(--mono);
+      letter-spacing: .08em; color: var(--text-tertiary);
+      text-transform: uppercase; margin-bottom: 6px;
+    }
+    .bd-section-body {
+      font-size: 13px; color: var(--text-primary); line-height: 1.55;
+    }
+    .bd-two-col {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    }
+    .bd-two-col .bd-section { border-right: 1px solid var(--border-light); }
+    .bd-two-col .bd-section:last-child { border-right: none; }
+    .bd-action-list {
+      margin: 0; padding: 0 0 0 16px;
+      font-size: 13px; color: var(--text-primary); line-height: 1.6;
+    }
+    .bd-action-list li { margin-bottom: 4px; }
+    .bd-follow-up-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 6px 0; border-bottom: 1px solid var(--border-light);
+    }
+    .bd-follow-up-item:last-child { border-bottom: none; }
+    .bd-fu-date {
+      min-width: 80px; font-size: 12px; font-family: var(--mono);
+      font-weight: 700; color: var(--text-secondary);
+    }
+    .bd-fu-conf {
+      font-size: 10px; font-family: var(--mono); font-weight: 600;
+      padding: 1px 4px; border-radius: 2px; white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .bd-fu-conf.known { background:#d1fae5;color:#065f46; }
+    .bd-fu-conf.probable { background:#fef3c7;color:#92400e; }
+    .bd-fu-conf.possible { background:#f1f5f9;color:#64748b; }
+    .bd-ics-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 8px; padding: 6px 14px;
+      background: var(--accent); color: #fff;
+      border: none; border-radius: 5px; font-size: 12px;
+      font-weight: 700; font-family: var(--mono); cursor: pointer;
+      text-decoration: none; letter-spacing: .03em;
+    }
+    .bd-ics-btn:hover { opacity: .9; }
+    .bd-pending {
+      padding: 32px 18px; text-align: center;
+      color: var(--text-secondary); font-size: 13px;
+    }
+    .bd-pending-title {
+      font-size: 14px; font-weight: 700; color: var(--text-primary);
+      margin-bottom: 8px; font-family: var(--mono);
+    }
+    .bd-source-link {
+      font-size: 12px; font-family: var(--mono); color: var(--blue);
+      text-decoration: none; padding: 4px 0;
+    }
+    .bd-source-link:hover { text-decoration: underline; }
+    @media (max-width: 600px) {
+      .bd-two-col { grid-template-columns: 1fr; }
+      .bd-two-col .bd-section { border-right: none; }
+    }
+
     /* ============================================================
        CUSTOMIZE DRAWER
        ============================================================ */
@@ -1529,6 +1692,12 @@
       <span class="rail-dot" style="background:var(--amber);"></span>
       <span class="rail-label">Deadlines</span>
     </a>
+    {% if bill_activity %}
+    <a class="rail-link" data-target="section-leg-activity" onclick="scrollToSection('section-leg-activity')">
+      <span class="rail-dot" style="background:var(--blue);"></span>
+      <span class="rail-label">Leg. Activity</span>
+    </a>
+    {% endif %}
     {% if deadlines %}
     <a class="rail-link" data-target="section-calendar" onclick="scrollToSection('section-calendar')">
       <span class="rail-dot" style="background:var(--teal);"></span>
@@ -1628,6 +1797,23 @@
       <button class="expand-modal-close" onclick="closeExpandModal()">Close</button>
     </div>
     <div class="expand-modal-body" id="expand-modal-body"></div>
+  </div>
+</div>
+
+<!-- ═══ BILL DETAIL MODAL ═══ -->
+<div class="bd-overlay" id="bd-overlay" onclick="closeBillDetail(event)">
+  <div class="bd-modal" onclick="event.stopPropagation()">
+    <div class="bd-header">
+      <div class="bd-header-left">
+        <span class="bd-bill-label" id="bd-bill-label">—</span>
+        <span class="bd-topic-badge" id="bd-topic-badge"></span>
+        <span class="bd-severity-badge" id="bd-severity-badge"></span>
+      </div>
+      <button class="expand-modal-close" onclick="closeBillDetail()">Close</button>
+    </div>
+    <div class="bd-body" id="bd-body">
+      <!-- rendered by JS -->
+    </div>
   </div>
 </div>
 
@@ -2044,6 +2230,100 @@
         </div>
         {% endif %}
 
+        <!-- ── Legislative Activity Feed ── -->
+        {% if bill_activity %}
+        <div class="panel animate-in" id="section-leg-activity" data-widget-id="leg-activity" data-widget-label="Legislative Activity" style="margin-bottom:16px;margin-top:16px;">
+          <span class="section-anchor" id="anchor-section-leg-activity"></span>
+          <div class="panel-header" style="gap:8px;flex-wrap:wrap;">
+            <span class="panel-title">Legislative Activity</span>
+            <span class="panel-badge">{{ bill_activity|length }}</span>
+            <button class="expand-btn" onclick="openExpandModal('leg-activity','Legislative Activity — Full History')" title="Expand all">&#x26F6;</button>
+            <!-- Outcome filter buttons -->
+            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-left:auto;align-items:center;" id="leg-outcome-filters">
+              <button class="la-filter-btn la-filter-active" data-outcome="all" onclick="setLegFilter('outcome','all',this)">All</button>
+              <button class="la-filter-btn" data-outcome="high-signal" onclick="setLegFilter('outcome','high-signal',this)" title="PASSED/FAILED/SIGNED/VETOED/ADVANCED/VOTE">Key Votes</button>
+              <button class="la-filter-btn" data-outcome="HEARING" onclick="setLegFilter('outcome','HEARING',this)">Hearings</button>
+            </div>
+            <!-- Topic filter -->
+            <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;" id="leg-topic-filters">
+              <button class="la-filter-btn la-filter-active" data-topic="all" onclick="setLegFilter('topic','all',this)">All Topics</button>
+              {% set seen_topics = [] %}
+              {% for item in bill_activity %}
+                {% if item.topic not in seen_topics %}
+                  {% if seen_topics.append(item.topic) %}{% endif %}
+                  <button class="la-filter-btn" data-topic="{{ item.topic|lower }}" onclick="setLegFilter('topic','{{ item.topic|lower }}',this)">{{ item.topic }}</button>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+          <div class="panel-body" id="leg-activity-body" style="padding:0;">
+            {% for item in bill_activity[:50] %}
+            <div class="la-item{% if item.is_high_signal %} la-high-signal{% endif %}"
+                 data-outcome="{{ item.outcome }}"
+                 data-topic="{{ item.topic|lower }}"
+                 data-high="{{ 'true' if item.is_high_signal else 'false' }}"
+                 data-state="{{ item.state }}"
+                 data-bill="{{ item.bill }}"
+                 onclick="openBillDetailFromEl(this)"
+                 style="cursor:pointer;"
+                 title="Click for detailed analysis">
+              <!-- Date column -->
+              <div class="la-date">{{ item.date[:7] if item.date else '—' }}</div>
+              <!-- Outcome badge -->
+              <div class="la-badge-col">
+                <span class="la-badge" style="background:{{ item.outcome_bg }};color:{{ item.outcome_color }};">{{ item.outcome }}</span>
+              </div>
+              <!-- Content -->
+              <div class="la-content">
+                <div class="la-bill-line">
+                  {% if item.source_url %}<a href="{{ item.source_url }}" class="la-bill-link">{{ item.bill }}</a>{% else %}<span class="la-bill-ref">{{ item.bill }}</span>{% endif %}
+                  <span class="la-state-tag">{{ item.state }}</span>
+                  <span class="la-topic-tag" style="color:{% for t in topics %}{% if t.topic|lower == item.topic|lower %}{{ t.color }}{% endif %}{% endfor %};">{{ item.topic }}</span>
+                  {% if item.stage %}<span class="la-stage-tag">{{ item.stage }}</span>{% endif %}
+                </div>
+                <div class="la-title">{{ item.bill_title|truncate(80, true, '…') }}</div>
+                <div class="la-action">{{ item.action|truncate(120, true, '…') }}</div>
+              </div>
+            </div>
+            {% endfor %}
+            {% if bill_activity|length > 50 %}
+            <div id="leg-activity-more" style="padding:8px 14px 12px;text-align:center;">
+              <button onclick="showMoreLegActivity()" id="leg-more-btn"
+                      style="background:none;border:1px solid var(--border);border-radius:4px;
+                             padding:4px 14px;font-size:12px;color:var(--text-secondary);
+                             cursor:pointer;font-weight:600;">
+                + {{ bill_activity|length - 50 }} more actions
+              </button>
+            </div>
+            <!-- Hidden items for "show more" -->
+            <div id="leg-activity-hidden" style="display:none;">
+              {% for item in bill_activity[50:] %}
+              <div class="la-item{% if item.is_high_signal %} la-high-signal{% endif %}"
+                   data-outcome="{{ item.outcome }}"
+                   data-topic="{{ item.topic|lower }}"
+                   data-high="{{ 'true' if item.is_high_signal else 'false' }}">
+                <div class="la-date">{{ item.date[:7] if item.date else '—' }}</div>
+                <div class="la-badge-col">
+                  <span class="la-badge" style="background:{{ item.outcome_bg }};color:{{ item.outcome_color }};">{{ item.outcome }}</span>
+                </div>
+                <div class="la-content">
+                  <div class="la-bill-line">
+                    {% if item.source_url %}<a href="{{ item.source_url }}" class="la-bill-link">{{ item.bill }}</a>{% else %}<span class="la-bill-ref">{{ item.bill }}</span>{% endif %}
+                    <span class="la-state-tag">{{ item.state }}</span>
+                    <span class="la-topic-tag" style="color:{% for t in topics %}{% if t.topic|lower == item.topic|lower %}{{ t.color }}{% endif %}{% endfor %};">{{ item.topic }}</span>
+                    {% if item.stage %}<span class="la-stage-tag">{{ item.stage }}</span>{% endif %}
+                  </div>
+                  <div class="la-title">{{ item.bill_title|truncate(80, true, '…') }}</div>
+                  <div class="la-action">{{ item.action|truncate(120, true, '…') }}</div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
       </div>
 
       <!-- RIGHT COLUMN (sticky sidebar) -->
@@ -2451,6 +2731,11 @@
   </div>
 </main>
 
+<!-- Bill analyses data (pre-generated by pipeline) -->
+<script>
+var BILL_ANALYSES = {{ bill_analyses|tojson }};
+</script>
+
 <script>
 (function() {
   'use strict';
@@ -2652,6 +2937,270 @@
       items.forEach(function(item) { feed.appendChild(item); });
     });
   };
+
+  // ── Legislative Activity filters ──
+  var legState = { outcome: 'all', topic: 'all' };
+  var _HIGH_SIGNAL = ['PASSED','FAILED','SIGNED','VETOED','ADVANCED','VOTE'];
+
+  window.setLegFilter = function(dimension, value, btn) {
+    legState[dimension] = value;
+    // Update active button in the correct filter row
+    var rowId = dimension === 'outcome' ? 'leg-outcome-filters' : 'leg-topic-filters';
+    document.querySelectorAll('#' + rowId + ' .la-filter-btn').forEach(function(b) {
+      b.classList.toggle('la-filter-active', b.dataset[dimension] === value);
+    });
+    applyLegFilters();
+  };
+
+  function applyLegFilters() {
+    var outcomeF = legState.outcome;
+    var topicF   = legState.topic;
+    // Show hidden items when filtering (un-hide them then re-apply)
+    var hidden = document.getElementById('leg-activity-hidden');
+    if (hidden && hidden.style.display === 'none' && (outcomeF !== 'all' || topicF !== 'all')) {
+      // Expand so filters can reach them
+      hidden.style.display = '';
+      var moreBtn = document.getElementById('leg-activity-more');
+      if (moreBtn) moreBtn.style.display = 'none';
+    }
+    document.querySelectorAll('#leg-activity-body .la-item').forEach(function(item) {
+      var passOutcome = outcomeF === 'all' ||
+        (outcomeF === 'high-signal' && item.dataset.high === 'true') ||
+        item.dataset.outcome === outcomeF;
+      var passTopic = topicF === 'all' || item.dataset.topic === topicF;
+      item.classList.toggle('la-hidden', !passOutcome || !passTopic);
+    });
+  }
+
+  window.showMoreLegActivity = function() {
+    var hidden = document.getElementById('leg-activity-hidden');
+    var moreBtn = document.getElementById('leg-activity-more');
+    if (hidden) { hidden.style.display = ''; applyLegFilters(); }
+    if (moreBtn) moreBtn.style.display = 'none';
+  };
+
+  // ── Bill Detail Modal ──────────────────────────────────────────────────
+  var _SEVERITY_STYLES = {
+    HIGH:       { bg: '#fee2e2', color: '#991b1b' },
+    MEDIUM:     { bg: '#fef3c7', color: '#92400e' },
+    LOW:        { bg: '#d1fae5', color: '#065f46' },
+    MONITORING: { bg: '#f1f5f9', color: '#475569' },
+  };
+
+  function _escHtml(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function _buildIcsDataUrl(ev, billLabel) {
+    if (!ev || !ev.suggested_date) return null;
+    try {
+      var d = ev.suggested_date.replace(/-/g,'');
+      var uid = 'bill-' + billLabel.replace(/\s/g,'-') + '-' + d + '@compliance-monitor';
+      var desc = (ev.description || '').replace(/\n/g,'\\n');
+      var title = (ev.title || billLabel + ' — Review').slice(0, 60);
+      var reminderMin = ((ev.reminder_days_before || 3) * 24 * 60);
+      var ics = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Compliance Monitor//Bill Analyst//EN',
+        'BEGIN:VEVENT',
+        'UID:' + uid,
+        'DTSTART;VALUE=DATE:' + d,
+        'DTEND;VALUE=DATE:' + d,
+        'SUMMARY:' + title,
+        'DESCRIPTION:' + desc,
+        'BEGIN:VALARM',
+        'TRIGGER:-PT' + reminderMin + 'M',
+        'ACTION:DISPLAY',
+        'DESCRIPTION:Reminder: ' + title,
+        'END:VALARM',
+        'END:VEVENT',
+        'END:VCALENDAR',
+      ].join('\r\n');
+      return 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
+    } catch(e) { return null; }
+  }
+
+  function _renderAnalysis(a) {
+    var impact = a.company_impact || {};
+    var sev = (impact.severity || 'MONITORING').toUpperCase();
+    var sevStyle = _SEVERITY_STYLES[sev] || _SEVERITY_STYLES.MONITORING;
+
+    // Update header badges
+    document.getElementById('bd-bill-label').textContent =
+      (a.state || '') + ' ' + (a.bill_number || a.bill_title || '');
+    var topicBadge = document.getElementById('bd-topic-badge');
+    topicBadge.textContent = a.topic || '';
+    var sevBadge = document.getElementById('bd-severity-badge');
+    sevBadge.textContent = sev;
+    sevBadge.style.background = sevStyle.bg;
+    sevBadge.style.color = sevStyle.color;
+
+    // Build modal body HTML
+    var sections = '';
+
+    // Title + synopsis
+    sections += '<div class="bd-section">';
+    if (a.bill_title) {
+      sections += '<div class="bd-section-title">Bill Title</div>';
+      sections += '<div class="bd-section-body" style="font-weight:600;margin-bottom:8px;">'
+               + _escHtml(a.bill_title) + '</div>';
+    }
+    if (a.source_url) {
+      sections += '<a class="bd-source-link" href="' + _escHtml(a.source_url)
+               + '" target="_blank">View on LegiScan / State Legislature &rarr;</a>';
+    }
+    sections += '</div>';
+
+    // Synopsis
+    if (a.synopsis) {
+      sections += '<div class="bd-section">';
+      sections += '<div class="bd-section-title">Synopsis</div>';
+      sections += '<div class="bd-section-body">' + _escHtml(a.synopsis) + '</div>';
+      sections += '</div>';
+    }
+
+    // Stage + recent action
+    sections += '<div class="bd-two-col">';
+    if (a.stage_meaning) {
+      sections += '<div class="bd-section">';
+      sections += '<div class="bd-section-title">Current Stage — '
+               + _escHtml((a.stage||'').replace(/_/g,' ')) + '</div>';
+      sections += '<div class="bd-section-body">' + _escHtml(a.stage_meaning) + '</div>';
+      sections += '</div>';
+    }
+    if (a.recent_action_analysis) {
+      sections += '<div class="bd-section">';
+      sections += '<div class="bd-section-title">Recent Action Analysis</div>';
+      if (a.last_action_date || a.last_action) {
+        sections += '<div style="font-size:11px;font-family:var(--mono);color:var(--text-tertiary);margin-bottom:4px;">'
+                 + _escHtml(a.last_action_date || '') + (a.last_action ? ' — ' + _escHtml(a.last_action) : '')
+                 + '</div>';
+      }
+      sections += '<div class="bd-section-body">' + _escHtml(a.recent_action_analysis) + '</div>';
+      sections += '</div>';
+    }
+    sections += '</div>';
+
+    // Company impact
+    if (impact.direct || impact.supply_chain) {
+      sections += '<div class="bd-section" style="background:' + sevStyle.bg + '10;">';
+      sections += '<div class="bd-section-title" style="color:' + sevStyle.color + ';">Company Impact — ' + sev + '</div>';
+      if (impact.direct) {
+        sections += '<div style="margin-bottom:6px;">'
+                 + '<span style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--text-tertiary);display:block;margin-bottom:2px;">DIRECT PRODUCTS</span>'
+                 + '<div class="bd-section-body">' + _escHtml(impact.direct) + '</div></div>';
+      }
+      if (impact.supply_chain) {
+        sections += '<div>'
+                 + '<span style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--text-tertiary);display:block;margin-bottom:2px;">SUPPLY CHAIN</span>'
+                 + '<div class="bd-section-body">' + _escHtml(impact.supply_chain) + '</div></div>';
+      }
+      sections += '</div>';
+    }
+
+    // Long-term trajectory
+    if (a.long_term_trajectory) {
+      sections += '<div class="bd-section">';
+      sections += '<div class="bd-section-title">Long-Term Trajectory</div>';
+      sections += '<div class="bd-section-body">' + _escHtml(a.long_term_trajectory) + '</div>';
+      sections += '</div>';
+    }
+
+    // Recommended actions
+    if (a.recommended_actions && a.recommended_actions.length) {
+      sections += '<div class="bd-section">';
+      sections += '<div class="bd-section-title">Recommended Actions</div>';
+      sections += '<ul class="bd-action-list">';
+      a.recommended_actions.forEach(function(act) {
+        sections += '<li>' + _escHtml(act) + '</li>';
+      });
+      sections += '</ul>';
+      sections += '</div>';
+    }
+
+    // Follow-up dates + Outlook event
+    var hasDates = a.follow_up_dates && a.follow_up_dates.length;
+    var hasOutlook = a.outlook_event && a.outlook_event.suggested_date;
+    if (hasDates || hasOutlook) {
+      sections += '<div class="bd-section">';
+      sections += '<div class="bd-section-title">Follow-Up Dates</div>';
+      if (hasDates) {
+        a.follow_up_dates.forEach(function(fu) {
+          sections += '<div class="bd-follow-up-item">';
+          sections += '<div class="bd-fu-date">' + _escHtml(fu.date || 'TBD') + '</div>';
+          var conf = (fu.confidence || 'possible').toLowerCase();
+          sections += '<span class="bd-fu-conf ' + conf + '">' + conf + '</span>';
+          sections += '<div style="font-size:12px;color:var(--text-primary);flex:1;">'
+                   + _escHtml(fu.event || '') + '</div>';
+          sections += '</div>';
+        });
+      }
+      if (hasOutlook) {
+        var icsUrl = _buildIcsDataUrl(a.outlook_event,
+          (a.state || '') + ' ' + (a.bill_number || ''));
+        if (icsUrl) {
+          var evTitle = _escHtml(a.outlook_event.title || 'Bill Review');
+          sections += '<a class="bd-ics-btn" href="' + icsUrl
+                   + '" download="' + evTitle.replace(/[^\w\s-]/g,'') + '.ics">'
+                   + '&#128197; Add to Outlook / Calendar'
+                   + '</a>';
+        }
+      }
+      sections += '</div>';
+    }
+
+    document.getElementById('bd-body').innerHTML = sections;
+  }
+
+  window.openBillDetailFromEl = function(el) {
+    var stateCode = el.dataset.state || '';
+    var billNumber = el.dataset.bill || '';
+    openBillDetail(stateCode, billNumber);
+  };
+
+  window.openBillDetail = function(stateCode, billNumber) {
+    var key = stateCode + '_' + billNumber.replace(/\s+/g, '_');
+    var overlay = document.getElementById('bd-overlay');
+    var body = document.getElementById('bd-body');
+
+    var analysis = (typeof BILL_ANALYSES !== 'undefined') ? BILL_ANALYSES[key] : null;
+
+    if (analysis && analysis.synopsis) {
+      _renderAnalysis(analysis);
+    } else {
+      // No analysis yet — show pending state
+      document.getElementById('bd-bill-label').textContent = stateCode + ' ' + billNumber.replace(/_/g,' ');
+      document.getElementById('bd-topic-badge').textContent = '';
+      var sevBadge = document.getElementById('bd-severity-badge');
+      sevBadge.textContent = 'PENDING';
+      sevBadge.style.background = '#f1f5f9';
+      sevBadge.style.color = '#64748b';
+      body.innerHTML = '<div class="bd-pending">'
+        + '<div class="bd-pending-title">' + stateCode + ' ' + billNumber.replace(/_/g,' ') + '</div>'
+        + '<p>Deep analysis not yet generated for this bill.</p>'
+        + '<p style="font-size:12px;color:var(--text-tertiary);">Analysis runs automatically for active bills (committee stage and above) during each pipeline run. It will appear here after the next scheduled run.<br>To generate immediately: <code style="font-family:var(--mono);background:var(--surface-sunken);padding:1px 4px;border-radius:2px;">python run.py --bill-analysis ' + stateCode + ' ' + billNumber.replace(/_/g,' ') + '</code></p>'
+        + '</div>';
+    }
+
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeBillDetail = function(e) {
+    if (e && e.target !== document.getElementById('bd-overlay')) return;
+    document.getElementById('bd-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  // Escape key also closes bill detail modal
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.getElementById('bd-overlay').classList.remove('open');
+    }
+  });
 
   function applyFilters() {
     var q = state.searchQuery;

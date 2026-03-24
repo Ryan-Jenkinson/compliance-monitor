@@ -302,6 +302,8 @@ class NewsletterRenderer:
         deadlines: Optional[List[dict]] = None,
         calendar_url: Optional[str] = None,
         daily_changes: Optional[List[dict]] = None,
+        bill_activity: Optional[List[dict]] = None,
+        bill_analyses: Optional[dict] = None,
     ) -> str:
         """Render the compliance intelligence dashboard."""
         now = datetime.now()
@@ -383,6 +385,8 @@ class NewsletterRenderer:
             },
             calendar_url=calendar_url or f"{base_url}/deadlines.ics",
             deadlines=normalized_deadlines,
+            bill_activity=bill_activity or [],
+            bill_analyses=bill_analyses or {},
             daily_changes=daily_changes or [],
             trend_data=trend_data,
             sparklines=sparklines,

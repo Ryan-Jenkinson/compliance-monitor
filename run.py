@@ -60,7 +60,7 @@ from ai.summarizer import Summarizer
 from newsletter.renderer import NewsletterRenderer
 from delivery.gmail_sender import GmailSender
 from delivery.state_map_generator import generate_pfas_map
-from subscribers.db import init_db, get_archive_weeks, save_archive_week, get_upcoming_deadlines, get_bill_calendar_events
+from subscribers.db import init_db, get_archive_weeks, save_archive_week, get_upcoming_deadlines, get_bill_calendar_events, get_bill_activity_feed, get_all_bill_analyses
 from subscribers.repository import SubscriberRepository
 from delivery.calendar_generator import generate_ics
 from scrapers.legiscan_tracker import LegiScanTracker
@@ -120,6 +120,8 @@ def parse_args() -> argparse.Namespace:
                         help="Run full content accuracy audit and open the HTML report")
     parser.add_argument("--visual-audit", action="store_true",
                         help="Run Playwright screenshot + Haiku vision audit of all pages")
+    parser.add_argument("--bill-analysis", nargs=2, metavar=("STATE", "BILL"),
+                        help="Generate or refresh deep analysis for a specific bill, e.g. MN 'HF 1234'")
     return parser.parse_args()
 
 
@@ -654,6 +656,15 @@ def run_pipeline(args: argparse.Namespace) -> None:
     except Exception as e:
         logger.warning(f"Change detection failed (non-fatal): {e}")
 
+    # Step 2e: Bill analysis — generate deep analyses for high-signal bills
+    try:
+        from ai.bill_analyst import run_batch_analysis
+        n_analyzed = run_batch_analysis(days_past=30, limit=40)
+        if n_analyzed:
+            logger.info(f"Bill analyst: {n_analyzed} new analysis/analyses generated")
+    except Exception as e:
+        logger.warning(f"Bill batch analysis failed (non-fatal): {e}")
+
     # Step 2d: Director's critique (daily — writes to data/director_review.html)
     try:
         from ai.director_agent import run_director_critique
@@ -733,17 +744,14 @@ def run_pipeline(args: argparse.Namespace) -> None:
             deadlines_preview = wdg["enriched"][:30]
         except Exception:
             deadlines_preview = get_upcoming_deadlines(days_ahead=180)
-        # Merge bill action dates (same as full pipeline)
-        bill_events_prev = get_bill_calendar_events(days_past=30, days_ahead=180)
-        existing_prev_keys = {(d.get("topic",""), d.get("deadline_date","")) for d in deadlines_preview}
-        for be in bill_events_prev:
-            if (be["topic"], be["deadline_date"]) not in existing_prev_keys:
-                deadlines_preview = list(deadlines_preview) + [be]
         deadlines_preview.sort(key=lambda d: d.get("deadline_date", ""))
+        bill_activity_prev = get_bill_activity_feed(days_past=60, limit=200)
+        bill_analyses_prev = get_all_bill_analyses()
         dashboard_html = renderer.render_dashboard(
             pipeline_output, week_context=week_context,
             archive_weeks=archive_weeks, deadlines=deadlines_preview,
-            daily_changes=daily_changes,
+            daily_changes=daily_changes, bill_activity=bill_activity_prev,
+            bill_analyses=bill_analyses_prev,
         )
         dashboard_path = data_dir / f"preview_dashboard_{ts}.html"
         dashboard_path.write_text(dashboard_html, encoding="utf-8")
@@ -826,16 +834,14 @@ def run_pipeline(args: argparse.Namespace) -> None:
             if watchdog else get_upcoming_deadlines(days_ahead=180)
         )
         # Merge in bill action dates so the calendar shows legislative activity
-        bill_events = get_bill_calendar_events(days_past=30, days_ahead=180)
-        existing_keys = {(d.get("topic",""), d.get("deadline_date","")) for d in deadlines_dash}
-        for be in bill_events:
-            if (be["topic"], be["deadline_date"]) not in existing_keys:
-                deadlines_dash = list(deadlines_dash) + [be]
         deadlines_dash.sort(key=lambda d: d.get("deadline_date", ""))
+        bill_activity = get_bill_activity_feed(days_past=60, limit=200)
+        bill_analyses = get_all_bill_analyses()
         dashboard_html = renderer.render_dashboard(
             pipeline_output, week_context=week_context,
             archive_weeks=archive_weeks, deadlines=deadlines_dash,
             calendar_url=calendar_url, daily_changes=daily_changes,
+            bill_activity=bill_activity, bill_analyses=bill_analyses,
         )
         _push_dashboard(dashboard_html, _GITHUB_REPO_DIR)
         _push_auxiliary_pages(_GITHUB_REPO_DIR)
@@ -971,6 +977,10 @@ def main() -> None:
         _run_visual_audit()
         return
 
+    if args.bill_analysis:
+        _run_bill_analysis_cli(args.bill_analysis[0], args.bill_analysis[1])
+        return
+
     run_pipeline(args)
 
 
@@ -986,6 +996,48 @@ def _run_sme_chat(topic: str) -> None:
         print(f"Error: {e}")
         print(f"Available topics: {', '.join(list_topics())}")
         sys.exit(1)
+
+
+def _run_bill_analysis_cli(state: str, bill_number: str) -> None:
+    """Force-generate and print deep analysis for a specific bill."""
+    init_db()
+    logger = logging.getLogger("bill_analyst")
+    logger.info(f"Generating bill analysis: {state} {bill_number}")
+    from ai.bill_analyst import analyze_bill
+    import json
+    result = analyze_bill(state, bill_number, force=True)
+    if result.get("error"):
+        print(f"\nError: {result['error']}")
+        sys.exit(1)
+    print(f"\n{'='*60}")
+    print(f"BILL: {state} {bill_number}")
+    print(f"Title: {result.get('bill_title','')}")
+    print(f"Topic: {result.get('topic','')}  |  Stage: {result.get('stage','')}")
+    print(f"\nSYNOPSIS:\n{result.get('synopsis','')}")
+    print(f"\nSTAGE MEANING:\n{result.get('stage_meaning','')}")
+    print(f"\nRECENT ACTION ANALYSIS:\n{result.get('recent_action_analysis','')}")
+    ci = result.get("company_impact", {})
+    print(f"\nCOMPANY IMPACT ({ci.get('severity','')}):")
+    print(f"  Direct:       {ci.get('direct','N/A')}")
+    print(f"  Supply Chain: {ci.get('supply_chain','N/A')}")
+    print(f"\nTRAJECTORY:\n{result.get('long_term_trajectory','')}")
+    actions = result.get("recommended_actions", [])
+    if actions:
+        print(f"\nRECOMMENDED ACTIONS:")
+        for a in actions:
+            print(f"  - {a}")
+    dates = result.get("follow_up_dates", [])
+    if dates:
+        print(f"\nFOLLOW-UP DATES:")
+        for d in dates:
+            print(f"  {d.get('date','TBD')} [{d.get('confidence','')}] {d.get('event','')}")
+    outlook = result.get("outlook_event", {})
+    if outlook:
+        print(f"\nOUTLOOK EVENT:")
+        print(f"  Date: {outlook.get('suggested_date','')}")
+        print(f"  Title: {outlook.get('title','')}")
+    print(f"\nAnalysis saved to DB. Will appear in dashboard on next render.")
+    print(f"{'='*60}\n")
 
 
 def _run_site_check() -> None:
