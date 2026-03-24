@@ -68,6 +68,64 @@ class ClaudeClient:
         return self.complete(prompt, system=system, model=_SONNET,
                              max_tokens=8096, cache_key=cache_key)
 
+    def complete_multi_turn(
+        self,
+        messages: list[dict],
+        system: str = "",
+        model: str = _SONNET,
+        max_tokens: int = 4096,
+    ) -> str:
+        """Multi-turn conversation. messages = [{"role":"user","content":"..."},...]
+        No caching (conversations are unique). Used by SME chat."""
+        kwargs: dict = dict(model=model, max_tokens=max_tokens, messages=messages)
+        if system:
+            kwargs["system"] = system
+        response = self._client.messages.create(**kwargs)
+        return response.content[0].text
+
+    def complete_haiku_vision(
+        self,
+        prompt: str,
+        image_data: bytes,
+        system: str = "",
+        cache_key: str | None = None,
+        media_type: str = "image/png",
+    ) -> str:
+        """Send image + text to Haiku. Used by visual auditor for screenshot analysis."""
+        import base64
+        if cache_key:
+            cached = self._load_cache(cache_key)
+            if cached is not None:
+                logger.debug(f"Claude vision cache hit: {cache_key}")
+                return cached
+
+        image_b64 = base64.standard_b64encode(image_data).decode("utf-8")
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": media_type,
+                            "data": image_b64,
+                        },
+                    },
+                    {"type": "text", "text": prompt},
+                ],
+            }
+        ]
+        kwargs: dict = dict(model=_HAIKU, max_tokens=2048, messages=messages)
+        if system:
+            kwargs["system"] = system
+        response = self._client.messages.create(**kwargs)
+        text = response.content[0].text
+
+        if cache_key:
+            self._save_cache(cache_key, text)
+        return text
+
     def _cache_path(self, key: str) -> Path:
         date_str = datetime.now().strftime("%Y-%m-%d")
         safe_key = hashlib.md5(key.encode()).hexdigest()[:12]

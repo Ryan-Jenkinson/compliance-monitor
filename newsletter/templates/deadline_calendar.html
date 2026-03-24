@@ -312,9 +312,7 @@
             {% if dl.description %}
             <div class="deadline-description">{{ dl.description }}</div>
             {% endif %}
-            {% if dl.source_url %}
-            <a href="{{ dl.source_url }}" class="deadline-link" target="_blank">Source &rarr;</a>
-            {% endif %}
+            {# source_url not linked — external agency URLs change frequently #}
           </div>
         </div>
 

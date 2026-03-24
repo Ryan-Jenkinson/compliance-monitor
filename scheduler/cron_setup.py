@@ -18,9 +18,9 @@ _PYTHON = sys.executable
 _SENTINEL = "# compliance-monitor"
 _SENTINEL_REMINDER = "# compliance-monitor-reminder"
 
-# 6 AM Mon–Fri: main pipeline
+# 6 AM Mon–Fri: main pipeline (no subscriber emails — owner notification only)
 _MAIN_CRON = (
-    f"0 6 * * 1-5 cd {_PROJECT_ROOT} && {_PYTHON} {_RUN_PY} "
+    f"0 6 * * 1-5 cd {_PROJECT_ROOT} && {_PYTHON} {_RUN_PY} --no-email "
     f">> {_LOG_PATH} 2>&1 {_SENTINEL}"
 )
 

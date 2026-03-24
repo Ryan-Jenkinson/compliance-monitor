@@ -185,6 +185,23 @@ def init_db() -> None:
         conn.commit()
     except Exception:
         pass
+    # Migration: add site_audit_reports table
+    try:
+        conn.execute("""CREATE TABLE IF NOT EXISTS site_audit_reports (
+            id               INTEGER PRIMARY KEY AUTOINCREMENT,
+            audit_date       TEXT NOT NULL,
+            audit_type       TEXT NOT NULL,
+            summary_json     TEXT NOT NULL DEFAULT '{}',
+            issues_count     INTEGER DEFAULT 0,
+            critical_count   INTEGER DEFAULT 0,
+            confidence_score REAL,
+            report_path      TEXT,
+            created_at       TEXT NOT NULL DEFAULT (datetime('now')),
+            UNIQUE(audit_date, audit_type)
+        )""")
+        conn.commit()
+    except Exception:
+        pass
     conn.close()
 
 

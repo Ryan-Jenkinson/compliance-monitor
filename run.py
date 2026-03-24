@@ -112,6 +112,14 @@ def parse_args() -> argparse.Namespace:
                         help="Run cross-state pattern analysis now (ignores weekly gate)")
     parser.add_argument("--glossary", action="store_true",
                         help="Rebuild the regulatory abbreviation glossary and open it")
+    parser.add_argument("--sme", metavar="TOPIC",
+                        help="Start interactive SME chat for a topic (pfas, epr, reach, tsca, prop65, conflict, labor)")
+    parser.add_argument("--site-check", action="store_true",
+                        help="Run site link checker and open the HTML report")
+    parser.add_argument("--content-audit", action="store_true",
+                        help="Run full content accuracy audit and open the HTML report")
+    parser.add_argument("--visual-audit", action="store_true",
+                        help="Run Playwright screenshot + Haiku vision audit of all pages")
     return parser.parse_args()
 
 
@@ -190,7 +198,10 @@ def _push_maps_to_github(pfas_map_path: Path, epr_map_path: Optional[Path],
     try:
         dest = repo_dir / "index.html"
         shutil.copy2(pfas_map_path, dest)
-        files = ["index.html"]
+        # Also push as pfas-map.html so the explicit URL works
+        pfas_map_dest = repo_dir / "pfas-map.html"
+        shutil.copy2(pfas_map_path, pfas_map_dest)
+        files = ["index.html", "pfas-map.html"]
         epr_url = None
         reach_url = None
 
@@ -517,7 +528,10 @@ def _push_dashboard(dashboard_html: str, repo_dir: Path) -> Optional[str]:
         )
         (repo_dir / "index.html").write_text(index_redirect, encoding="utf-8")
         date_str = date.today().isoformat()
-        _git_push(repo_dir, ["dashboard.html", "index.html"], f"Update dashboard {date_str}")
+        files_to_push = ["dashboard.html", "index.html"]
+        if (repo_dir / "deadlines.ics").exists():
+            files_to_push.append("deadlines.ics")
+        _git_push(repo_dir, files_to_push, f"Update dashboard {date_str}")
         url = f"{_PAGES_BASE}/dashboard.html"
         logger.info(f"Dashboard pushed: {url}")
         return url
@@ -719,6 +733,13 @@ def run_pipeline(args: argparse.Namespace) -> None:
             deadlines_preview = wdg["enriched"][:30]
         except Exception:
             deadlines_preview = get_upcoming_deadlines(days_ahead=180)
+        # Merge bill action dates (same as full pipeline)
+        bill_events_prev = get_bill_calendar_events(days_past=30, days_ahead=180)
+        existing_prev_keys = {(d.get("topic",""), d.get("deadline_date","")) for d in deadlines_preview}
+        for be in bill_events_prev:
+            if (be["topic"], be["deadline_date"]) not in existing_prev_keys:
+                deadlines_preview = list(deadlines_preview) + [be]
+        deadlines_preview.sort(key=lambda d: d.get("deadline_date", ""))
         dashboard_html = renderer.render_dashboard(
             pipeline_output, week_context=week_context,
             archive_weeks=archive_weeks, deadlines=deadlines_preview,
@@ -783,6 +804,23 @@ def run_pipeline(args: argparse.Namespace) -> None:
         is_archive=(is_friday or is_finalize),
     )
 
+    # Generate .ics daily so the link is never broken (small file, cheap to generate)
+    try:
+        _daily_ics_deadlines = get_upcoming_deadlines(days_ahead=365)
+        if _daily_ics_deadlines:
+            _daily_ics_path = generate_ics(_daily_ics_deadlines)
+            _ics_dest = _GITHUB_REPO_DIR / "deadlines.ics"
+            shutil.copy2(_daily_ics_path, _ics_dest)
+    except Exception as _e:
+        logger.warning(f"Daily .ics generation failed (non-fatal): {_e}")
+
+    # Pre-compute calendar_url (will be updated on Fridays in Step 3d)
+    calendar_url: Optional[str] = (
+        f"{_PAGES_BASE}/deadlines.html"
+        if (_GITHUB_REPO_DIR / "deadlines.html").exists()
+        else None
+    )
+
     # Dashboard — rendered and pushed every day
     logger.info("Step 3c-dash: Rendering and pushing dashboard…")
     try:
@@ -823,11 +861,6 @@ def run_pipeline(args: argparse.Namespace) -> None:
         logger.info(f"End-of-week archive saved: week of {week_context['week_label']}")
 
     # Step 3d: Generate deadline calendar (Fridays and --finalize-week only)
-    calendar_url: Optional[str] = (
-        f"{_PAGES_BASE}/deadlines.html"
-        if (_GITHUB_REPO_DIR / "deadlines.html").exists()
-        else None
-    )
     if is_friday or is_finalize:
         logger.info("Step 3d: Generating deadline calendar…")
         deadlines = get_upcoming_deadlines(days_ahead=365)
@@ -849,8 +882,15 @@ def run_pipeline(args: argparse.Namespace) -> None:
 
     # Step 4: Send emails
     if args.no_email:
-        logger.info("Step 4: Skipped (--no-email)")
-        logger.info(f"Done. Sent: 0, Skipped: all (--no-email)")
+        # Send a brief pipeline notification to the owner only
+        logger.info("Step 4: Sending pipeline notification to owner (--no-email mode)…")
+        sender = GmailSender()
+        dash_url = f"{_PAGES_BASE}/dashboard.html"
+        date_display = today.strftime("%B %-d, %Y")
+        sender.send_dashboard_notification(
+            "ryan.jenkinson@andersencorp.com", "Ryan", dash_url, date_display
+        )
+        logger.info(f"Done. Subscriber emails skipped (--no-email).")
         logger.info("=" * 60)
         return
 
@@ -918,7 +958,102 @@ def main() -> None:
         _run_director_review_standalone()
         return
 
+    if args.sme:
+        _run_sme_chat(args.sme)
+        return
+
+    if args.site_check:
+        _run_site_check()
+        return
+
+    if args.content_audit:
+        _run_content_audit()
+        return
+
+    if args.visual_audit:
+        _run_visual_audit()
+        return
+
     run_pipeline(args)
+
+
+def _run_sme_chat(topic: str) -> None:
+    """Start interactive SME chat session for the given topic."""
+    init_db()
+    from ai.sme_agent import SMEAgent
+    from ai.sme_knowledge import list_topics
+    try:
+        agent = SMEAgent(topic)
+        agent.chat()
+    except ValueError as e:
+        print(f"Error: {e}")
+        print(f"Available topics: {', '.join(list_topics())}")
+        sys.exit(1)
+
+
+def _run_site_check() -> None:
+    """Run the site link checker and open the HTML report."""
+    init_db()
+    logger = logging.getLogger("site_check")
+    logger.info("Running site link check…")
+    from ai.site_link_checker import run_check, _AUDIT_DIR
+    summary = run_check()
+    logger.info(
+        f"Link check complete — {summary['total_urls_checked']} URLs checked, "
+        f"{summary['broken_count']} broken, {summary['redirect_count']} redirects"
+    )
+    from datetime import date as _date
+    report_path = _AUDIT_DIR / f"link_report_{_date.today().isoformat()}.html"
+    if report_path.exists():
+        webbrowser.open(f"file://{report_path.resolve()}")
+        print(f"Report: {report_path}")
+    if summary["broken_count"] > 0:
+        print(f"\nBROKEN LINKS ({summary['broken_count']}):")
+        for url in summary["broken_urls"]:
+            print(f"  - {url}")
+
+
+def _run_visual_audit() -> None:
+    """Run Playwright screenshot + Haiku vision audit."""
+    init_db()
+    logger = logging.getLogger("visual_audit")
+    logger.info("Running visual audit…")
+    from ai.site_visual_auditor import run_audit as va_run_audit, _AUDIT_DIR as va_dir
+    summary = va_run_audit()
+    if summary.get("error"):
+        print(f"Visual audit error: {summary['error']}")
+        return
+    logger.info(
+        f"Visual audit complete — {summary.get('pages_audited', 0)} pages, "
+        f"{summary.get('total_issues', 0)} issues"
+    )
+    from datetime import date as _date
+    report_path = va_dir / f"visual_report_{_date.today().isoformat()}.html"
+    if report_path.exists():
+        webbrowser.open(f"file://{report_path.resolve()}")
+        print(f"Report: {report_path}")
+
+
+def _run_content_audit() -> None:
+    """Run content accuracy audit and open the HTML report."""
+    init_db()
+    logger = logging.getLogger("content_audit")
+    logger.info("Running content accuracy audit…")
+    from ai.content_auditor import run_audit, _AUDIT_DIR
+    report = run_audit()
+    logger.info(
+        f"Content audit complete — score: {report.get('confidence_score')}, "
+        f"verified: {report.get('verified_count')}, flagged: {report.get('flagged_count')}"
+    )
+    from datetime import date as _date
+    report_path = _AUDIT_DIR / f"accuracy_report_{_date.today().isoformat()}.html"
+    if report_path.exists():
+        webbrowser.open(f"file://{report_path.resolve()}")
+        print(f"Report: {report_path}")
+    if report.get("flagged_claims"):
+        print(f"\nFLAGGED ({report['flagged_count']}):")
+        for c in report["flagged_claims"][:5]:
+            print(f"  [{c.get('severity','?')}] {c.get('claim','')[:80]}")
 
 
 def _run_director_review_standalone() -> None:

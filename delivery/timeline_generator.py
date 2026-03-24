@@ -238,8 +238,7 @@ def _render_bar(dl: Dict, tl_start: date, tl_end: date) -> str:
     desc = _h((dl.get("description") or "")[:160])
     url = dl.get("source_url") or ""
     month_str = dl_date.strftime("%b %d, %Y")
-    short_title = dl["title"][:52] + ("…" if len(dl["title"]) > 52 else "")
-    source_link = f'<a class="dl-src" href="{_h(url)}" target="_blank">source ↗</a>' if url else ""
+    short_title = dl["title"][:80] + ("…" if len(dl["title"]) > 80 else "")
     return f"""
       <div class="dl-row" title="{title}&#10;Due: {month_str}&#10;{desc}">
         <div class="dl-chart-area">
@@ -251,7 +250,6 @@ def _render_bar(dl: Dict, tl_start: date, tl_end: date) -> str:
             <span class="dl-date">{month_str}</span>
             <span class="dl-badge" style="color:{tc};border-color:{tc}80;">{tl}</span>
             <span class="dl-urg urg-txt-{urg_cls}">{urg}</span>
-            {source_link}
           </div>
         </div>
       </div>"""
@@ -706,9 +704,8 @@ def generate_deadline_timeline(topic: Optional[str] = None, output_path: Optiona
     .dl-title {{
       font-size: 11px;
       font-weight: 500;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      white-space: normal;
+      word-break: break-word;
       letter-spacing: 0.2px;
       padding-right: 8px;
     }}

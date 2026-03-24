@@ -1890,7 +1890,7 @@
                 </div>
                 <div class="dl-pipe" style="background:{{ pipe_color }};"></div>
                 <div class="dl-body">
-                  <div class="dl-title">{% if dl.source_url %}<a href="{{ dl.source_url }}" style="color:inherit;text-decoration:none;border-bottom:1px solid var(--border);">{{ dl.title }}</a>{% else %}{{ dl.title }}{% endif %}</div>
+                  <div class="dl-title">{{ dl.title }}</div>
                   {% if dl.jurisdiction %}<div style="font-size: 12px;color:var(--text-muted);margin-top:2px;">{{ dl.jurisdiction }}{% if dl.topic %} · {{ dl.topic }}{% endif %}</div>{% endif %}
                 </div>
               </div>
@@ -2350,6 +2350,7 @@
           <span class="cal-month-label" id="cal-month-label"></span>
           <button class="cal-nav-btn" onclick="calNav(+1)" title="Next month">&rsaquo;</button>
           <button class="cal-nav-btn" onclick="calNav(0)" title="Today" style="width:auto;padding:0 8px;font-size: 12px;font-weight:700;letter-spacing:.04em;">TODAY</button>
+          <button id="cal-bills-toggle" class="cal-nav-btn" onclick="calToggleBills()" title="Toggle bill activity" style="width:auto;padding:0 8px;font-size:11px;font-weight:700;letter-spacing:.04em;margin-left:4px;background:var(--accent);color:#fff;">BILLS ON</button>
         </div>
       </div>
       <div class="panel-body" style="padding:10px 14px 0;">
@@ -2655,6 +2656,32 @@
     var MONTHS = ['January','February','March','April','May','June',
                   'July','August','September','October','November','December'];
 
+    // Toggle: show/hide bill events
+    var showBillEvents = true;
+
+    window.calToggleBills = function() {
+      showBillEvents = !showBillEvents;
+      var btn = document.getElementById('cal-bills-toggle');
+      if (btn) {
+        btn.textContent = showBillEvents ? 'BILLS ON' : 'BILLS OFF';
+        btn.style.background = showBillEvents ? 'var(--accent)' : 'var(--border)';
+        btn.style.color = showBillEvents ? '#fff' : 'var(--text-secondary)';
+      }
+      rebuildByDate();
+      renderCalendar(curYear, curMonth);
+    };
+
+    function rebuildByDate() {
+      byDate = {};
+      DEADLINES.forEach(function(dl) {
+        if (!showBillEvents && dl.is_bill_event) return;
+        var d = dl.deadline_date;
+        if (!d) return;
+        if (!byDate[d]) byDate[d] = [];
+        byDate[d].push(dl);
+      });
+    }
+
     // Build lookup: "YYYY-MM-DD" → [deadline, ...]
     var byDate = {};
     DEADLINES.forEach(function(dl) {
@@ -2744,9 +2771,7 @@
       var html = '';
       dls.forEach(function(dl) {
         var color = dotColor(dl);
-        var titleHtml = dl.source_url
-          ? '<a href="' + dl.source_url + '" style="color:inherit;text-decoration:none;border-bottom:1px solid rgba(0,0,0,.2);">' + dl.title + '</a>'
-          : dl.title;
+        var titleHtml = dl.title;
         html += '<div class="cal-detail-item">' +
           '<span class="cal-detail-dot" style="background:' + color + ';"></span>' +
           '<div class="cal-detail-body">' +
