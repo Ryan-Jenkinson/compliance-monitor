@@ -56,28 +56,26 @@ _TOPIC_QUERIES: dict[str, list[str]] = {
         '"chemical safety" AND (reform OR regulation OR assessment)',
     ],
     "Prop65": [
-        '"Proposition 65" AND (amendment OR reform OR exemption OR enforcement)',
-        'OEHHA AND (listing OR chemical OR substance OR warning)',
-        '"safe harbor" AND (chemical OR warning OR California)',
-        '"chemical warning" AND (label OR disclosure OR California)',
-        '"toxic chemicals" AND (warning OR disclosure OR consumer)',
-        '"right to know" AND (chemical OR toxic OR California)',
+        '"Proposition 65" AND (amendment OR reform OR exemption OR enforcement OR listing)',
+        'OEHHA AND ("Proposition 65" OR "safe harbor" OR listing OR chemical)',
+        '"Toxic Enforcement Act" AND (settlement OR warning OR amendment)',
+        '"safe harbor" AND ("Proposition 65" OR OEHHA OR NSRL OR MADL)',
     ],
     "ConflictMinerals": [
-        '"conflict minerals" AND (disclosure OR reporting OR bill OR act)',
-        '"supply chain disclosure" AND (minerals OR mining OR manufacturer)',
-        '"modern slavery" AND (disclosure OR act OR reporting)',
-        '"human rights due diligence" AND (supply chain OR bill OR act OR law)',
-        'CSDDD OR "supply chain due diligence" AND (bill OR act OR state)',
-        '"responsible sourcing" AND (bill OR act OR requirement OR disclosure)',
+        '"conflict minerals" AND (disclosure OR reporting OR bill OR act OR repeal)',
+        '"conflict minerals" AND (supply chain OR manufacturer OR SEC)',
+        '"supply chain disclosure" AND (minerals OR mining OR manufacturer OR 3TG)',
+        '"human rights due diligence" AND (mineral OR mining OR supply chain OR manufacturer)',
+        'CSDDD AND (bill OR act OR state OR supply chain)',
+        '3TG OR "tantalum" OR "conflict gold" AND (supply chain OR disclosure OR bill)',
     ],
     "ForcedLabor": [
-        '"forced labor" AND (supply chain OR manufacturer OR import)',
+        '"forced labor" AND (supply chain OR manufacturer OR import OR procurement OR vendor)',
         'UFLPA OR "Uyghur Forced Labor Prevention"',
-        '"supply chain transparency" AND (disclosure OR reporting OR act)',
-        '"modern slavery" AND (disclosure OR act OR reporting)',
-        '"withhold release order" OR "forced labor prevention"',
-        '"supply chain due diligence" AND (bill OR act OR law)',
+        '"supply chain transparency" AND (disclosure OR reporting OR act OR bill)',
+        '"withhold release order" OR "forced labor prevention" OR "sweatfree"',
+        '"supply chain due diligence" AND (bill OR act OR law OR forced)',
+        'Xinjiang AND (supply chain OR import OR procurement OR bill OR ban)',
     ],
 }
 
@@ -86,6 +84,81 @@ TRACKED_TOPICS = list(_TOPIC_QUERIES.keys())
 
 # Backward compatibility
 _SEARCH_QUERIES = _TOPIC_QUERIES["PFAS"]
+
+# Post-fetch relevance filtering — at least ONE term from _MUST_INCLUDE must appear
+# in the combined title+description for the bill to be kept.
+_TOPIC_MUST_INCLUDE: dict[str, list[str]] = {
+    "PFAS": [],   # PFAS queries are tight enough; no extra filter needed
+    "EPR": [],    # Same
+    "TSCA": [],   # Same
+    "Prop65": [
+        # "safe harbor" alone is too broad (catches mortgage/digital/e-verify safe harbor bills)
+        "proposition 65", "prop 65", "oehha", "toxic enforcement act",
+        "nsrl", "madl", "chemical warning label",
+    ],
+    "ConflictMinerals": [
+        "conflict mineral", "3tg", "tantalum", "tungsten", "conflict gold",
+        "dodd-frank", "cmrt", "csddd", "supply chain disclosure",
+        "due diligence", "deforestation", "fashion due diligence",
+        "responsible sourcing", "supply chain due diligence",
+        "democratic republic of congo", " drc ", "gold mining", "cobalt mining",
+    ],
+    "ForcedLabor": [
+        "forced labor", "uflpa", "uyghur", "xinjiang", "supply chain transparency",
+        "withhold release", "sweatfree", "prison labor", "forced labour",
+        "supply chain due diligence", "procurement", "import ban",
+        "seafood", "fishing vessel", "fish harvesting",
+    ],
+}
+
+# If ANY of these appear in title+description AND none of _MUST_INCLUDE match,
+# the bill is treated as noise (secondary guard — catches appropriations omnibus,
+# criminal/sexual offenses, and other unrelated bills).
+_TOPIC_NOISE_SIGNALS: dict[str, list[str]] = {
+    "Prop65": [
+        "foreign adversar", "vaccine", "medical examiner", "firearm",
+        "driving data", "immigration", "elections", "dental", "optometr",
+    ],
+    "ConflictMinerals": [
+        "sexual exploit", "prostitut", "pornograph", "human trafficking awareness",
+        "general appropriations", "national security supplemental",
+    ],
+    "ForcedLabor": [
+        "sexual exploit", "prostitut", "pornograph",
+        "riot", "civil terrorism", "racketeering", "subversion",
+        "code publication", "nonsubstantive",
+    ],
+}
+
+
+def _is_relevant(title: str, description: str, topic: str) -> bool:
+    """
+    Return False if a bill is clearly out-of-scope for the given topic.
+
+    Two-pass check:
+    1. If _TOPIC_MUST_INCLUDE is non-empty for this topic, at least one term
+       must appear in title+description.
+    2. If noise signals are present AND no must-include terms matched, reject.
+    """
+    must_include = _TOPIC_MUST_INCLUDE.get(topic, [])
+    noise_signals = _TOPIC_NOISE_SIGNALS.get(topic, [])
+
+    if not must_include:
+        return True  # No filter defined for this topic
+
+    text = (title + " " + description).lower()
+    has_signal = any(term in text for term in must_include)
+
+    if has_signal:
+        return True
+
+    # No must-include signal found — check if it's obvious noise
+    is_noise = any(sig in text for sig in noise_signals)
+    if is_noise:
+        return False
+
+    # Ambiguous: no must-include AND no noise signal — keep it (err on side of inclusion)
+    return False  # For these topics, require at least one must-include term
 
 # Map LegiScan status codes to our pipeline stages
 _STATUS_TO_STAGE = {
@@ -320,6 +393,17 @@ class LegiScanTracker:
         found_bills = self._search_all_queries(topic)
         logger.info(f"Found {len(found_bills)} unique {topic} bills across all states")
 
+        # Step 1b: Pre-filter using title from search results (saves API calls)
+        if _TOPIC_MUST_INCLUDE.get(topic):
+            pre_filtered = {
+                bid: r for bid, r in found_bills.items()
+                if _is_relevant(r.get("title", ""), "", topic)
+            }
+            dropped = len(found_bills) - len(pre_filtered)
+            if dropped:
+                logger.info(f"  Pre-filter removed {dropped} likely-irrelevant {topic} bills")
+            found_bills = pre_filtered
+
         # Step 2: Identify new and changed bills
         new_ids, changed_ids = self._detect_changes(found_bills)
         logger.info(f"  {topic}: New: {len(new_ids)}, Changed: {len(changed_ids)}")
@@ -337,11 +421,15 @@ class LegiScanTracker:
 
         logger.info(f"  Fetched details for {len(fetched_details)} {topic} bills")
 
-        # Step 4: Update database
+        # Step 4: Update database, post-filtering on full title+description
         new_bills = []
         changed_bills = []
+        post_filtered = 0
 
         for bill_id, detail in fetched_details.items():
+            if not _is_relevant(detail.get("title", ""), detail.get("description", ""), topic):
+                post_filtered += 1
+                continue
             record = self._bill_to_record(detail, today, topic=topic)
             if bill_id in new_ids:
                 self._insert_bill(record)
@@ -350,6 +438,9 @@ class LegiScanTracker:
                 old_record = self._get_bill(bill_id)
                 self._update_bill(record, old_record)
                 changed_bills.append(record)
+
+        if post_filtered:
+            logger.info(f"  Post-filter removed {post_filtered} {topic} bills after detail fetch")
 
         # Step 5: Mark bills not found in search as potentially inactive
         self._mark_inactive(found_bills, today)
