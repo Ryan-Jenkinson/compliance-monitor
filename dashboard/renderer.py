@@ -459,6 +459,12 @@ class DashboardRenderer:
         except Exception as _e:
             logger.warning(f"Failed to load cross-state reports: {_e}")
 
+        # Slugs for topics that have pre-generated deep-dive pages
+        topic_slugs = [
+            t["topic"].lower().replace(" ", "_").replace("/", "_")
+            for t in enriched_topics
+        ]
+
         template = self.env.get_template("dashboard.html")
         return template.render(
             date_display=now.strftime("%-d %b %Y"),
@@ -507,6 +513,7 @@ class DashboardRenderer:
             monthly_trend=monthly_trend,
             daily_trend=daily_trend,
             topic_insights=topic_insights,
+            topic_slugs=topic_slugs,
             now=now,
             timedelta_30=timedelta(days=30),
         )

@@ -923,6 +923,33 @@ def run_pipeline(args: argparse.Namespace) -> None:
         )
         _push_dashboard(dashboard_html, _GITHUB_REPO_DIR, topic_pages=topic_pages)
         _push_auxiliary_pages(_GITHUB_REPO_DIR)
+
+        # Auto-generate deep-dive pages for all topics and push to GitHub Pages
+        try:
+            import shutil as _shutil
+            from deep_dive import run_deep_dive
+            deep_dives_dir = _GITHUB_REPO_DIR / "deep-dives"
+            deep_dives_dir.mkdir(exist_ok=True)
+            dd_files = []
+            for t in pipeline_output.get("topics", []):
+                topic_name = t.get("topic", "")
+                if not topic_name:
+                    continue
+                slug = topic_name.lower().replace(" ", "_").replace("/", "_")
+                path = run_deep_dive(
+                    query=topic_name,
+                    open_browser=False,
+                    push_to_pages=False,
+                    dashboard_url="../dashboard.html",
+                )
+                dest = deep_dives_dir / f"{slug}.html"
+                _shutil.copy2(path, dest)
+                dd_files.append(f"deep-dives/{slug}.html")
+            if dd_files:
+                _git_push(_GITHUB_REPO_DIR, dd_files, f"Update deep-dive pages {date.today().isoformat()}")
+                logger.info(f"Pushed {len(dd_files)} deep-dive page(s)")
+        except Exception as e:
+            logger.warning(f"Deep-dive auto-generation failed (non-fatal): {e}")
     except Exception as e:
         logger.warning(f"Dashboard render/push failed (non-fatal): {e}")
 

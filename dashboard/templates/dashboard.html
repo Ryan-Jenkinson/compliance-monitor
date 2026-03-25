@@ -287,6 +287,27 @@
       width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
     }
     .director-dot { background: var(--teal); }
+    .deep-dive-btn {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 11px;
+      border-radius: 3px;
+      border: 1px solid var(--blue);
+      background: var(--blue-bg);
+      color: var(--blue);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+      letter-spacing: 0.02em;
+    }
+    .deep-dive-btn:hover { background: var(--blue); color: #fff; text-decoration: none; }
+    .deep-dive-btn.visible { display: inline-flex; }
 
     /* ============================================================
        MOBILE HEADER
@@ -2100,6 +2121,7 @@
     <input type="text" id="search-input" placeholder="Search articles... ( / )" oninput="handleSearch(this.value)">
   </div>
   <span class="topbar-search-count" id="search-count"></span>
+  <a class="deep-dive-btn" id="deep-dive-btn" href="#" title="Generate a full analysis page for this search term">&#9670; Deep Dive</a>
 
   <div class="topbar-actions">
     <a class="topbar-action-btn" href="director_review.html" title="Latest AI director critique of this dashboard">
@@ -3426,9 +3448,30 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
 
   /* ── Search ── */
   window.handleSearch = function(query) {
-    state.searchQuery = query.trim().toLowerCase();
+    var trimmed = query.trim();
+    state.searchQuery = trimmed.toLowerCase();
     applyFilters();
-    // Show archive article count in search results
+
+    var btn = document.getElementById('deep-dive-btn');
+    var countEl = document.getElementById('search-count');
+
+    if (trimmed.length >= 2) {
+      // Build deep-dive URL — prefer pre-generated static page if available for known slugs,
+      // otherwise route through the Flask server
+      var slug = trimmed.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+      var _knownSlugs = {{ topic_slugs | tojson }};
+      var href = (_knownSlugs.indexOf(slug) !== -1)
+        ? ('deep-dives/' + slug + '.html')
+        : ('/deep-dive?q=' + encodeURIComponent(trimmed));
+      btn.href = href;
+      btn.innerHTML = '&#9670; Deep Dive: ' + trimmed;
+      btn.classList.add('visible');
+    } else {
+      btn.classList.remove('visible');
+      btn.href = '#';
+    }
+
+    // Show archive article count
     if (state.searchQuery) {
       var archiveMatches = _allArticles.filter(function(a) {
         var q = state.searchQuery;
@@ -3436,9 +3479,8 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
                (a.snippet||'').toLowerCase().indexOf(q) !== -1 ||
                (a.source||'').toLowerCase().indexOf(q) !== -1;
       });
-      var countEl = document.getElementById('search-count');
       if (countEl && archiveMatches.length > 0) {
-        countEl.title = archiveMatches.length + ' matches in 6-month archive (click search bar to see all)';
+        countEl.title = archiveMatches.length + ' matches in 6-month archive';
         countEl.textContent = countEl.textContent + ' (+' + archiveMatches.length + ' archived)';
       }
     }

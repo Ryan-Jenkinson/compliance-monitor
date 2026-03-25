@@ -28,7 +28,7 @@ except ImportError:
     print("Flask is required for the server. Install it with:  pip install flask")
     sys.exit(1)
 
-from deep_dive import run_deep_dive, search_content, generate_synthesis, render_deep_dive
+from deep_dive import run_deep_dive, search_content, generate_synthesis, render_deep_dive, get_monthly_trend
 from subscribers.db import (
     get_connection,
     init_db,
@@ -79,6 +79,7 @@ def deep_dive():
         return _CACHE[cache_key]
 
     articles, deadlines, bills = search_content(query)
+    monthly_trend = get_monthly_trend(query)
     synthesis = generate_synthesis(query, articles, deadlines, bills)
     html = render_deep_dive(
         query=query,
@@ -86,6 +87,7 @@ def deep_dive():
         deadlines=deadlines,
         bills=bills,
         synthesis=synthesis,
+        monthly_trend=monthly_trend,
         dashboard_url="/",
         server_mode=True,
     )

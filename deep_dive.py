@@ -29,6 +29,32 @@ _TEMPLATE_PATH = Path(__file__).parent / "dashboard" / "templates" / "deep_dive.
 _OUTPUT_DIR = Path(__file__).parent / "data" / "deep_dives"
 
 
+def get_monthly_trend(query: str, months: int = 6) -> list[dict]:
+    """Return monthly article counts matching query over the last `months` months."""
+    from datetime import date, timedelta
+    conn = get_connection()
+    like = f"%{query}%"
+    today = date.today()
+    result = []
+    for i in range(months - 1, -1, -1):
+        # First day of each month going back
+        month_date = (today.replace(day=1) - timedelta(days=1)).replace(day=1) if i == 0 else today
+        # Simpler: just use SQLite date arithmetic
+        start = f"date('now', 'start of month', '-{i} months')"
+        end = f"date('now', 'start of month', '-{i-1} months')" if i > 0 else "date('now', '+1 day')"
+        n = conn.execute(
+            f"""SELECT COUNT(*) FROM articles
+                WHERE (title LIKE ? OR snippet LIKE ?)
+                  AND date(COALESCE(pub_date, first_seen)) >= {start}
+                  AND date(COALESCE(pub_date, first_seen)) < {end}""",
+            (like, like),
+        ).fetchone()[0]
+        label = conn.execute(f"SELECT strftime('%b %Y', {start})").fetchone()[0]
+        result.append({"label": label, "count": n})
+    conn.close()
+    return result
+
+
 def search_content(query: str) -> tuple[list[dict], list[dict], list[dict]]:
     """Search articles, deadlines, and bills for the given query."""
     like = f"%{query}%"
@@ -168,6 +194,7 @@ def render_deep_dive(
     deadlines: list[dict],
     bills: list[dict],
     synthesis: dict,
+    monthly_trend: list[dict] | None = None,
     dashboard_url: str = "dashboard.html",
     server_mode: bool = False,
 ) -> str:
@@ -185,6 +212,7 @@ def render_deep_dive(
         deadlines=deadlines,
         bills=bills,
         synthesis=synthesis,
+        monthly_trend=monthly_trend or [],
         dashboard_url=dashboard_url,
         generated_date=datetime.now().strftime("%B %d, %Y"),
         server_mode=server_mode,
@@ -207,6 +235,7 @@ def run_deep_dive(
     articles, deadlines, bills = search_content(query)
     logger.info(f"Found {len(articles)} articles, {len(deadlines)} deadlines, {len(bills)} bills")
 
+    monthly_trend = get_monthly_trend(query)
     synthesis = generate_synthesis(query, articles, deadlines, bills)
 
     html = render_deep_dive(
@@ -215,6 +244,7 @@ def run_deep_dive(
         deadlines=deadlines,
         bills=bills,
         synthesis=synthesis,
+        monthly_trend=monthly_trend,
         dashboard_url=dashboard_url,
         server_mode=server_mode,
     )
