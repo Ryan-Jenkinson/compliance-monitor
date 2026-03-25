@@ -11,28 +11,38 @@
 
 const ALLOWED_ORIGIN = "https://ryan-jenkinson.github.io";
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
-  "Access-Control-Max-Age": "86400",
-};
+function corsHeaders(origin) {
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Max-Age": "86400",
+  };
+}
 
 export default {
   async fetch(request, env) {
-    // CORS preflight
+    const origin = request.headers.get("Origin") || "";
+    const hdrs = corsHeaders(origin);
+
+    // CORS preflight — always respond so browser doesn't see a network error
     if (request.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: CORS_HEADERS });
+      return new Response(null, { status: 204, headers: hdrs });
     }
 
-    // Restrict to allowed origin (blocks direct curl/browser access from other domains)
-    const origin = request.headers.get("Origin") || "";
+    // Restrict to allowed origin
     if (origin !== ALLOWED_ORIGIN) {
-      return new Response("Forbidden", { status: 403 });
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...hdrs, "Content-Type": "application/json" },
+      });
     }
 
     if (request.method !== "POST") {
-      return new Response("Method not allowed", { status: 405, headers: CORS_HEADERS });
+      return new Response(JSON.stringify({ error: "Method not allowed" }), {
+        status: 405,
+        headers: { ...hdrs, "Content-Type": "application/json" },
+      });
     }
 
     let body;
@@ -41,7 +51,7 @@ export default {
     } catch {
       return new Response(JSON.stringify({ error: "Invalid JSON" }), {
         status: 400,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        headers: { ...hdrs, "Content-Type": "application/json" },
       });
     }
 
@@ -49,7 +59,6 @@ export default {
     if (body.model && !body.model.startsWith("claude-haiku")) {
       body.model = "claude-haiku-4-5-20251001";
     }
-    // Cap max_tokens
     if (!body.max_tokens || body.max_tokens > 2000) {
       body.max_tokens = 1400;
     }
@@ -68,7 +77,7 @@ export default {
 
     return new Response(JSON.stringify(data), {
       status: response.status,
-      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      headers: { ...hdrs, "Content-Type": "application/json" },
     });
   },
 };
