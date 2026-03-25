@@ -1179,13 +1179,39 @@
        ============================================================ */
     .expand-btn {
       display: inline-flex; align-items: center; justify-content: center;
-      width: 22px; height: 22px; border-radius: 3px;
+      width: 26px; height: 26px; border-radius: 4px;
       background: transparent; border: 1px solid var(--border);
-      color: var(--text-tertiary); cursor: pointer; font-size: 13px;
-      line-height: 1; transition: background .15s, color .15s;
-      margin-left: auto; flex-shrink: 0;
+      color: var(--text-tertiary); cursor: pointer; font-size: 11px;
+      line-height: 1; transition: background .15s, color .15s, border-color .15s;
+      margin-left: auto; flex-shrink: 0; padding: 0;
     }
-    .expand-btn:hover { background: var(--border); color: var(--text-primary); }
+    .expand-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+    /* Four-corner expand icon drawn in CSS */
+    .expand-btn .expand-icon {
+      display: block; position: relative; width: 12px; height: 12px;
+      pointer-events: none;
+    }
+    .expand-btn .expand-icon::before,
+    .expand-btn .expand-icon::after {
+      content: ''; position: absolute;
+      width: 5px; height: 5px;
+      border-color: currentColor; border-style: solid;
+    }
+    .expand-btn .expand-icon::before {
+      top: 0; left: 0;
+      border-width: 1.5px 0 0 1.5px;
+    }
+    .expand-btn .expand-icon::after {
+      bottom: 0; right: 0;
+      border-width: 0 1.5px 1.5px 0;
+    }
+    .expand-btn .expand-icon .ei-tr,
+    .expand-btn .expand-icon .ei-bl {
+      position: absolute; width: 5px; height: 5px;
+      border-color: currentColor; border-style: solid;
+    }
+    .expand-btn .expand-icon .ei-tr { top: 0; right: 0; border-width: 1.5px 1.5px 0 0; }
+    .expand-btn .expand-icon .ei-bl { bottom: 0; left: 0; border-width: 0 0 1.5px 1.5px; }
 
     /* Sidebar collapse toggle */
     .sidebar-collapse-btn {
@@ -1416,6 +1442,133 @@
     @media (max-width: 600px) {
       .bd-two-col { grid-template-columns: 1fr; }
       .bd-two-col .bd-section { border-right: none; }
+    }
+
+    /* ── Deadline item clickable enhancements ── */
+    .dl-item-clickable { cursor: pointer; transition: background .12s; }
+    .dl-item-clickable:hover { background: var(--surface-sunken); }
+    .dl-description {
+      font-size: 12px; color: var(--text-secondary); margin-top: 3px;
+      line-height: 1.4;
+    }
+    .dl-click-hint {
+      font-size: 11px; color: var(--blue); font-family: var(--mono);
+      margin-top: 3px; font-weight: 600; opacity: 0;
+      transition: opacity .15s;
+    }
+    .dl-item-clickable:hover .dl-click-hint { opacity: 1; }
+    .dl-urgency-tag {
+      font-size: 10px; font-weight: 700; font-family: var(--mono);
+      letter-spacing: .05em; padding: 1px 4px; border-radius: 2px;
+    }
+    .dl-urgency-tag.urgency-high { background: var(--red-bg); color: var(--red); }
+    .dl-urgency-tag.urgency-medium { background: var(--amber-bg); color: var(--amber); }
+    .dl-urgency-tag.urgency-low { background: var(--surface-sunken); color: var(--text-tertiary); }
+    .dl-fresh-badge {
+      font-size: 10px; font-weight: 700; font-family: var(--mono);
+      letter-spacing: .05em; padding: 1px 5px; border-radius: 3px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .fresh-new { background: #d1fae5; color: #065f46; }
+    .fresh-recent { background: #fef3c7; color: #92400e; }
+
+    /* ── Timeline Swimlane Widget ── */
+    .tl-full-link { margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--accent);text-decoration:none; }
+    .tl-full-link:hover { text-decoration:underline; }
+    .tl-body { padding:6px 14px 10px; }
+    .tl-lane { display:flex;align-items:center;gap:8px;margin-bottom:5px; }
+    .tl-lane-label { width:54px;text-align:right;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;flex-shrink:0;line-height:1; }
+    .tl-track { flex:1;position:relative;height:26px;overflow:visible; }
+    .tl-track-axis { position:absolute;top:50%;left:0;right:0;height:1px;transform:translateY(-50%);opacity:.25; }
+    .tl-track-today { position:absolute;left:0;top:3px;bottom:3px;width:2px;border-radius:1px; }
+    .tl-gridline { position:absolute;top:2px;bottom:2px;width:1px;border-right:1px dashed var(--border-light);pointer-events:none;z-index:1; }
+    .tl-no-data { position:absolute;left:6px;top:50%;transform:translateY(-50%);font-size:9px;font-family:var(--mono);color:var(--text-tertiary); }
+    /* Dots */
+    .tl-dot { position:absolute;top:50%;width:10px;height:10px;border-radius:50%;background:var(--dc);transform:translate(-50%,-50%);cursor:default;z-index:5;transition:transform .12s ease,box-shadow .12s ease; }
+    .tl-dot:hover,.tl-dot:focus { transform:translate(-50%,-50%) scale(1.55);z-index:20;outline:none; }
+    .tl-dot.tl-high:hover { box-shadow:0 0 8px 3px rgba(239,68,68,.45); }
+    .tl-dot.tl-med:hover { box-shadow:0 0 8px 3px rgba(245,158,11,.4); }
+    /* NEW pulse ring */
+    .tl-dot.tl-is-new { box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--dc); }
+    .tl-dot.tl-is-new::after { content:'';position:absolute;inset:-5px;border-radius:50%;border:1.5px solid var(--dc);animation:tl-ring 2.2s ease-in-out infinite; }
+    @keyframes tl-ring { 0%,100% { opacity:.75;transform:scale(1); } 50% { opacity:0;transform:scale(1.9); } }
+    /* Tooltip */
+    .tl-tip { display:none;position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:7px 10px;min-width:180px;max-width:250px;z-index:200;pointer-events:none;box-shadow:0 6px 22px rgba(0,0,0,.22);font-size:11px;line-height:1.45;color:var(--text-secondary);white-space:normal; }
+    .tl-tip b { color:var(--text-primary);font-weight:600; }
+    .tl-tip hr { border:none;border-top:1px solid var(--border-light);margin:4px 0; }
+    .tl-dot:hover .tl-tip,.tl-dot:focus .tl-tip,.tl-cluster-badge:hover .tl-tip { display:block; }
+    /* Lane link */
+    .tl-lane-link { font-size:10px;font-family:var(--mono);font-weight:600;color:var(--accent);text-decoration:none;white-space:nowrap;min-width:42px;text-align:right;flex-shrink:0; }
+    .tl-lane-link:hover { text-decoration:underline; }
+    .tl-lane-link-sp { min-width:42px;flex-shrink:0; }
+    /* Axis row */
+    .tl-axis { display:flex;align-items:flex-start;gap:8px;margin-bottom:4px; }
+    .tl-axis-sp { width:54px;flex-shrink:0; }
+    .tl-axis-sp-r { min-width:42px;flex-shrink:0; }
+    .tl-axis-bar { flex:1;position:relative;height:13px; }
+    .tl-ax { position:absolute;font-size:9px;font-family:var(--mono);color:var(--text-tertiary);transform:translateX(-50%);white-space:nowrap;top:0; }
+    .tl-ax-today { left:0!important;transform:none; }
+    .tl-ax-end { left:auto!important;right:0;transform:none; }
+    /* Legend */
+    .tl-legend { display:flex;gap:14px;padding-top:5px;border-top:1px solid var(--border-light);margin-top:2px; }
+    .tl-leg { display:flex;align-items:center;gap:4px;font-size:9px;font-family:var(--mono);color:var(--text-tertiary);letter-spacing:.04em; }
+    .tl-leg-dot { width:8px;height:8px;border-radius:50%;flex-shrink:0; }
+    .tl-leg-new { background:transparent!important;box-shadow:0 0 0 1.5px var(--text-tertiary); }
+    /* Cluster badge (built by JS) */
+    .tl-cluster-badge { position:absolute;top:50%;transform:translate(-50%,-50%);min-width:16px;height:16px;border-radius:8px;padding:0 3px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;font-family:var(--mono);color:#fff;cursor:default;z-index:6; }
+    /* Mobile */
+    @media (max-width:600px) {
+      .tl-body { display:none; }
+      .tl-panel-mobile-msg { display:block!important; }
+    }
+    .tl-panel-mobile-msg { display:none;padding:6px 14px 10px;font-size:10px;font-family:var(--mono);color:var(--text-tertiary); }
+
+    /* ── Deadline Detail Modal (shares bd-* classes, adds dd-*) ── */
+    .dd-overlay {
+      display: none; position: fixed; inset: 0; z-index: 2200;
+      background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
+      align-items: flex-start; justify-content: center;
+      padding: 32px 16px; overflow-y: auto;
+    }
+    .dd-overlay.open { display: flex; }
+    .dd-modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; box-shadow: 0 24px 80px rgba(0,0,0,.35);
+      width: min(860px, 96vw); display: flex; flex-direction: column;
+    }
+    .dd-header {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 14px 18px; border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .dd-header-left { display: flex; align-items: center; gap: 8px; flex: 1; flex-wrap: wrap; }
+    .dd-title-label {
+      font-size: 14px; font-weight: 700; color: var(--text-primary);
+      line-height: 1.3; flex: 1;
+    }
+    .dd-countdown {
+      font-size: 13px; font-family: var(--mono); font-weight: 700;
+      padding: 3px 8px; border-radius: 4px; white-space: nowrap;
+    }
+    .dd-body { padding: 0; overflow-y: visible; }
+    .dd-prep-row {
+      display: flex; gap: 0; overflow: hidden;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .dd-prep-step {
+      flex: 1; padding: 10px 14px; border-right: 1px solid var(--border-light);
+      font-size: 12px;
+    }
+    .dd-prep-step:last-child { border-right: none; }
+    .dd-prep-label {
+      font-size: 10px; font-weight: 700; font-family: var(--mono);
+      letter-spacing: .07em; color: var(--text-tertiary);
+      text-transform: uppercase; margin-bottom: 4px;
+    }
+    .dd-prep-past { opacity: .45; }
+    @media (max-width: 600px) {
+      .dd-prep-row { flex-direction: column; }
+      .dd-prep-step { border-right: none; border-bottom: 1px solid var(--border-light); }
     }
 
     /* ============================================================
@@ -1817,6 +1970,24 @@
   </div>
 </div>
 
+<!-- ═══ DEADLINE DETAIL MODAL ═══ -->
+<div class="dd-overlay" id="dd-overlay" onclick="closeDeadlineDetail(event)">
+  <div class="dd-modal" onclick="event.stopPropagation()">
+    <div class="dd-header">
+      <div class="dd-header-left">
+        <span class="bd-topic-badge" id="dd-topic-badge"></span>
+        <span class="bd-severity-badge" id="dd-severity-badge"></span>
+        <span class="dd-title-label" id="dd-title-label">—</span>
+      </div>
+      <span class="dd-countdown" id="dd-countdown"></span>
+      <button class="expand-modal-close" onclick="closeDeadlineDetail()">Close</button>
+    </div>
+    <div class="dd-body" id="dd-body">
+      <!-- rendered by JS -->
+    </div>
+  </div>
+</div>
+
 <!-- ═══ MAIN CONTENT ═══ -->
 <main class="main">
   <div class="dashboard">
@@ -1831,10 +2002,12 @@
       {% set high_count = topic.developments | selectattr('urgency', 'eq', 'HIGH') | list | length %}
       {% set med_count = topic.developments | selectattr('urgency', 'eq', 'MEDIUM') | list | length %}
       {% set art_count = topic.developments | length %}
+      {% set new_count = topic.developments | selectattr('is_new') | list | length %}
       <div class="cmd-chip" onclick="expandTopic('{{ topic.topic|lower }}');">
         <div class="cmd-chip-top">
           <span class="cmd-chip-dot" style="background:{{ topic.color }};"></span>
           <span class="cmd-chip-label">{{ topic.topic }}</span>
+          {% if new_count > 0 %}<span class="topic-new-badge">{{ new_count }} new</span>{% endif %}
         </div>
         <div class="cmd-chip-count">{{ art_count }}</div>
         <div class="cmd-chip-meta">
@@ -2060,59 +2233,13 @@
           {% endfor %}
         </div>
 
-        <!-- Regulation Status Cards — THIRD -->
-        {% if reg_milestones %}
-        <div class="panel animate-in" data-widget-id="reg-status" data-widget-label="Regulation Status Cards" style="margin-bottom:16px;margin-top:16px;">
-          <div class="panel-header">
-            <span class="panel-title-accent">Key Regulation Milestones</span>
-            <span class="panel-badge">{{ reg_milestones|length }}</span>
-            <button class="expand-btn" onclick="openExpandModal('reg-status', 'Key Regulation Milestones')" title="Expand">&#x26F6;</button>
-          </div>
-          <div class="panel-body" style="padding:0;">
-            {% for m in reg_milestones %}
-            {%- set topic_obj = topics|selectattr('topic','eq',m.topic)|first -%}
-            {%- set t_color = topic_obj.color if topic_obj else '#718096' -%}
-            {%- set days = m.days_until -%}
-            {%- set urgency_color = 'var(--red)' if days is not none and days <= 30 else 'var(--amber)' if days is not none and days <= 90 else 'var(--text-tertiary)' -%}
-            <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border-light);">
-              <!-- Days countdown -->
-              <div style="min-width:48px;text-align:right;flex-shrink:0;">
-                {% if days is not none %}
-                  <div style="font-family:var(--mono);font-size:16px;font-weight:700;color:{{ urgency_color }};line-height:1;">{{ days }}</div>
-                  <div style="font-size: 13px;color:var(--text-tertiary);letter-spacing:.04em;">days</div>
-                {% else %}
-                  <div style="font-family:var(--mono);font-size: 13px;color:var(--text-tertiary);">TBD</div>
-                {% endif %}
-              </div>
-              <!-- Left accent bar -->
-              <div style="width:3px;border-radius:2px;background:{{ t_color }};align-self:stretch;flex-shrink:0;min-height:36px;"></div>
-              <!-- Content -->
-              <div style="flex:1;min-width:0;">
-                <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
-                  <span style="font-size: 13px;font-weight:700;color:var(--text-primary);line-height:1.3;">
-                    {% if m.source_url %}<a href="{{ m.source_url }}" style="color:inherit;">{{ m.regulation_name|truncate(55, true, '…') }}</a>{% else %}{{ m.regulation_name|truncate(55, true, '…') }}{% endif %}
-                  </span>
-                  <span style="font-size: 13px;font-weight:600;color:{{ t_color }};letter-spacing:.04em;white-space:nowrap;">{{ m.topic }}</span>
-                  <span style="font-size: 13px;color:var(--text-tertiary);white-space:nowrap;">{{ m.jurisdiction }}</span>
-                </div>
-                <div style="font-size: 12px;color:var(--text-secondary);margin-top:3px;line-height:1.4;">
-                  {{ m.next_event_desc|truncate(90, true, '…') }}
-                </div>
-                <div style="font-size: 12px;color:var(--text-tertiary);margin-top:2px;font-family:var(--mono);">{{ m.next_event_date }}</div>
-              </div>
-            </div>
-            {% endfor %}
-          </div>
-        </div>
-        {% endif %}
-
-        <!-- Upcoming Deadlines — FOURTH, collapsed by default -->
+        <!-- Upcoming Compliance Dates — merged deadlines + regulation milestones -->
         <div class="panel animate-in deadlines-collapsed" id="section-deadlines" data-widget-id="deadlines" style="margin-bottom:16px;margin-top:16px;">
           <span class="section-anchor" id="anchor-section-deadlines"></span>
           <div class="panel-header" style="cursor:pointer;" onclick="toggleDeadlines()">
-            <span class="panel-title">Deadlines</span>
+            <span class="panel-title">Upcoming Compliance Dates</span>
             <span class="panel-badge">{{ deadlines|length }}</span>
-            <button class="expand-btn" onclick="openExpandModal('deadlines', 'All Upcoming Deadlines');event.stopPropagation();" title="Expand all">&#x26F6;</button>
+            <button class="expand-btn" onclick="openExpandModal('deadlines', 'All Upcoming Compliance Dates');event.stopPropagation();" title="Expand all"><span class="expand-icon"><span class="ei-tr"></span><span class="ei-bl"></span></span></button>
             <button class="exec-toggle-btn" style="margin-left:8px;">
               <span class="exec-toggle-chevron dl-toggle-chevron">&#9660;</span>
               <span class="dl-toggle-label">expand</span>
@@ -2121,22 +2248,33 @@
           <div class="deadlines-expand-body">
           <div style="padding:6px 14px;">
             {% if deadlines %}
-              {% for dl in deadlines[:15] %}
-              {% set bucket = dl.bucket if dl.bucket is defined else 'upcoming' %}
-              {% set pipe_color = 'var(--red)' if bucket in ('overdue','critical') else 'var(--amber)' if bucket == 'urgent' else 'var(--amber-border)' if bucket == 'warning' else 'var(--border)' %}
-              <div class="dl-item">
+              {% for dl in deadlines[:10] %}
+              {%- set is_milestone = dl._source == 'milestone' -%}
+              {%- set bucket = dl.bucket if dl.bucket is defined else 'upcoming' -%}
+              {%- set days = dl.days_until -%}
+              {%- set pipe_color = 'var(--red)' if (days is not none and days <= 14) or bucket in ('overdue','critical') else 'var(--amber)' if (days is not none and days <= 90) or bucket in ('urgent','warning') else 'var(--border)' -%}
+              {%- set topic_obj = topics|selectattr('topic','equalto',dl.topic|upper)|first if dl.topic else none -%}
+              {%- set t_color = topic_obj.color if topic_obj else '#718096' -%}
+              {% if is_milestone %}
+              {# Milestone row — links to source, no AI modal #}
+              <div class="dl-item{% if dl.source_url %} dl-item-clickable{% endif %}"
+                   {% if dl.source_url %}onclick="window.open('{{ dl.source_url }}','_blank')"{% endif %}>
+              {% else %}
+              {# Deadline row — AI modal click-through #}
+              <div class="dl-item dl-item-clickable" data-deadline-id="{{ dl.id }}" onclick="openDeadlineDetailFromEl(this)">
+              {% endif %}
                 <div style="text-align:right;min-width:56px;">
-                  {% if dl.days_until is defined %}
-                    {% if dl.days_until < 0 %}
+                  {% if days is not none %}
+                    {% if days < 0 %}
                       <div class="dl-days urgent" title="Overdue">OVERDUE</div>
-                    {% elif dl.days_until == 0 %}
+                    {% elif days == 0 %}
                       <div class="dl-days urgent">TODAY</div>
-                    {% elif dl.days_until <= 14 %}
-                      <div class="dl-days urgent">{{ dl.days_until }}d</div>
-                    {% elif dl.days_until <= 30 %}
-                      <div class="dl-days soon">{{ dl.days_until }}d</div>
-                    {% elif dl.days_until <= 90 %}
-                      <div class="dl-days normal">{{ dl.days_until }}d</div>
+                    {% elif days <= 14 %}
+                      <div class="dl-days urgent">{{ days }}d</div>
+                    {% elif days <= 30 %}
+                      <div class="dl-days soon">{{ days }}d</div>
+                    {% elif days <= 90 %}
+                      <div class="dl-days normal">{{ days }}d</div>
                     {% else %}
                       <div class="dl-days normal" style="opacity:.6;">{{ dl.deadline_date }}</div>
                     {% endif %}
@@ -2148,85 +2286,120 @@
                 </div>
                 <div class="dl-pipe" style="background:{{ pipe_color }};"></div>
                 <div class="dl-body">
-                  <div class="dl-title">{{ dl.title }}</div>
-                  {% if dl.jurisdiction %}<div style="font-size: 12px;color:var(--text-muted);margin-top:2px;">{{ dl.jurisdiction }}{% if dl.topic %} · {{ dl.topic }}{% endif %}</div>{% endif %}
+                  {# Official regulation name label for milestones #}
+                  {% if is_milestone and dl.regulation_name %}
+                  <div style="font-size:11px;font-weight:700;font-family:var(--mono);color:{{ t_color }};letter-spacing:.04em;margin-bottom:2px;">{{ dl.regulation_name|truncate(60, true, '…') }}</div>
+                  {% endif %}
+                  <div class="dl-title" style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
+                    <span>{{ dl.title }}</span>
+                    {% if dl._freshness == 'new' %}<span class="dl-fresh-badge fresh-new">New</span>{% elif dl._freshness == 'updated' %}<span class="dl-fresh-badge fresh-recent">Updated</span>{% endif %}
+                  </div>
+                  <div style="font-size:12px;color:var(--text-muted);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap;">
+                    {% if dl.jurisdiction %}<span>{{ dl.jurisdiction }}</span>{% endif %}
+                    {% if dl.topic %}<span style="color:{{ t_color }};font-weight:600;font-family:var(--mono);letter-spacing:.04em;">{{ dl.topic|upper }}</span>{% endif %}
+                    {% if dl.urgency %}<span class="dl-urgency-tag urgency-{{ dl.urgency|lower }}">{{ dl.urgency }}</span>{% endif %}
+                    {% if is_milestone and dl.current_status %}<span style="opacity:.7;">{{ dl.current_status }}</span>{% endif %}
+                  </div>
+                  {% if dl.description %}<div class="dl-description">{{ dl.description|truncate(120, true, '…') }}</div>{% endif %}
+                  {% if is_milestone %}
+                    {% if dl.source_url %}<div class="dl-click-hint">View source &rarr;</div>{% endif %}
+                  {% else %}
+                    <div class="dl-click-hint">Click for AI analysis &rarr;</div>
+                  {% endif %}
                 </div>
               </div>
               {% endfor %}
-              {% if deadlines|length > 15 %}
+              {% if deadlines|length > 10 %}
               <div style="padding:8px 0 4px;text-align:center;">
-                <button onclick="openExpandModal('deadlines','All Upcoming Deadlines')"
+                <button onclick="openExpandModal('deadlines','All Upcoming Compliance Dates')"
                         style="background:none;border:1px solid var(--border);border-radius:4px;
                                padding:4px 12px;font-size: 13px;color:var(--text-secondary);
                                cursor:pointer;font-weight:600;">
-                  + {{ deadlines|length - 15 }} more deadlines
+                  + {{ deadlines|length - 10 }} more
                 </button>
               </div>
               {% endif %}
             {% else %}
-              <div class="no-articles">No upcoming deadlines.</div>
+              <div class="no-articles">No upcoming compliance dates.</div>
             {% endif %}
           </div>
         </div>
 
         </div>
 
-        <!-- ── Mini Timeline Widget ── -->
+        <!-- ── Timeline Swimlane Widget ── -->
         {% if deadlines %}
-        {%- set ns_tl = namespace(max_days=1) -%}
+        {%- set ns_tl = namespace(max_days=30) -%}
         {%- for dl in deadlines -%}{%- if dl.days_until is defined and dl.days_until is not none and dl.days_until > ns_tl.max_days -%}{%- set ns_tl.max_days = dl.days_until -%}{%- endif -%}{%- endfor -%}
-        <div class="panel animate-in" style="margin-bottom:16px;">
+        {%- set tl_max = ns_tl.max_days if ns_tl.max_days > 0 else 30 -%}
+        <div class="panel animate-in tl-panel" style="margin-bottom:16px;">
           <div class="panel-header">
             <span class="panel-title-accent">Deadline Timeline</span>
             <span class="panel-badge">{{ deadlines|length }}</span>
-            {% if timelines and timelines.all %}
-            <a href="{{ timelines.all }}" style="margin-left:auto;font-family:var(--mono);font-size: 12px;font-weight:600;color:var(--blue);">Full View &rarr;</a>
-            {% endif %}
+            {% if timelines and timelines.all %}<a href="{{ timelines.all }}" class="tl-full-link">Full View &rarr;</a>{% endif %}
           </div>
-          <div style="padding:10px 14px;">
+          <div class="tl-body">
             {%- for topic in topics -%}
             {%- set tdls = deadlines|selectattr('topic','eq',topic.topic|lower)|list -%}
-            {%- set topic_url = timelines[topic.topic|lower] if timelines and topic.topic|lower in timelines else '' -%}
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-              <span style="min-width:48px;font-size: 12px;font-weight:700;letter-spacing:.04em;color:{{ topic.color }};font-family:var(--mono);">{{ topic.topic }}</span>
-              <div style="flex:1;position:relative;height:22px;background:var(--surface-sunken);border-radius:3px;overflow:visible;">
-                {%- if tdls -%}
+            {%- set topic_key = topic.topic|lower -%}
+            {%- set topic_url = timelines[topic_key] if timelines and topic_key in timelines else '' -%}
+            <div class="tl-lane">
+              <span class="tl-lane-label" style="color:{{ topic.color }};">{{ topic.topic }}</span>
+              <div class="tl-track">
+                <div class="tl-track-axis" style="background:{{ topic.color }};"></div>
+                <div class="tl-track-today" style="background:{{ topic.color }};"></div>
+                {%- if tl_max >= 30 -%}<div class="tl-gridline" style="left:{{ (30/tl_max*94)|round(2) }}%;"></div>{%- endif -%}
+                {%- if tl_max >= 90 -%}<div class="tl-gridline" style="left:{{ (90/tl_max*94)|round(2) }}%;"></div>{%- endif -%}
+                {%- if tl_max >= 180 -%}<div class="tl-gridline" style="left:{{ (180/tl_max*94)|round(2) }}%;"></div>{%- endif -%}
+                {%- if tl_max >= 365 -%}<div class="tl-gridline" style="left:{{ (365/tl_max*94)|round(2) }}%;"></div>{%- endif -%}
+                {%- set ns_lane = namespace(has_dots=false) -%}
                 {%- for dl in tdls|sort(attribute='days_until') -%}
                 {%- if dl.days_until is defined and dl.days_until is not none and dl.days_until >= 0 -%}
-                {%- set pct = ((dl.days_until / ns_tl.max_days) * 96)|int -%}
-                <div title="{{ dl.title }} — {{ dl.deadline_date }}"
-                     style="position:absolute;left:{{ pct }}%;top:4px;width:3px;height:14px;border-radius:1px;
-                            background:{%- if dl.urgency == 'HIGH' -%}var(--red){%- elif dl.urgency == 'MEDIUM' -%}var(--amber){%- else -%}var(--green){%- endif -%};
-                            cursor:default;transform:translateX(-1px);"></div>
+                {%- set ns_lane.has_dots = true -%}
+                {%- set pct = (dl.days_until / tl_max * 94)|round(2) -%}
+                {%- if dl.urgency == 'HIGH' -%}{%- set dc = 'var(--red)' -%}
+                {%- elif dl.urgency == 'MEDIUM' -%}{%- set dc = 'var(--amber)' -%}
+                {%- else -%}{%- set dc = topic.color -%}
+                {%- endif -%}
+                <div class="tl-dot{% if dl.urgency == 'HIGH' %} tl-high{% elif dl.urgency == 'MEDIUM' %} tl-med{% endif %}{% if dl._freshness == 'new' %} tl-is-new{% endif %}"
+                     style="left:{{ pct }}%;--dc:{{ dc }};"
+                     data-tl-pct="{{ pct }}"
+                     data-title="{{ dl.title|e }}"
+                     data-date="{{ dl.deadline_date }}"
+                     data-days="{{ dl.days_until }}"
+                     data-urgency="{{ dl.urgency }}"
+                     tabindex="0">
+                  <span class="tl-tip"><b>{{ dl.title }}</b><br>{{ dl.deadline_date }} &middot; {{ dl.days_until }}d &middot; {{ dl.urgency }}{% if dl._freshness == 'new' %} &middot; <span style="color:var(--green);font-weight:600;">New</span>{% endif %}</span>
+                </div>
                 {%- endif -%}
                 {%- endfor -%}
-                {%- else -%}
-                <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size: 12px;color:var(--text-tertiary);font-family:var(--mono);">no data</span>
-                {%- endif -%}
+                {%- if not ns_lane.has_dots -%}<span class="tl-no-data">&mdash;</span>{%- endif -%}
               </div>
-              {% if topic_url %}
-              <a href="{{ topic_url }}" style="font-size: 12px;font-family:var(--mono);font-weight:600;color:var(--blue);white-space:nowrap;flex-shrink:0;">Full &rarr;</a>
-              {% endif %}
+              {%- if topic_url -%}<a href="{{ topic_url }}" class="tl-lane-link">Full &rarr;</a>{%- else -%}<span class="tl-lane-link-sp"></span>{%- endif -%}
             </div>
             {%- endfor -%}
-            <!-- Axis label row -->
-            <div style="display:flex;align-items:center;gap:10px;margin-top:2px;">
-              <span style="min-width:48px;"></span>
-              <div style="flex:1;position:relative;height:14px;">
-                <span style="position:absolute;left:0;font-size: 13px;color:var(--text-tertiary);font-family:var(--mono);">Today</span>
-                <span style="position:absolute;left:50%;transform:translateX(-50%);font-size: 13px;color:var(--text-tertiary);font-family:var(--mono);">{{ (ns_tl.max_days // 2) }}d</span>
-                <span style="position:absolute;right:0;font-size: 13px;color:var(--text-tertiary);font-family:var(--mono);">{{ ns_tl.max_days }}d</span>
+            <!-- Axis labels -->
+            <div class="tl-axis">
+              <span class="tl-axis-sp"></span>
+              <div class="tl-axis-bar">
+                <span class="tl-ax tl-ax-today">Today</span>
+                {%- if tl_max >= 30 -%}<span class="tl-ax" style="left:{{ (30/tl_max*94)|round(2) }}%;">30d</span>{%- endif -%}
+                {%- if tl_max >= 90 -%}<span class="tl-ax" style="left:{{ (90/tl_max*94)|round(2) }}%;">90d</span>{%- endif -%}
+                {%- if tl_max >= 180 -%}<span class="tl-ax" style="left:{{ (180/tl_max*94)|round(2) }}%;">180d</span>{%- endif -%}
+                {%- if tl_max >= 365 -%}<span class="tl-ax" style="left:{{ (365/tl_max*94)|round(2) }}%;">1yr</span>{%- endif -%}
+                <span class="tl-ax tl-ax-end">{{ tl_max }}d</span>
               </div>
-              <span style="min-width:44px;"></span>
+              <span class="tl-axis-sp-r"></span>
             </div>
             <!-- Legend -->
-            <div style="display:flex;gap:14px;margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);">
-              <span style="font-size: 13px;color:var(--text-tertiary);font-family:var(--mono);">Each mark = one deadline</span>
-              <span style="display:flex;align-items:center;gap:4px;font-size: 13px;color:var(--red);font-family:var(--mono);"><span style="width:5px;height:12px;background:var(--red);border-radius:1px;display:inline-block;"></span>HIGH</span>
-              <span style="display:flex;align-items:center;gap:4px;font-size: 13px;color:var(--amber);font-family:var(--mono);"><span style="width:5px;height:12px;background:var(--amber);border-radius:1px;display:inline-block;"></span>MED</span>
-              <span style="display:flex;align-items:center;gap:4px;font-size: 13px;color:var(--green);font-family:var(--mono);"><span style="width:5px;height:12px;background:var(--green);border-radius:1px;display:inline-block;"></span>LOW</span>
+            <div class="tl-legend">
+              <span class="tl-leg"><span class="tl-leg-dot" style="background:var(--red);"></span>HIGH</span>
+              <span class="tl-leg"><span class="tl-leg-dot" style="background:var(--amber);"></span>MED</span>
+              <span class="tl-leg"><span class="tl-leg-dot" style="background:var(--green);"></span>LOW / topic</span>
+              <span class="tl-leg"><span class="tl-leg-dot tl-leg-new"></span>New</span>
             </div>
           </div>
+          <div class="tl-panel-mobile-msg">Deadline timeline available on wider screens.</div>
         </div>
         {% endif %}
 
@@ -2237,7 +2410,7 @@
           <div class="panel-header" style="gap:8px;flex-wrap:wrap;">
             <span class="panel-title">Legislative Activity</span>
             <span class="panel-badge">{{ bill_activity|length }}</span>
-            <button class="expand-btn" onclick="openExpandModal('leg-activity','Legislative Activity — Full History')" title="Expand all">&#x26F6;</button>
+            <button class="expand-btn" onclick="openExpandModal('leg-activity','Legislative Activity — Full History')" title="Expand all"><span class="expand-icon"><span class="ei-tr"></span><span class="ei-bl"></span></span></button>
             <!-- Outcome filter buttons -->
             <div style="display:flex;gap:4px;flex-wrap:wrap;margin-left:auto;align-items:center;" id="leg-outcome-filters">
               <button class="la-filter-btn la-filter-active" data-outcome="all" onclick="setLegFilter('outcome','all',this)">All</button>
@@ -2263,7 +2436,7 @@
                  data-topic="{{ item.topic|lower }}"
                  data-high="{{ 'true' if item.is_high_signal else 'false' }}"
                  data-state="{{ item.state }}"
-                 data-bill="{{ item.bill }}"
+                 data-bill="{{ item.bill[(item.state|length + 1):] }}"
                  onclick="openBillDetailFromEl(this)"
                  style="cursor:pointer;"
                  title="Click for detailed analysis">
@@ -2574,7 +2747,7 @@
           <div class="panel-header">
             <span class="panel-title">Bill Pipeline</span>
             <span class="panel-badge">{{ bill_funnel.totals.total }} active</span>
-            <button class="expand-btn" onclick="openExpandModal('bill-funnel', 'Bill Pipeline — Full Breakdown')" title="Expand">&#x26F6;</button>
+            <button class="expand-btn" onclick="openExpandModal('bill-funnel', 'Bill Pipeline — Full Breakdown')" title="Expand"><span class="expand-icon"><span class="ei-tr"></span><span class="ei-bl"></span></span></button>
           </div>
           <div class="panel-body" style="padding:8px 14px;">
             {%- set stage_colors = {
@@ -2734,6 +2907,7 @@
 <!-- Bill analyses data (pre-generated by pipeline) -->
 <script>
 var BILL_ANALYSES = {{ bill_analyses|tojson }};
+var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
 </script>
 
 <script>
@@ -3195,10 +3369,221 @@ var BILL_ANALYSES = {{ bill_analyses|tojson }};
     document.body.style.overflow = '';
   };
 
-  // Escape key also closes bill detail modal
+  // ── Deadline Detail Modal ──
+
+  window.openDeadlineDetailFromEl = function(el) {
+    var deadlineId = el.dataset.deadlineId || '';
+    openDeadlineDetail(deadlineId);
+  };
+
+  window.openDeadlineDetail = function(deadlineId) {
+    var overlay = document.getElementById('dd-overlay');
+    var body = document.getElementById('dd-body');
+    var key = String(deadlineId);
+    var analysis = (typeof DEADLINE_ANALYSES !== 'undefined') ? DEADLINE_ANALYSES[key] : null;
+
+    if (analysis && analysis.what_is_required) {
+      _renderDeadlineAnalysis(analysis);
+    } else {
+      document.getElementById('dd-title-label').textContent = 'Deadline #' + deadlineId;
+      document.getElementById('dd-topic-badge').textContent = '';
+      var sevBadge = document.getElementById('dd-severity-badge');
+      sevBadge.textContent = 'PENDING';
+      sevBadge.style.background = '#f1f5f9';
+      sevBadge.style.color = '#64748b';
+      document.getElementById('dd-countdown').textContent = '';
+      body.innerHTML = '<div class="bd-pending">'
+        + '<div class="bd-pending-title">Analysis Pending</div>'
+        + '<p>Deep analysis has not yet been generated for this deadline.</p>'
+        + '<p style="font-size:12px;color:var(--text-tertiary);">Analysis runs automatically for HIGH/MEDIUM deadlines during each pipeline run. It will appear here after the next scheduled run.</p>'
+        + '</div>';
+    }
+
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeDeadlineDetail = function(e) {
+    if (e && e.target !== document.getElementById('dd-overlay')) return;
+    document.getElementById('dd-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  function _renderDeadlineAnalysis(a) {
+    var impact = a.company_impact || {};
+    var sev = (impact.severity || 'MONITORING').toUpperCase();
+    var sevStyle = _SEVERITY_STYLES[sev] || _SEVERITY_STYLES.MONITORING;
+    var today = new Date();
+
+    // Header
+    document.getElementById('dd-title-label').textContent = a.title || 'Deadline';
+    var topicBadge = document.getElementById('dd-topic-badge');
+    topicBadge.textContent = a.topic || '';
+    var sevBadge = document.getElementById('dd-severity-badge');
+    sevBadge.textContent = sev;
+    sevBadge.style.background = sevStyle.bg;
+    sevBadge.style.color = sevStyle.color;
+
+    // Countdown badge
+    var cdEl = document.getElementById('dd-countdown');
+    if (a.deadline_date) {
+      var ddDate = new Date(a.deadline_date);
+      var diffMs = ddDate - today;
+      var diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      if (diffDays < 0) {
+        cdEl.textContent = Math.abs(diffDays) + 'd overdue';
+        cdEl.style.background = 'var(--red-bg)';
+        cdEl.style.color = 'var(--red)';
+      } else if (diffDays === 0) {
+        cdEl.textContent = 'TODAY';
+        cdEl.style.background = 'var(--red-bg)';
+        cdEl.style.color = 'var(--red)';
+      } else if (diffDays <= 14) {
+        cdEl.textContent = diffDays + ' days';
+        cdEl.style.background = 'var(--red-bg)';
+        cdEl.style.color = 'var(--red)';
+      } else if (diffDays <= 90) {
+        cdEl.textContent = diffDays + ' days';
+        cdEl.style.background = 'var(--amber-bg)';
+        cdEl.style.color = 'var(--amber)';
+      } else {
+        cdEl.textContent = a.deadline_date;
+        cdEl.style.background = 'var(--surface-sunken)';
+        cdEl.style.color = 'var(--text-secondary)';
+      }
+    } else {
+      cdEl.textContent = '';
+    }
+
+    var sections = '';
+
+    // What is required + Who must comply (two-col)
+    sections += '<div class="bd-two-col">';
+    if (a.what_is_required) {
+      sections += '<div class="bd-section">';
+      sections += '<div class="bd-section-title">What Is Required</div>';
+      sections += '<div class="bd-section-body">' + _escHtml(a.what_is_required) + '</div>';
+      if (a.jurisdiction) {
+        sections += '<div style="font-size:11px;font-family:var(--mono);color:var(--text-tertiary);margin-top:6px;">'
+                 + _escHtml(a.jurisdiction) + (a.urgency ? ' · ' + a.urgency : '') + '</div>';
+      }
+      if (a.source_url) {
+        sections += '<a class="bd-source-link" href="' + _escHtml(a.source_url) + '" target="_blank" style="display:block;margin-top:6px;">View Source &rarr;</a>';
+      }
+      sections += '</div>';
+    }
+    if (a.who_must_comply) {
+      sections += '<div class="bd-section">';
+      sections += '<div class="bd-section-title">Who Must Comply</div>';
+      sections += '<div class="bd-section-body">' + _escHtml(a.who_must_comply) + '</div>';
+      sections += '</div>';
+    }
+    sections += '</div>';
+
+    // What WE must do
+    if (a.what_we_must_do) {
+      sections += '<div class="bd-section" style="background:' + sevStyle.bg + '10;">';
+      sections += '<div class="bd-section-title" style="color:' + sevStyle.color + ';">What We Must Do</div>';
+      sections += '<div class="bd-section-body">' + _escHtml(a.what_we_must_do) + '</div>';
+      sections += '</div>';
+    }
+
+    // Company impact (direct + supply chain)
+    if (impact.direct || impact.supply_chain) {
+      sections += '<div class="bd-section" style="background:' + sevStyle.bg + '10;">';
+      sections += '<div class="bd-section-title" style="color:' + sevStyle.color + ';">Company Impact — ' + sev + '</div>';
+      sections += '<div class="bd-two-col" style="margin: 0 -18px;">';
+      if (impact.direct) {
+        sections += '<div style="padding: 8px 18px; border-right: 1px solid var(--border-light);">';
+        sections += '<span style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--text-tertiary);display:block;margin-bottom:2px;">DIRECT PRODUCTS</span>';
+        sections += '<div class="bd-section-body">' + _escHtml(impact.direct) + '</div></div>';
+      }
+      if (impact.supply_chain) {
+        sections += '<div style="padding: 8px 18px;">';
+        sections += '<span style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--text-tertiary);display:block;margin-bottom:2px;">SUPPLY CHAIN</span>';
+        sections += '<div class="bd-section-body">' + _escHtml(impact.supply_chain) + '</div></div>';
+      }
+      sections += '</div>';
+      sections += '</div>';
+    }
+
+    // Penalties
+    if (a.penalties) {
+      sections += '<div class="bd-section">';
+      sections += '<div class="bd-section-title">Penalties for Non-Compliance</div>';
+      sections += '<div class="bd-section-body">' + _escHtml(a.penalties) + '</div>';
+      sections += '</div>';
+    }
+
+    // Preparation timeline (90/60/30/0 day milestones)
+    if (a.preparation_timeline && a.preparation_timeline.length) {
+      sections += '<div class="bd-section">';
+      sections += '<div class="bd-section-title">Preparation Timeline</div>';
+      sections += '<div class="dd-prep-row">';
+      a.preparation_timeline.forEach(function(step) {
+        var daysLabel = step.days_before === 0 ? 'Deadline Day' : step.days_before + ' days before';
+        var isPast = false;
+        if (a.deadline_date) {
+          var stepDate = new Date(a.deadline_date);
+          stepDate.setDate(stepDate.getDate() - step.days_before);
+          isPast = stepDate < today;
+        }
+        sections += '<div class="dd-prep-step' + (isPast ? ' dd-prep-past' : '') + '">';
+        sections += '<div class="dd-prep-label">' + _escHtml(daysLabel) + (isPast ? ' (past)' : '') + '</div>';
+        sections += '<div style="font-size:12px;color:var(--text-primary);line-height:1.45;">' + _escHtml(step.action) + '</div>';
+        sections += '</div>';
+      });
+      sections += '</div>';
+      sections += '</div>';
+    }
+
+    // Related context
+    if (a.related_context) {
+      sections += '<div class="bd-section">';
+      sections += '<div class="bd-section-title">Related Context</div>';
+      sections += '<div class="bd-section-body">' + _escHtml(a.related_context) + '</div>';
+      sections += '</div>';
+    }
+
+    // Recommended actions
+    if (a.recommended_actions && a.recommended_actions.length) {
+      sections += '<div class="bd-section">';
+      sections += '<div class="bd-section-title">Recommended Actions Now</div>';
+      sections += '<ul class="bd-action-list">';
+      a.recommended_actions.forEach(function(act) {
+        sections += '<li>' + _escHtml(act) + '</li>';
+      });
+      sections += '</ul>';
+      sections += '</div>';
+    }
+
+    // Outlook event / ICS download
+    if (a.outlook_event && a.outlook_event.suggested_date) {
+      var icsUrl = _buildIcsDataUrl(a.outlook_event, a.title || 'Deadline');
+      if (icsUrl) {
+        sections += '<div class="bd-section">';
+        sections += '<div class="bd-section-title">Calendar Reminder</div>';
+        var evDesc = a.outlook_event.description || '';
+        if (evDesc) {
+          sections += '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;line-height:1.5;">' + _escHtml(evDesc) + '</div>';
+        }
+        sections += '<a class="bd-ics-btn" href="' + icsUrl
+                 + '" download="' + _escHtml((a.outlook_event.title || 'Deadline').replace(/[^\w\s-]/g,'')) + '.ics">'
+                 + '&#128197; Add to Outlook / Calendar'
+                 + '</a>';
+        sections += '</div>';
+      }
+    }
+
+    document.getElementById('dd-body').innerHTML = sections;
+  }
+
+  // Escape key closes both modals
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
       document.getElementById('bd-overlay').classList.remove('open');
+      document.getElementById('dd-overlay').classList.remove('open');
+      document.body.style.overflow = '';
     }
   });
 
@@ -3620,6 +4005,41 @@ var BILL_ANALYSES = {{ bill_analyses|tojson }};
       document.getElementById('expand-modal-overlay').classList.remove('open');
       document.body.style.overflow = '';
     }
+  });
+})();
+</script>
+
+<script>
+/* ── Timeline Dot Clustering ── */
+(function() {
+  var THRESHOLD = 5; // cluster dots within 5% of each other
+  document.querySelectorAll('.tl-track').forEach(function(track) {
+    var dots = Array.from(track.querySelectorAll('.tl-dot'));
+    if (dots.length < 2) return;
+    dots.sort(function(a, b) { return parseFloat(a.dataset.tlPct) - parseFloat(b.dataset.tlPct); });
+    var groups = [], cur = [dots[0]];
+    for (var i = 1; i < dots.length; i++) {
+      if (parseFloat(dots[i].dataset.tlPct) - parseFloat(dots[i-1].dataset.tlPct) < THRESHOLD) {
+        cur.push(dots[i]);
+      } else { groups.push(cur); cur = [dots[i]]; }
+    }
+    groups.push(cur);
+    groups.forEach(function(group) {
+      if (group.length < 2) return;
+      var hasHigh = group.some(function(d) { return d.dataset.urgency === 'HIGH'; });
+      var hasMed  = group.some(function(d) { return d.dataset.urgency === 'MEDIUM'; });
+      var color   = hasHigh ? 'var(--red)' : hasMed ? 'var(--amber)' : 'var(--green)';
+      var avgPct  = group.reduce(function(s, d) { return s + parseFloat(d.dataset.tlPct); }, 0) / group.length;
+      var tipHtml = group.map(function(d) {
+        return '<b>' + (d.dataset.title || '') + '</b><br>' + (d.dataset.date || '') + ' &middot; ' + (d.dataset.days || '') + 'd &middot; ' + (d.dataset.urgency || '');
+      }).join('<hr>');
+      group.forEach(function(d) { d.style.display = 'none'; });
+      var badge = document.createElement('div');
+      badge.className = 'tl-cluster-badge';
+      badge.style.cssText = 'left:' + avgPct + '%;background:' + color + ';';
+      badge.innerHTML = group.length + '<span class="tl-tip">' + tipHtml + '</span>';
+      track.appendChild(badge);
+    });
   });
 })();
 </script>

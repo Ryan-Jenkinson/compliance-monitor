@@ -202,6 +202,24 @@ def init_db() -> None:
         conn.commit()
     except Exception:
         pass
+    # Migration: add deadline_analyses table
+    try:
+        conn.execute("""CREATE TABLE IF NOT EXISTS deadline_analyses (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            deadline_id     INTEGER NOT NULL UNIQUE,
+            analysis_json   TEXT NOT NULL DEFAULT '{}',
+            model_used      TEXT DEFAULT 'claude-sonnet-4-6',
+            analyzed_at     TEXT NOT NULL DEFAULT (datetime('now'))
+        )""")
+        conn.commit()
+    except Exception:
+        pass
+    # Migration: add updated_at to regulatory_deadlines
+    try:
+        conn.execute("ALTER TABLE regulatory_deadlines ADD COLUMN updated_at TEXT")
+        conn.commit()
+    except Exception:
+        pass  # Column already exists
     # Migration: add bill_analyses table
     try:
         conn.execute("""CREATE TABLE IF NOT EXISTS bill_analyses (
@@ -276,6 +294,56 @@ def get_all_bill_analyses() -> dict:
     return result
 
 
+def save_deadline_analysis(deadline_id: int, analysis: dict) -> None:
+    """Insert or replace a deadline analysis."""
+    import json as _json
+    conn = get_connection()
+    conn.execute(
+        """INSERT INTO deadline_analyses (deadline_id, analysis_json, analyzed_at)
+           VALUES (?, ?, datetime('now'))
+           ON CONFLICT(deadline_id) DO UPDATE SET
+               analysis_json = excluded.analysis_json,
+               analyzed_at = excluded.analyzed_at""",
+        (deadline_id, _json.dumps(analysis)),
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_deadline_analysis(deadline_id: int) -> dict | None:
+    """Return the stored analysis for a deadline, or None."""
+    import json as _json
+    conn = get_connection()
+    row = conn.execute(
+        "SELECT analysis_json FROM deadline_analyses WHERE deadline_id=?",
+        (deadline_id,),
+    ).fetchone()
+    conn.close()
+    if not row:
+        return None
+    try:
+        return _json.loads(row["analysis_json"])
+    except Exception:
+        return None
+
+
+def get_all_deadline_analyses() -> dict:
+    """Return all deadline analyses keyed by deadline_id (as string)."""
+    import json as _json
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT deadline_id, analysis_json FROM deadline_analyses"
+    ).fetchall()
+    conn.close()
+    result = {}
+    for r in rows:
+        try:
+            result[str(r["deadline_id"])] = _json.loads(r["analysis_json"])
+        except Exception:
+            pass
+    return result
+
+
 def get_archive_weeks() -> list[dict]:
     """Return all archived weeks ordered by week_start descending."""
     conn = get_connection()
@@ -303,15 +371,43 @@ def save_archive_week(week_start: str, week_end: str, label: str, year: str,
 def upsert_deadline(topic: str, title: str, deadline_date: str,
                     description: str, jurisdiction: str, source_url: str,
                     urgency: str, week_start: str) -> None:
-    """Insert or update a deadline. Dedupes on (topic, title, deadline_date)."""
+    """Insert a new deadline or update fields if content changed.
+    Sets updated_at only when an existing row's content actually changes.
+    """
     conn = get_connection()
-    conn.execute("""
-        INSERT INTO regulatory_deadlines
-            (topic, title, deadline_date, description, jurisdiction, source_url, urgency, week_start)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT DO NOTHING
-    """, (topic, title, deadline_date, description, jurisdiction, source_url, urgency, week_start))
-    conn.commit()
+    existing = conn.execute(
+        "SELECT id, description, urgency, jurisdiction, source_url FROM regulatory_deadlines "
+        "WHERE topic=? AND title=? AND deadline_date=?",
+        (topic, title, deadline_date),
+    ).fetchone()
+
+    if existing:
+        # Check if any meaningful field changed
+        changed = (
+            (description or "") != (existing["description"] or "")
+            or (urgency or "") != (existing["urgency"] or "")
+            or (jurisdiction or "") != (existing["jurisdiction"] or "")
+            or (source_url or "") != (existing["source_url"] or "")
+        )
+        if changed:
+            conn.execute(
+                """UPDATE regulatory_deadlines
+                   SET description=?, urgency=?, jurisdiction=?, source_url=?,
+                       updated_at=datetime('now')
+                   WHERE id=?""",
+                (description, urgency, jurisdiction, source_url, existing["id"]),
+            )
+            conn.commit()
+    else:
+        conn.execute(
+            """INSERT INTO regulatory_deadlines
+                   (topic, title, deadline_date, description, jurisdiction,
+                    source_url, urgency, week_start)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (topic, title, deadline_date, description, jurisdiction,
+             source_url, urgency, week_start),
+        )
+        conn.commit()
     conn.close()
 
 

@@ -60,7 +60,7 @@ from ai.summarizer import Summarizer
 from newsletter.renderer import NewsletterRenderer
 from delivery.gmail_sender import GmailSender
 from delivery.state_map_generator import generate_pfas_map
-from subscribers.db import init_db, get_archive_weeks, save_archive_week, get_upcoming_deadlines, get_bill_calendar_events, get_bill_activity_feed, get_all_bill_analyses
+from subscribers.db import init_db, get_archive_weeks, save_archive_week, get_upcoming_deadlines, get_bill_calendar_events, get_bill_activity_feed, get_all_bill_analyses, get_all_deadline_analyses
 from subscribers.repository import SubscriberRepository
 from delivery.calendar_generator import generate_ics
 from scrapers.legiscan_tracker import LegiScanTracker
@@ -122,6 +122,12 @@ def parse_args() -> argparse.Namespace:
                         help="Run Playwright screenshot + Haiku vision audit of all pages")
     parser.add_argument("--bill-analysis", nargs=2, metavar=("STATE", "BILL"),
                         help="Generate or refresh deep analysis for a specific bill, e.g. MN 'HF 1234'")
+    parser.add_argument("--generate-manual", action="store_true",
+                        help="Generate a user manual from dashboard screenshots (Playwright + Claude vision)")
+    parser.add_argument("--visual-guide", action="store_true",
+                        help="Generate a visual quick-reference guide (picture-first, shorter text) + PDF")
+    parser.add_argument("--manual-url", default=None,
+                        help="URL or file path to screenshot for manual generation (default: latest preview)")
     return parser.parse_args()
 
 
@@ -665,6 +671,15 @@ def run_pipeline(args: argparse.Namespace) -> None:
     except Exception as e:
         logger.warning(f"Bill batch analysis failed (non-fatal): {e}")
 
+    # Step 2f: Deadline analysis — generate deep analyses for upcoming HIGH/MEDIUM deadlines
+    try:
+        from ai.deadline_analyst import run_batch_analysis as run_deadline_batch
+        n_dl = run_deadline_batch(limit=30)
+        if n_dl:
+            logger.info(f"Deadline analyst: {n_dl} new deadline analysis/analyses generated")
+    except Exception as e:
+        logger.warning(f"Deadline batch analysis failed (non-fatal): {e}")
+
     # Step 2d: Director's critique (daily — writes to data/director_review.html)
     try:
         from ai.director_agent import run_director_critique
@@ -747,11 +762,13 @@ def run_pipeline(args: argparse.Namespace) -> None:
         deadlines_preview.sort(key=lambda d: d.get("deadline_date", ""))
         bill_activity_prev = get_bill_activity_feed(days_past=60, limit=200)
         bill_analyses_prev = get_all_bill_analyses()
+        deadline_analyses_prev = get_all_deadline_analyses()
         dashboard_html = renderer.render_dashboard(
             pipeline_output, week_context=week_context,
             archive_weeks=archive_weeks, deadlines=deadlines_preview,
             daily_changes=daily_changes, bill_activity=bill_activity_prev,
             bill_analyses=bill_analyses_prev,
+            deadline_analyses=deadline_analyses_prev,
         )
         dashboard_path = data_dir / f"preview_dashboard_{ts}.html"
         dashboard_path.write_text(dashboard_html, encoding="utf-8")
@@ -842,6 +859,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
             archive_weeks=archive_weeks, deadlines=deadlines_dash,
             calendar_url=calendar_url, daily_changes=daily_changes,
             bill_activity=bill_activity, bill_analyses=bill_analyses,
+        deadline_analyses=get_all_deadline_analyses(),
         )
         _push_dashboard(dashboard_html, _GITHUB_REPO_DIR)
         _push_auxiliary_pages(_GITHUB_REPO_DIR)
@@ -979,6 +997,14 @@ def main() -> None:
 
     if args.bill_analysis:
         _run_bill_analysis_cli(args.bill_analysis[0], args.bill_analysis[1])
+        return
+
+    if args.generate_manual:
+        _run_generate_manual(args.manual_url)
+        return
+
+    if args.visual_guide:
+        _run_visual_guide(args.manual_url)
         return
 
     run_pipeline(args)
@@ -1140,6 +1166,72 @@ def _run_director_review_standalone() -> None:
         print(f"Director review: {report_path}")
     else:
         print("Director critique complete — check logs for output")
+
+
+def _run_visual_guide(source_url: Optional[str] = None) -> None:
+    """Generate a visual quick-reference guide (HTML + PDF) from existing screenshots."""
+    logger = logging.getLogger("manual")
+    print("Generating visual guide…")
+    try:
+        from ai.manual_generator import generate_visual_guide
+        from playwright.sync_api import sync_playwright
+        from pathlib import Path as _Path
+
+        guide_path = generate_visual_guide(source_url=source_url, force=True)
+
+        # Export to PDF using Playwright
+        pdf_path = guide_path.with_suffix(".pdf")
+        print("Exporting to PDF…")
+        with sync_playwright() as pw:
+            browser = pw.chromium.launch()
+            page = browser.new_page()
+            page.goto(f"file://{guide_path.resolve()}", wait_until="networkidle")
+            page.wait_for_timeout(1500)  # Let images finish loading
+            page.pdf(
+                path=str(pdf_path),
+                format="A4",
+                print_background=True,
+                margin={"top": "0", "bottom": "0", "left": "0", "right": "0"},
+            )
+            browser.close()
+
+        # Stable copy
+        stable_pdf = guide_path.parent / "visual-guide.pdf"
+        shutil.copy2(pdf_path, stable_pdf)
+
+        webbrowser.open(f"file://{guide_path.resolve()}")
+        print(f"Visual guide (HTML): {guide_path}")
+        print(f"PDF (shareable):     {pdf_path}")
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+        print("Run  python run.py --preview  first to generate a dashboard preview, then retry.")
+    except ImportError:
+        print("Error: playwright not installed. Run:  pip install playwright && playwright install chromium")
+    except Exception as e:
+        logger.exception("Visual guide generation failed")
+        print(f"Visual guide generation failed: {e}")
+
+
+def _run_generate_manual(source_url: Optional[str] = None) -> None:
+    """Generate a user manual from dashboard screenshots using Playwright + Claude vision."""
+    logger = logging.getLogger("manual")
+    print("Generating user manual — this takes 2–4 minutes (screenshots + vision + synthesis)…")
+
+    try:
+        from ai.manual_generator import generate_manual
+        manual_path = generate_manual(source_url=source_url, force=True)
+        webbrowser.open(f"file://{manual_path.resolve()}")
+        print(f"Manual: {manual_path}")
+        print(f"Markdown: {manual_path.with_suffix('.md')}")
+        print(f"Screenshots: {manual_path.parent / 'screenshots'}")
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+        print("Run  python run.py --preview  first to generate a dashboard preview, then retry.")
+    except ImportError:
+        print("Error: playwright not installed. Run:  pip install playwright && playwright install chromium")
+    except Exception as e:
+        logger.exception("Manual generation failed")
+        print(f"Manual generation failed: {e}")
 
 
 if __name__ == "__main__":

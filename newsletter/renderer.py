@@ -304,6 +304,7 @@ class NewsletterRenderer:
         daily_changes: Optional[List[dict]] = None,
         bill_activity: Optional[List[dict]] = None,
         bill_analyses: Optional[dict] = None,
+        deadline_analyses: Optional[dict] = None,
     ) -> str:
         """Render the compliance intelligence dashboard."""
         now = datetime.now()
@@ -312,14 +313,6 @@ class NewsletterRenderer:
         enriched_topics = self._enrich_topics(pipeline_output)
         pfas_intel = self._load_pfas_intel()
         bill_funnel = self._load_bill_funnel()
-
-        # Key regulation milestones for status cards
-        reg_milestones: list = []
-        try:
-            from processors.regulation_registry import get_key_regulation_milestones
-            reg_milestones = get_key_regulation_milestones(limit=10)
-        except Exception:
-            pass
 
         # Source health (scraper cache scan)
         source_health = self._load_source_health()
@@ -339,18 +332,94 @@ class NewsletterRenderer:
         # Normalize deadline topics to lowercase so they match `topic.topic|lower`
         # in the template filter (topics.yaml names are uppercase e.g. "PFAS").
         # Also ensure days_until is present on every item.
-        from datetime import date as _date
+        from datetime import date as _date, timedelta
         _today = _date.today()
         normalized_deadlines = []
         for dl in (deadlines or []):
             dl = dict(dl)
             dl["topic"] = (dl.get("topic") or "").lower()
+            dl["_source"] = "deadline"
             if "days_until" not in dl or dl["days_until"] is None:
                 try:
                     dl["days_until"] = (_date.fromisoformat(dl["deadline_date"]) - _today).days
                 except Exception:
                     dl["days_until"] = None
             normalized_deadlines.append(dl)
+
+        # Merge regulation milestones into the deadlines list.
+        # Milestones carry the official regulation name and event description.
+        # Deduplicate: skip a milestone if a deadline already covers the same
+        # date + topic + jurisdiction combo (deadline entry has more detail + AI analysis).
+        try:
+            from processors.regulation_registry import get_key_regulation_milestones
+            reg_milestones_raw = get_key_regulation_milestones(limit=20)
+            deadline_keys = {
+                (dl.get("deadline_date"), dl.get("topic", "").lower(), (dl.get("jurisdiction") or "").lower())
+                for dl in normalized_deadlines
+            }
+            for m in reg_milestones_raw:
+                m_date = m.get("next_event_date") or ""
+                m_topic = (m.get("topic") or "").lower()
+                m_juris = (m.get("jurisdiction") or "").lower()
+                if (m_date, m_topic, m_juris) in deadline_keys:
+                    continue  # already covered by a deadline entry
+                try:
+                    days = (_date.fromisoformat(m_date) - _today).days if m_date else None
+                except Exception:
+                    days = None
+                # Infer urgency from days_until
+                if days is None:
+                    urgency = "LOW"
+                elif days <= 30:
+                    urgency = "HIGH"
+                elif days <= 90:
+                    urgency = "MEDIUM"
+                else:
+                    urgency = "LOW"
+                normalized_deadlines.append({
+                    "id": None,
+                    "title": m.get("next_event_desc") or m.get("regulation_name", ""),
+                    "regulation_name": m.get("regulation_name", ""),
+                    "deadline_date": m_date,
+                    "topic": m_topic,
+                    "jurisdiction": m.get("jurisdiction", ""),
+                    "urgency": urgency,
+                    "description": None,
+                    "source_url": m.get("source_url") or "",
+                    "days_until": days,
+                    "current_status": m.get("current_status", ""),
+                    "_source": "milestone",
+                })
+        except Exception as e:
+            logger.warning(f"Failed to merge regulation milestones: {e}")
+
+        # Sort merged list by days_until (overdue first, then soonest)
+        def _sort_key(dl):
+            d = dl.get("days_until")
+            return d if d is not None else 9999
+
+        normalized_deadlines.sort(key=_sort_key)
+
+        # Flag freshness:
+        #   "new"     = deadline first appeared in the most recent pipeline week
+        #   "updated" = existing deadline whose content changed since it was first added
+        #               (updated_at is set and more recent than week_start)
+        # Milestones have no week_start/updated_at so they get no flag.
+        week_starts = sorted(
+            {dl["week_start"] for dl in normalized_deadlines if dl.get("week_start")},
+            reverse=True,
+        )
+        latest_week = week_starts[0] if week_starts else None
+        _fourteen_days_ago = (_today - timedelta(days=14)).isoformat()
+        for dl in normalized_deadlines:
+            ws = dl.get("week_start")
+            updated_at = dl.get("updated_at") or ""
+            if ws and ws == latest_week:
+                dl["_freshness"] = "new"
+            elif updated_at and updated_at[:10] >= _fourteen_days_ago:
+                dl["_freshness"] = "updated"
+            else:
+                dl["_freshness"] = ""
 
         template = self.env.get_template("dashboard.html")
         return template.render(
@@ -387,11 +456,12 @@ class NewsletterRenderer:
             deadlines=normalized_deadlines,
             bill_activity=bill_activity or [],
             bill_analyses=bill_analyses or {},
+            deadline_analyses=deadline_analyses or {},
             daily_changes=daily_changes or [],
             trend_data=trend_data,
             sparklines=sparklines,
             bill_funnel=bill_funnel,
-            reg_milestones=reg_milestones,
+            reg_milestones=[],
             source_health=source_health,
         )
 
