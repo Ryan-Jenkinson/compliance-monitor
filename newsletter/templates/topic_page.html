@@ -30,7 +30,7 @@
       --blue-bg: #EBF3FD;
       --sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       --mono: 'IBM Plex Mono', 'Consolas', 'Monaco', monospace;
-      --article-sidebar-w: 440px;
+      --article-sidebar-w: 616px;
       --topbar-h: 52px;
       --radius: 6px;
       --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
@@ -115,7 +115,38 @@
       display: flex;
       flex-direction: column;
       z-index: 100;
+      min-width: 280px;
+      max-width: 80vw;
     }
+
+    /* Drag handle — sits on the left border of the sidebar */
+    .sidebar-resize-handle {
+      position: absolute;
+      top: 0;
+      left: -4px;
+      width: 8px;
+      height: 100%;
+      cursor: col-resize;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .sidebar-resize-handle::before {
+      content: '';
+      display: block;
+      width: 3px;
+      height: 40px;
+      border-radius: 2px;
+      background: var(--border);
+      transition: background 0.15s, height 0.15s;
+    }
+    .sidebar-resize-handle:hover::before,
+    .sidebar-resize-handle.dragging::before {
+      background: var(--topic-color);
+      height: 60px;
+    }
+    body.resizing { cursor: col-resize !important; user-select: none; }
     .article-sidebar-head {
       padding: 14px 16px 10px;
       border-bottom: 1px solid var(--border-light);
@@ -985,7 +1016,8 @@
   </main>
 
   <!-- ── RIGHT ARTICLE SIDEBAR ─────────────────────────────────── -->
-  <aside class="article-sidebar">
+  <aside class="article-sidebar" id="article-sidebar">
+    <div class="sidebar-resize-handle" id="resize-handle" title="Drag to resize"></div>
     <div class="article-sidebar-head">
       <div class="article-sidebar-title">Article Archive</div>
       <div class="filter-row">
@@ -1044,6 +1076,48 @@
 </div>
 
 <script>
+  // ── Sidebar resize ──────────────────────────────────────────────
+  (function() {
+    const handle = document.getElementById('resize-handle');
+    const sidebar = document.getElementById('article-sidebar');
+    const main = document.querySelector('.main');
+    const STORAGE_KEY = 'tp-sidebar-w';
+    const MIN_W = 280, MAX_W = Math.round(window.innerWidth * 0.8);
+
+    // Restore saved width
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) applyWidth(parseInt(saved));
+
+    function applyWidth(w) {
+      w = Math.max(MIN_W, Math.min(MAX_W, w));
+      sidebar.style.width = w + 'px';
+      main.style.marginRight = w + 'px';
+    }
+
+    let startX, startW;
+    handle.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      startX = e.clientX;
+      startW = sidebar.offsetWidth;
+      handle.classList.add('dragging');
+      document.body.classList.add('resizing');
+
+      function onMove(e) {
+        const delta = startX - e.clientX; // dragging left = wider
+        applyWidth(startW + delta);
+      }
+      function onUp(e) {
+        handle.classList.remove('dragging');
+        document.body.classList.remove('resizing');
+        localStorage.setItem(STORAGE_KEY, sidebar.offsetWidth);
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+      }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+  })();
+
   function filterArticles() {
     const query = document.getElementById('tp-search').value.toLowerCase().trim();
     const periodFilter = parseInt(document.getElementById('tp-period').value) || 0;
