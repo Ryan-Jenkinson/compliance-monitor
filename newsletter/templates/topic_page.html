@@ -584,83 +584,61 @@
     .bill-stage-tag.enacted_watching { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
     .bill-stage-tag.passed_one, .bill-stage-tag.advanced { background: var(--amber-bg); color: var(--amber); border-color: #F5DFA6; }
 
-    /* ── RESOURCE CARDS ─────────────────────────────────────────── */
-    .resource-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 12px;
-    }
-    .resource-card {
+    /* ── RESOURCE STRIP (top of page, quick-access links) ───────── */
+    .resource-strip {
       display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding: 18px 18px 16px;
-      background: var(--surface);
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      border-top: 3px solid var(--topic-color);
-      text-decoration: none;
-      box-shadow: var(--shadow-sm);
-      transition: box-shadow 0.18s, border-color 0.18s, transform 0.18s;
-      min-height: 96px;
-      position: relative;
-      overflow: hidden;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
     }
-    .resource-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(var(--topic-color-rgb, 192,57,43), 0.03) 0%, transparent 60%);
-      pointer-events: none;
-    }
-    .resource-card:hover {
-      box-shadow: 0 4px 16px rgba(0,0,0,0.10);
-      border-color: var(--topic-color);
-      transform: translateY(-2px);
-      text-decoration: none;
-    }
-    .resource-card-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      background: var(--bg);
-      border: 1px solid var(--border-light);
-      display: flex;
+    .resource-chip {
+      display: inline-flex;
       align-items: center;
-      justify-content: center;
-      font-size: 18px;
+      gap: 8px;
+      padding: 8px 14px 8px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--border);
+      border-radius: var(--radius);
+      text-decoration: none;
+      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+      cursor: pointer;
+    }
+    .resource-chip:hover {
+      border-left-color: var(--topic-color);
+      border-color: var(--topic-color);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      text-decoration: none;
+      background: var(--bg);
+    }
+    .resource-chip-icon {
+      width: 18px;
+      height: 18px;
       flex-shrink: 0;
-      transition: background 0.18s;
-    }
-    .resource-card:hover .resource-card-icon {
-      background: color-mix(in srgb, var(--topic-color) 10%, white);
-    }
-    .resource-card-body { flex: 1; }
-    .resource-card-title {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 4px;
-      line-height: 1.3;
-    }
-    .resource-card-desc {
-      font-size: 11.5px;
       color: var(--text-muted);
-      line-height: 1.5;
+      transition: color 0.15s;
     }
-    .resource-card-arrow {
-      position: absolute;
-      bottom: 14px;
-      right: 14px;
-      font-size: 13px;
+    .resource-chip:hover .resource-chip-icon { color: var(--topic-color); }
+    .resource-chip-label {
+      font-size: 12px;
+      font-weight: 600;
+      font-family: var(--sans);
+      color: var(--text-secondary);
+      white-space: nowrap;
+      transition: color 0.15s;
+    }
+    .resource-chip:hover .resource-chip-label { color: var(--text-primary); }
+    .resource-chip-ext {
+      width: 11px;
+      height: 11px;
+      flex-shrink: 0;
+      color: var(--border);
+      margin-left: 2px;
+      transition: color 0.15s, transform 0.15s;
+    }
+    .resource-chip:hover .resource-chip-ext {
       color: var(--topic-color);
-      opacity: 0;
-      transform: translate(-4px, 4px);
-      transition: opacity 0.18s, transform 0.18s;
-    }
-    .resource-card:hover .resource-card-arrow {
-      opacity: 1;
-      transform: translate(0, 0);
+      transform: translate(1px, -1px);
     }
 
     /* ── Impact badge ───────────────────────────────────────────── */
@@ -810,10 +788,6 @@
       .main { margin-right: 0; }
       .layout { flex-direction: column; }
       .panel-grid-2 { grid-template-columns: 1fr; }
-      .resource-grid { grid-template-columns: 1fr 1fr; }
-    }
-    @media (max-width: 600px) {
-      .resource-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -887,6 +861,68 @@
         <div class="kpi-label">Deadlines</div>
       </div>
     </div>
+
+    <!-- Resource Strip -->
+    {%- set _has_resources = (timelines and timelines.get(topic.topic|lower))
+        or (maps and topic.topic in ('PFAS','EPR','REACH'))
+        or (downloads and downloads.get(topic.topic|lower + '_xlsx')) -%}
+    {% if _has_resources %}
+    <div class="resource-strip">
+      {% if timelines and timelines.get(topic.topic|lower) %}
+      <a class="resource-chip" href="{{ timelines[topic.topic|lower] }}" target="_blank">
+        <svg class="resource-chip-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="10" cy="10" r="8"/><line x1="10" y1="6" x2="10" y2="10.5"/><line x1="10" y1="10.5" x2="13" y2="12.5"/>
+        </svg>
+        <span class="resource-chip-label">Timeline</span>
+        <svg class="resource-chip-ext" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1 10L10 1M10 1H4M10 1v6"/></svg>
+      </a>
+      {% endif %}
+      {% if maps and topic.topic == 'PFAS' %}
+      <a class="resource-chip" href="{{ maps.pfas_intel_url }}" target="_blank">
+        <svg class="resource-chip-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 5h14M3 10h14M3 15h14"/><rect x="2" y="3" width="16" height="14" rx="2"/>
+        </svg>
+        <span class="resource-chip-label">Legislative Intel Map</span>
+        <svg class="resource-chip-ext" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1 10L10 1M10 1H4M10 1v6"/></svg>
+      </a>
+      <a class="resource-chip" href="{{ maps.pfas_map_url }}" target="_blank">
+        <svg class="resource-chip-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 5l5-2 6 3 5-2v12l-5 2-6-3-5 2V5z"/><line x1="7" y1="3" x2="7" y2="15"/><line x1="13" y1="6" x2="13" y2="18"/>
+        </svg>
+        <span class="resource-chip-label">State Coverage Map</span>
+        <svg class="resource-chip-ext" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1 10L10 1M10 1H4M10 1v6"/></svg>
+      </a>
+      {% elif maps and topic.topic == 'EPR' %}
+      <a class="resource-chip" href="{{ maps.epr_map_url }}" target="_blank">
+        <svg class="resource-chip-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 5l5-2 6 3 5-2v12l-5 2-6-3-5 2V5z"/><line x1="7" y1="3" x2="7" y2="15"/><line x1="13" y1="6" x2="13" y2="18"/>
+        </svg>
+        <span class="resource-chip-label">State Coverage Map</span>
+        <svg class="resource-chip-ext" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1 10L10 1M10 1H4M10 1v6"/></svg>
+      </a>
+      {% elif maps and topic.topic == 'REACH' %}
+      <a class="resource-chip" href="{{ maps.reach_map_url }}" target="_blank">
+        <svg class="resource-chip-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="10" cy="10" rx="8" ry="8"/><path d="M2 10h16"/><path d="M10 2c-2.5 2.5-4 5-4 8s1.5 5.5 4 8"/><path d="M10 2c2.5 2.5 4 5 4 8s-1.5 5.5-4 8"/>
+        </svg>
+        <span class="resource-chip-label">EU Coverage Map</span>
+        <svg class="resource-chip-ext" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1 10L10 1M10 1H4M10 1v6"/></svg>
+      </a>
+      {% endif %}
+      {% if downloads %}
+      {%- set dl_key = topic.topic|lower + '_xlsx' -%}
+      {%- if downloads.get(dl_key) -%}
+      <a class="resource-chip" href="{{ downloads[dl_key] }}" target="_blank">
+        <svg class="resource-chip-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="2" width="14" height="16" rx="2"/><line x1="7" y1="7" x2="13" y2="7"/><line x1="7" y1="10" x2="13" y2="10"/><line x1="7" y1="13" x2="10" y2="13"/>
+        </svg>
+        <span class="resource-chip-label">Excel Tracker</span>
+        <svg class="resource-chip-ext" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1 10L10 1M10 1H4M10 1v6"/></svg>
+      </a>
+      {%- endif -%}
+      {% endif %}
+    </div>
+    {% endif %}
 
     <!-- AI Intelligence Summary -->
     {% if insights %}
@@ -1112,73 +1148,6 @@
     </div>
     {% endif %}
 
-    <!-- Resources -->
-    <div class="section-header">
-      <div class="section-dot"></div>
-      <span class="section-title">Resources</span>
-      <div class="section-title-line"></div>
-    </div>
-    <div class="resource-grid" style="margin-bottom:24px;">
-      {% if timelines and timelines.get(topic.topic|lower) %}
-      <a class="resource-card" href="{{ timelines[topic.topic|lower] }}" target="_blank">
-        <div class="resource-card-icon">&#x1F4C5;</div>
-        <div class="resource-card-body">
-          <div class="resource-card-title">Regulatory Timeline</div>
-          <div class="resource-card-desc">Key milestones and enforcement dates on an interactive timeline</div>
-        </div>
-        <span class="resource-card-arrow">&#x2197;</span>
-      </a>
-      {% endif %}
-      {% if maps and topic.topic == 'PFAS' %}
-      <a class="resource-card" href="{{ maps.pfas_intel_url }}" target="_blank">
-        <div class="resource-card-icon">&#x1F5FA;</div>
-        <div class="resource-card-body">
-          <div class="resource-card-title">Legislative Intel Map</div>
-          <div class="resource-card-desc">State-by-state legislative activity map with bill tracking</div>
-        </div>
-        <span class="resource-card-arrow">&#x2197;</span>
-      </a>
-      <a class="resource-card" href="{{ maps.pfas_map_url }}" target="_blank">
-        <div class="resource-card-icon">&#x1F4CD;</div>
-        <div class="resource-card-body">
-          <div class="resource-card-title">State Coverage Map</div>
-          <div class="resource-card-desc">Geographic coverage showing state-level PFAS regulation status</div>
-        </div>
-        <span class="resource-card-arrow">&#x2197;</span>
-      </a>
-      {% elif maps and topic.topic == 'EPR' %}
-      <a class="resource-card" href="{{ maps.epr_map_url }}" target="_blank">
-        <div class="resource-card-icon">&#x1F5FA;</div>
-        <div class="resource-card-body">
-          <div class="resource-card-title">State Coverage Map</div>
-          <div class="resource-card-desc">Geographic coverage map showing state-level EPR regulation status</div>
-        </div>
-        <span class="resource-card-arrow">&#x2197;</span>
-      </a>
-      {% elif maps and topic.topic == 'REACH' %}
-      <a class="resource-card" href="{{ maps.reach_map_url }}" target="_blank">
-        <div class="resource-card-icon">&#x1F1EA;&#x1F1FA;</div>
-        <div class="resource-card-body">
-          <div class="resource-card-title">EU Coverage Map</div>
-          <div class="resource-card-desc">European Union member state REACH compliance coverage</div>
-        </div>
-        <span class="resource-card-arrow">&#x2197;</span>
-      </a>
-      {% endif %}
-      {% if downloads %}
-      {%- set dl_key = topic.topic|lower + '_xlsx' -%}
-      {%- if downloads.get(dl_key) -%}
-      <a class="resource-card" href="{{ downloads[dl_key] }}" target="_blank">
-        <div class="resource-card-icon">&#x1F4CA;</div>
-        <div class="resource-card-body">
-          <div class="resource-card-title">Excel Tracker</div>
-          <div class="resource-card-desc">Downloadable spreadsheet with full bill and deadline tracking data</div>
-        </div>
-        <span class="resource-card-arrow">&#x2197;</span>
-      </a>
-      {%- endif -%}
-      {% endif %}
-    </div>
 
   </main>
 
