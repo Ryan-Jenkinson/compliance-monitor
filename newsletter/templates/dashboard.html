@@ -2338,22 +2338,23 @@
                         <stop offset="100%" stop-color="{{ topic.color }}" stop-opacity="0.02"/>
                       </linearGradient>
                     </defs>
-                    {%- set mini_fill = "" -%}
-                    {%- set mini_line = "" -%}
-                    {%- set first_cx = "0" -%}
-                    {%- set last_cx = "0" -%}
+                    {%- set mns = namespace(fill='', line='', prev_cy=mini_h) -%}
                     {% for j in range(mini_days) %}
                     {%- set cx = (j * mini_step) | round(1) -%}
                     {%- set cnt = topic_daily[j] | default(0) -%}
                     {%- set cy = (mini_h - ((cnt / mini_max) * mini_h)) | round(1) if mini_max > 0 else mini_h -%}
-                    {%- set mini_line = mini_line + cx|string + "," + cy|string + " " -%}
-                    {%- if j == 0 -%}{%- set mini_fill = mini_fill + cx|string + "," + mini_h|string + " " + cx|string + "," + cy|string + " " -%}
-                    {%- elif j == mini_days - 1 -%}{%- set mini_fill = mini_fill + cx|string + "," + cy|string + " " + cx|string + "," + mini_h|string -%}
-                    {%- else -%}{%- set mini_fill = mini_fill + cx|string + "," + cy|string + " " -%}
+                    {%- if j == 0 -%}
+                      {%- set mns.line = cx|string + "," + cy|string + " " -%}
+                      {%- set mns.fill = cx|string + "," + mini_h|string + " " + cx|string + "," + cy|string + " " -%}
+                    {%- else -%}
+                      {%- set mns.line = mns.line + cx|string + "," + mns.prev_cy|string + " " + cx|string + "," + cy|string + " " -%}
+                      {%- set mns.fill = mns.fill + cx|string + "," + mns.prev_cy|string + " " + cx|string + "," + cy|string + " " -%}
                     {%- endif -%}
+                    {%- set mns.prev_cy = cy -%}
                     {% endfor %}
-                    <polygon points="{{ mini_fill }}" fill="url(#mini-fill-{{ topic.topic|lower }})"/>
-                    <polyline points="{{ mini_line }}" fill="none" stroke="{{ topic.color }}" stroke-width="1.5" stroke-linejoin="round"/>
+                    {%- set mns.fill = mns.fill + (mini_days - 1) * mini_step | round(1) | string + "," + mini_h|string -%}
+                    <polygon points="{{ mns.fill }}" fill="url(#mini-fill-{{ topic.topic|lower }})"/>
+                    <polyline points="{{ mns.line }}" fill="none" stroke="{{ topic.color }}" stroke-width="1.5" stroke-linejoin="round"/>
                   </svg>
                 </div>
                 {%- endif -%}
@@ -2970,20 +2971,24 @@
                   <stop offset="100%" stop-color="var(--accent)" stop-opacity="0.02"/>
                 </linearGradient>
               </defs>
-              {%- set fill_pts = "" -%}
-              {%- set line_pts = "" -%}
+              {%- set ns = namespace(fill_pts='', line_pts='', prev_cy=line_h) -%}
               {% for i in range(day_count) %}
               {%- set cx = (i * step) | round(1) -%}
               {%- set count = daily_trend.total[i] | default(0) -%}
               {%- set cy = (line_h - ((count / daily_max) * line_h)) | round(1) if daily_max > 0 else line_h -%}
-              {%- set line_pts = line_pts + cx|string + "," + cy|string + " " -%}
-              {%- if i == 0 -%}{%- set fill_pts = fill_pts + cx|string + "," + line_h|string + " " + cx|string + "," + cy|string + " " -%}
-              {%- elif i == day_count - 1 -%}{%- set fill_pts = fill_pts + cx|string + "," + cy|string + " " + cx|string + "," + line_h|string -%}
-              {%- else -%}{%- set fill_pts = fill_pts + cx|string + "," + cy|string + " " -%}
+              {%- if i == 0 -%}
+                {%- set ns.line_pts = cx|string + "," + cy|string + " " -%}
+                {%- set ns.fill_pts = cx|string + "," + line_h|string + " " + cx|string + "," + cy|string + " " -%}
+              {%- else -%}
+                {# Step: go horizontal at previous height, then vertical to new height #}
+                {%- set ns.line_pts = ns.line_pts + cx|string + "," + ns.prev_cy|string + " " + cx|string + "," + cy|string + " " -%}
+                {%- set ns.fill_pts = ns.fill_pts + cx|string + "," + ns.prev_cy|string + " " + cx|string + "," + cy|string + " " -%}
               {%- endif -%}
+              {%- set ns.prev_cy = cy -%}
               {% endfor %}
-              <polygon points="{{ fill_pts }}" fill="url(#line-fill-grad)"/>
-              <polyline points="{{ line_pts }}" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linejoin="round"/>
+              {%- set ns.fill_pts = ns.fill_pts + (day_count - 1) * step | round(1) | string + "," + line_h|string -%}
+              <polygon points="{{ ns.fill_pts }}" fill="url(#line-fill-grad)"/>
+              <polyline points="{{ ns.line_pts }}" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linejoin="round"/>
               <!-- x-axis labels: show every 5th day -->
               {% for i in range(day_count) %}
               {%- if i % 5 == 0 -%}
@@ -3008,45 +3013,6 @@
               {% endif %}
               {% endfor %}
             </div>
-          </div>
-        </div>
-        {% endif %}
-
-        <!-- 28-Day Trends -->
-        {% if trend_data and trend_data.days_with_data >= 2 %}
-        <div class="panel animate-in" data-widget-id="trends" data-widget-label="28-Day Trends" style="margin-bottom:12px;">
-          <div class="panel-header">
-            <span class="panel-title">28-Day Trends</span>
-            <span class="panel-badge">{{ trend_data.days_with_data }}d</span>
-          </div>
-          <div class="panel-body" style="padding:8px 14px;">
-            <!-- Total articles sparkline -->
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-              <span style="font-size: 13px;color:var(--text-secondary);min-width:80px;">Total Articles</span>
-              <div style="flex:1;margin:0 8px;">{{ sparklines.total|safe }}</div>
-              <span style="font-size:12px;font-weight:600;color:var(--text-primary);min-width:24px;text-align:right;">{{ trend_data.total[-1] if trend_data.total else 0 }}</span>
-            </div>
-            <!-- HIGH urgency sparkline -->
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-              <span style="font-size: 13px;color:var(--text-secondary);min-width:80px;">HIGH Urgency</span>
-              <div style="flex:1;margin:0 8px;">{{ sparklines.high|safe }}</div>
-              <span style="font-size:12px;font-weight:600;color:var(--red);min-width:24px;text-align:right;">{{ trend_data.high[-1] if trend_data.high else 0 }}</span>
-            </div>
-            {% if sparklines.by_topic %}
-            <div style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px;">
-              {% for topic, svg in sparklines.by_topic.items() %}
-              {% if svg %}
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
-                <span style="font-size: 12px;color:var(--text-muted);min-width:80px;">{{ topic }}</span>
-                <div style="flex:1;margin:0 8px;">{{ svg|safe }}</div>
-                <span style="font-size: 13px;color:var(--text-secondary);min-width:24px;text-align:right;">
-                  {{ trend_data.by_topic[topic][-1] if trend_data.by_topic[topic] else 0 }}
-                </span>
-              </div>
-              {% endif %}
-              {% endfor %}
-            </div>
-            {% endif %}
           </div>
         </div>
         {% endif %}
@@ -4183,7 +4149,6 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
     { id: 'reg-calendar', label: 'Regulatory Calendar',  group: 'Main Content', default: true },
     { id: 'monthly-trend', label: '6-Month Trend',        group: 'Sidebar',      default: true },
     { id: 'daily-trend',   label: '30-Day Daily Activity',group: 'Sidebar',      default: true },
-    { id: 'trends',     label: '28-Day Trends',         group: 'Sidebar',      default: true },
     { id: 'bill-funnel', label: 'Bill Pipeline Funnel', group: 'Sidebar',     default: true },
     { id: 'downloads',     label: 'Downloads & Timelines', group: 'Sidebar', default: true },
     { id: 'archive',       label: 'Newsletter Archive',   group: 'Sidebar', default: true },
