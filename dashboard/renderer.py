@@ -1,4 +1,4 @@
-"""Jinja2 rendering + premailer CSS inlining."""
+"""Jinja2 rendering for the compliance intelligence dashboard and email."""
 from __future__ import annotations
 import logging
 from datetime import datetime, timedelta
@@ -40,7 +40,7 @@ def _parse_fun_fact(exec_summary_text: str) -> tuple[str, str]:
     return parts[0].strip(), parts[1].strip()
 
 
-class NewsletterRenderer:
+class DashboardRenderer:
     def __init__(self):
         self.env = Environment(
             loader=FileSystemLoader(str(_TEMPLATES_DIR)),
@@ -634,7 +634,7 @@ class NewsletterRenderer:
 
         return pages
 
-    # Keep old name as alias for any callers
+    # Keep backward-compatible alias
     def render_exec_summary(self, pipeline_output: dict, newsletter_url: Optional[str] = None,
                              week_context: Optional[dict] = None) -> str:
         return self.render_weekly_briefing(pipeline_output, newsletter_url=newsletter_url,

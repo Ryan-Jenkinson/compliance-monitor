@@ -26,21 +26,14 @@
 
     {% if topic.developments %}
       {% for dev in topic.developments %}
-      {%- set dev_relevance = dev.relevance|default('DIRECT') -%}
-      <div class="dev-item"{% if dev_relevance == 'MONITOR' %} style="opacity:0.55;"{% endif %}>
+      <div class="dev-item">
 
         <div class="dev-head">
           <table cellpadding="0" cellspacing="0"><tr>
             {% if dev.is_new %}<td valign="top" style="padding-right:9px;padding-top:2px;"><span class="new-badge">New</span></td>{% endif %}
-            {% if dev_relevance == 'INDIRECT' %}<td valign="top" style="padding-right:6px;padding-top:2px;"><span class="relevance-badge relevance-indirect">Indirect</span></td>{% endif %}
-            {% if dev_relevance == 'MONITOR' %}<td valign="top" style="padding-right:6px;padding-top:2px;"><span class="relevance-badge relevance-monitor">Monitor</span></td>{% endif %}
             <td valign="top"><p class="dev-headline"><a href="{{ dev.url }}" target="_blank">{{ dev.headline }}</a></p></td>
           </tr></table>
         </div>
-
-        {% if dev_relevance == 'INDIRECT' and dev.relevance_reason %}
-        <p class="relevance-reason-email">&#x2197; {{ dev.relevance_reason }}</p>
-        {% endif %}
 
         <p class="dev-meta">
           {{ dev.source }}{% if dev.date %}<span class="dev-sep">&#183;</span>{{ dev.date }}{% endif %}
@@ -49,9 +42,7 @@
         <p class="dev-summary">{{ dev.summary }}</p>
 
         <div class="dev-footer">
-          {% if dev_relevance != 'MONITOR' %}
           <span class="urgency-badge urgency-{{ dev.urgency }}">{{ dev.urgency }}</span>
-          {% endif %}
           {% if dev.deadline %}
           <span class="deadline-note">&#9873;&nbsp;{{ dev.deadline }}</span>
           {% endif %}

@@ -57,7 +57,7 @@ from processors.deduplicator import deduplicate
 from processors.relevance_filter import keyword_filter
 from processors.week_tracker import apply_weekly_window, get_week_context, last_week_is_archived
 from ai.summarizer import Summarizer
-from newsletter.renderer import NewsletterRenderer
+from dashboard.renderer import DashboardRenderer
 from delivery.gmail_sender import GmailSender
 from delivery.state_map_generator import generate_pfas_map
 from subscribers.db import init_db, get_archive_weeks, save_archive_week, get_upcoming_deadlines, get_bill_calendar_events, get_bill_activity_feed, get_all_bill_analyses, get_all_deadline_analyses
@@ -731,7 +731,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
 
     # Step 3: Render
     logger.info("Step 3: Rendering…")
-    renderer = NewsletterRenderer()
+    renderer = DashboardRenderer()
     archive_weeks = get_archive_weeks()
     archive_url = f"{_PAGES_BASE}/newsletter/archive.html"
 
@@ -761,7 +761,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
         )
         briefing_path.write_text(briefing_html, encoding="utf-8")
 
-        # Render web newsletter (main page)
+        # Render email version (main page)
         web_html = renderer.render(
             pipeline_output, map_url=None, is_web_version=True,
             exec_summary_url=f"file://{briefing_path.resolve()}",
