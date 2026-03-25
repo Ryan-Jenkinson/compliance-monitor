@@ -711,14 +711,29 @@ def run_pipeline(args: argparse.Namespace) -> None:
     archive_url = f"{_PAGES_BASE}/newsletter/archive.html"
 
     if args.preview:
-        ts = datetime.now().strftime('%Y-%m-%d_%H%M%S')
         data_dir = Config.DATA_DIR
+
+        # Use fixed filenames — overwrite each time to avoid browser tab accumulation
+        # (timestamped files fill up data/ and browsers restore all old tabs including newsletters)
+        briefing_path = data_dir / "preview_weekly.html"
+        web_path = data_dir / "preview_web.html"
+        email_path = data_dir / "preview_email.html"
+        archive_path = data_dir / "preview_archive.html"
+        dashboard_path = data_dir / "preview_dashboard.html"
+
+        # Clean up any old timestamped preview files from previous runs
+        import glob as _glob
+        for _pattern in ["preview_*_20??-??-??_*.html", "preview_20??-??-??_*.html", "preview_test.html"]:
+            for _old in _glob.glob(str(data_dir / _pattern)):
+                try:
+                    Path(_old).unlink()
+                except Exception:
+                    pass
 
         # Render weekly briefing page
         briefing_html = renderer.render_weekly_briefing(
             pipeline_output, newsletter_url=None, week_context=week_context,
         )
-        briefing_path = data_dir / f"preview_weekly_{ts}.html"
         briefing_path.write_text(briefing_html, encoding="utf-8")
 
         # Render web newsletter (main page)
@@ -727,7 +742,6 @@ def run_pipeline(args: argparse.Namespace) -> None:
             exec_summary_url=f"file://{briefing_path.resolve()}",
             week_context=week_context, archive_weeks=archive_weeks, archive_url=archive_url,
         )
-        web_path = data_dir / f"preview_web_{ts}.html"
         web_path.write_text(web_html, encoding="utf-8")
 
         # Re-render weekly briefing with back-link to web version
@@ -744,12 +758,10 @@ def run_pipeline(args: argparse.Namespace) -> None:
             exec_summary_url=f"file://{briefing_path.resolve()}",
             week_context=week_context, archive_weeks=archive_weeks, archive_url=archive_url,
         )
-        email_path = data_dir / f"preview_email_{ts}.html"
         email_path.write_text(email_html, encoding="utf-8")
 
         # Render archive index
         archive_html = renderer.render_archive_index(archive_weeks)
-        archive_path = data_dir / f"preview_archive_{ts}.html"
         archive_path.write_text(archive_html, encoding="utf-8")
 
         # Render dashboard
@@ -770,7 +782,6 @@ def run_pipeline(args: argparse.Namespace) -> None:
             bill_analyses=bill_analyses_prev,
             deadline_analyses=deadline_analyses_prev,
         )
-        dashboard_path = data_dir / f"preview_dashboard_{ts}.html"
         dashboard_path.write_text(dashboard_html, encoding="utf-8")
 
         webbrowser.open(f"file://{dashboard_path.resolve()}")
