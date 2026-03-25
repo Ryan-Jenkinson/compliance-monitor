@@ -832,16 +832,17 @@ def save_article(article_id: str, topic: str, title: str, url: str,
 
 
 def get_articles_for_display(topic: str | None = None, days: int = 180, limit: int = 2000) -> list[dict]:
-    """Return stored articles from the last `days` days, newest first."""
+    """Return stored articles from the last `days` days, sorted by publish date newest first."""
     conn = get_connection()
-    query = """SELECT id, topic, title, url, source, pub_date, snippet, first_seen, is_new
+    query = """SELECT id, topic, title, url, source, pub_date, snippet, first_seen, is_new,
+                      COALESCE(pub_date, date(first_seen)) AS display_date
                FROM articles
                WHERE first_seen > datetime('now', ?)"""
     params: list = [f"-{days} days"]
     if topic:
         query += " AND topic = ?"
         params.append(topic)
-    query += " ORDER BY first_seen DESC LIMIT ?"
+    query += " ORDER BY display_date DESC LIMIT ?"
     params.append(limit)
     rows = conn.execute(query, params).fetchall()
     conn.close()
@@ -870,10 +871,18 @@ def get_monthly_article_counts(months: int = 6) -> dict:
         month_keys.append((y, m))
 
     conn = get_connection()
-    # Get all articles in range
+    # Get all articles in range — use pub_date if available and not absurdly future,
+    # fall back to first_seen. Cap pub_date at today+30d to filter scraper outliers.
     cutoff = date(month_keys[0][0], month_keys[0][1], 1).isoformat()
     rows = conn.execute(
-        "SELECT topic, first_seen FROM articles WHERE first_seen >= ?",
+        """SELECT topic,
+                  CASE WHEN pub_date IS NOT NULL
+                            AND pub_date <= date('now', '+30 days')
+                            AND pub_date >= '2020-01-01'
+                       THEN pub_date
+                       ELSE date(first_seen)
+                  END AS article_date
+           FROM articles WHERE first_seen >= ?""",
         (cutoff,)
     ).fetchall()
     conn.close()
@@ -882,7 +891,7 @@ def get_monthly_article_counts(months: int = 6) -> dict:
     counts: dict = defaultdict(lambda: defaultdict(int))
     for r in rows:
         try:
-            d = r["first_seen"][:10]  # YYYY-MM-DD
+            d = r["article_date"][:10]  # YYYY-MM-DD
             y, m = int(d[:4]), int(d[5:7])
             counts[(y, m)][r["topic"]] += 1
             counts[(y, m)]["_total"] += 1
@@ -894,6 +903,52 @@ def get_monthly_article_counts(months: int = 6) -> dict:
     total = [counts[mk].get("_total", 0) for mk in month_keys]
 
     return {"months": month_labels, "by_topic": by_topic, "total": total}
+
+
+def get_daily_article_counts(days: int = 30) -> dict:
+    """Return daily article counts per topic over the last `days` days by publish date.
+    Returns {days: ["2026-02-23", ...], by_topic: {PFAS: [3,1,...], ...}, total: [...]}.
+    """
+    from datetime import date, timedelta
+
+    today = date.today()
+    day_keys = [(today - timedelta(days=days - 1 - i)).isoformat() for i in range(days)]
+
+    conn = get_connection()
+    rows = conn.execute(
+        """SELECT topic,
+                  CASE WHEN pub_date IS NOT NULL
+                            AND pub_date <= date('now', '+30 days')
+                            AND pub_date >= '2020-01-01'
+                       THEN pub_date
+                       ELSE date(first_seen)
+                  END AS article_date
+           FROM articles WHERE first_seen >= date('now', ?)""",
+        (f"-{days} days",)
+    ).fetchall()
+    conn.close()
+
+    from collections import defaultdict
+    counts: dict = defaultdict(lambda: defaultdict(int))
+    for r in rows:
+        try:
+            d = r["article_date"][:10]
+            if d in day_keys:
+                counts[d][r["topic"]] += 1
+                counts[d]["_total"] += 1
+        except Exception:
+            pass
+
+    topics = ["PFAS", "EPR", "REACH", "TSCA", "Prop65", "ConflictMinerals", "ForcedLabor"]
+    by_topic = {t: [counts[dk].get(t, 0) for dk in day_keys] for t in topics}
+    total = [counts[dk].get("_total", 0) for dk in day_keys]
+    # Compact day labels: "Mar 24"
+    day_labels = [
+        (today - timedelta(days=days - 1 - i)).strftime("%-m/%-d")
+        for i in range(days)
+    ]
+
+    return {"days": day_keys, "day_labels": day_labels, "by_topic": by_topic, "total": total}
 
 
 def save_topic_insight(topic: str, period: str, analysis_date: str, insights: dict) -> None:

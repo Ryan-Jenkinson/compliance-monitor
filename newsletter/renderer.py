@@ -425,9 +425,11 @@ class NewsletterRenderer:
         historical_by_topic: dict = {}
         all_articles_json: str = "[]"
         monthly_trend: dict = {}
+        daily_trend: dict = {}
         topic_insights: dict = {}
         try:
-            from subscribers.db import get_articles_for_display, get_monthly_article_counts, get_all_topic_insights
+            from subscribers.db import (get_articles_for_display, get_monthly_article_counts,
+                                        get_all_topic_insights, get_daily_article_counts)
             all_historical = get_articles_for_display(days=180)
             for art in all_historical:
                 t = art.get("topic", "")
@@ -444,6 +446,7 @@ class NewsletterRenderer:
                      "is_new": bool(a.get("is_new"))} for a in all_historical]
             all_articles_json = _json.dumps(slim)
             monthly_trend = get_monthly_article_counts(months=6)
+            daily_trend = get_daily_article_counts(days=30)
             topic_insights = get_all_topic_insights(period="weekly")
         except Exception as _e:
             logger.warning(f"Failed to load historical data for dashboard: {_e}")
@@ -493,6 +496,7 @@ class NewsletterRenderer:
             historical_by_topic=historical_by_topic,
             all_articles_json=all_articles_json,
             monthly_trend=monthly_trend,
+            daily_trend=daily_trend,
             topic_insights=topic_insights,
             now=now,
             timedelta_30=timedelta(days=30),
