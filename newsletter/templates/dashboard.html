@@ -750,6 +750,58 @@
     .article-item.hidden-by-search,
     .article-item.hidden-by-urgency,
     .article-item.hidden-by-new { display: none; }
+    .article-item.hidden-by-date { display: none; }
+    .article-item.historical { opacity: 0.85; }
+    .article-show-history {
+      display: block; width: 100%; padding: 8px 14px;
+      background: none; border: none; border-top: 1px solid var(--border);
+      color: var(--accent); font-size: 12px; cursor: pointer;
+      text-align: center; font-family: inherit;
+    }
+    .article-show-history:hover { background: var(--bg-secondary); }
+    .insight-panel {
+      background: var(--bg-secondary); border-radius: 6px;
+      padding: 12px 14px; margin-bottom: 12px;
+      border-left: 3px solid var(--accent);
+    }
+    .insight-panel-title {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 8px;
+    }
+    .insight-trend { font-size: 13px; color: var(--text-primary); line-height: 1.6; margin-bottom: 8px; }
+    .insight-bullets { list-style: none; padding: 0; margin: 0; }
+    .insight-bullets li {
+      font-size: 12.5px; color: var(--text-secondary); padding: 3px 0;
+      padding-left: 14px; position: relative; line-height: 1.5;
+    }
+    .insight-bullets li::before { content: "›"; position: absolute; left: 0; color: var(--accent); }
+    .insight-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .insight-badge {
+      font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600;
+      background: var(--border-light); color: var(--text-secondary);
+    }
+    .insight-badge.hi { background: #FFF0F0; color: var(--red); }
+    .insight-badge.med { background: #FFF8EC; color: var(--amber); }
+    .insight-badge.lo { background: #F0FFF8; color: var(--green); }
+    .monthly-chart-bar { transition: opacity 0.15s; }
+    .monthly-chart-bar:hover { opacity: 0.8; }
+    .history-modal-article {
+      padding: 10px 0; border-bottom: 1px solid var(--border-light); font-size: 13px;
+    }
+    .history-modal-article:last-child { border-bottom: none; }
+    .history-modal-article a { color: var(--text-primary); text-decoration: none; font-weight: 500; }
+    .history-modal-article a:hover { color: var(--accent); }
+    .history-modal-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+    .history-modal-snippet { font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.5; }
+    .history-search { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px;
+      font-size: 13px; margin-bottom: 12px; font-family: inherit; background: var(--bg-primary); color: var(--text-primary); }
+    .history-filter-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .history-filter-chip {
+      padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;
+      border: 1px solid var(--border); cursor: pointer; background: var(--bg-primary);
+      color: var(--text-secondary); transition: all 0.15s;
+    }
+    .history-filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
     .filter-bar {
       display: flex;
@@ -1942,6 +1994,27 @@
   </div>
 </div>
 
+  <!-- All-articles history modal -->
+  <div id="history-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9000;align-items:center;justify-content:center;" onclick="closeHistoryModal(event)">
+    <div style="background:var(--bg-primary);border-radius:12px;width:min(820px,95vw);max-height:85vh;display:flex;flex-direction:column;overflow:hidden;" onclick="event.stopPropagation()">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;">
+        <span id="history-modal-title" style="font-weight:700;font-size:15px;flex:1;">Article History</span>
+        <span id="history-modal-count" style="font-size:12px;color:var(--text-muted);"></span>
+        <button onclick="closeHistoryModal()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--text-secondary);">Close</button>
+      </div>
+      <div style="padding:12px 20px;border-bottom:1px solid var(--border-light);">
+        <input class="history-search" id="history-modal-search" placeholder="Search articles..." oninput="filterHistoryModal()">
+        <div class="history-filter-row" id="history-filter-row">
+          <button class="history-filter-chip active" data-period="all" onclick="setHistoryPeriod(this,'all')">All time</button>
+          <button class="history-filter-chip" data-period="7" onclick="setHistoryPeriod(this,'7')">Last 7 days</button>
+          <button class="history-filter-chip" data-period="30" onclick="setHistoryPeriod(this,'30')">Last 30 days</button>
+          <button class="history-filter-chip" data-period="90" onclick="setHistoryPeriod(this,'90')">Last 90 days</button>
+        </div>
+      </div>
+      <div id="history-modal-body" style="overflow-y:auto;flex:1;padding:8px 20px 16px;"></div>
+    </div>
+  </div>
+
 <!-- ═══ EXPAND MODAL ═══ -->
 <div class="expand-modal-overlay" id="expand-modal-overlay" onclick="closeExpandModal(event)">
   <div class="expand-modal" onclick="event.stopPropagation()">
@@ -2194,13 +2267,59 @@
               </div>
               {% endif %}
 
-              <!-- Articles -->
-              <div class="article-feed">
+              <!-- Articles — 30-day default, full history in popout -->
+              {%- set cutoff_30 = now.strftime('%Y-%m-%d') if false else '' -%}
+              <div class="article-feed" id="feed-{{ topic.topic|lower }}">
+                {%- set topic_insights_data = topic_insights.get(topic.topic) if topic_insights else none -%}
+
+                {# Historical insights panel if available #}
+                {% if topic_insights_data %}
+                <div class="insight-panel">
+                  <div class="insight-panel-title">6-Month Intelligence — {{ topic.topic }}</div>
+                  {% if topic_insights_data.six_month_trend %}
+                  <div class="insight-trend">{{ topic_insights_data.six_month_trend }}</div>
+                  {% endif %}
+                  {% if topic_insights_data.last_30_days %}
+                  <div class="insight-trend" style="color:var(--text-secondary);font-size:12px;">
+                    <strong style="color:var(--text-primary);">Last 30 days:</strong> {{ topic_insights_data.last_30_days }}
+                  </div>
+                  {% endif %}
+                  {% if topic_insights_data.breaking_news %}
+                  <div class="insight-trend" style="color:var(--text-secondary);font-size:12px;margin-top:4px;">
+                    <strong style="color:var(--red);">Breaking:</strong> {{ topic_insights_data.breaking_news }}
+                  </div>
+                  {% endif %}
+                  {% if topic_insights_data.strategic_priorities %}
+                  <ul class="insight-bullets">
+                    {% for p in topic_insights_data.strategic_priorities %}
+                    <li>{{ p }}</li>
+                    {% endfor %}
+                  </ul>
+                  {% endif %}
+                  {% if topic_insights_data.company_impact %}
+                  <div class="insight-badges">
+                    {%- set sev = topic_insights_data.company_impact.severity | default('LOW') -%}
+                    <span class="insight-badge {% if sev == 'HIGH' %}hi{% elif sev == 'MEDIUM' %}med{% elif sev == 'LOW' %}lo{% endif %}">
+                      {{ sev }} IMPACT
+                    </span>
+                    {% if topic_insights_data.article_count %}<span class="insight-badge">{{ topic_insights_data.article_count }} articles / 6mo</span>{% endif %}
+                  </div>
+                  {% endif %}
+                </div>
+                {% endif %}
+
                 {% if topic.developments %}
+                  {% set thirty_days_ago = (now - timedelta_30).strftime('%Y-%m-%d') %}
                   {% for dev in topic.developments %}
-                  <div class="article-item" data-urgency="{{ dev.urgency }}" data-topic="{{ topic.topic|lower }}"
-                       data-headline="{{ dev.headline|lower }}" data-summary="{{ dev.summary|lower if dev.summary else '' }}" data-source="{{ dev.source|lower if dev.source else '' }}"
-                       data-date="{{ dev.date or '' }}" data-new="{{ 'true' if dev.is_new else 'false' }}">
+                  {%- set is_recent = (dev.date or '') >= thirty_days_ago -%}
+                  <div class="article-item{% if not is_recent %} historical{% endif %}"
+                       data-urgency="{{ dev.urgency }}" data-topic="{{ topic.topic|lower }}"
+                       data-headline="{{ dev.headline|lower }}"
+                       data-summary="{{ dev.summary|lower if dev.summary else '' }}"
+                       data-source="{{ dev.source|lower if dev.source else '' }}"
+                       data-date="{{ dev.date or '' }}"
+                       data-new="{{ 'true' if dev.is_new else 'false' }}"
+                       data-recent="{{ 'true' if is_recent else 'false' }}">
                     <div class="article-head">
                       {% if dev.is_new %}<span class="badge badge-new">New</span>{% endif %}
                       <span class="article-headline"><a href="{{ dev.url }}">{{ dev.headline }}</a></span>
@@ -2224,8 +2343,23 @@
                     {% endif %}
                   </div>
                   {% endfor %}
+                  {%- set old_count = topic.developments | selectattr('date') | list | length -%}
+                  {%- set hist_count = (historical_by_topic.get(topic.topic) or []) | length -%}
+                  <button class="article-show-history"
+                          onclick="openHistoryModal('{{ topic.topic }}', '{{ topic.label }}')"
+                          title="View full 6-month article archive">
+                    View full history — {{ hist_count }} articles (6 months) &#x2197;
+                  </button>
                 {% else %}
                   <div class="no-articles">No developments in current window.</div>
+                  {%- set hist_count = (historical_by_topic.get(topic.topic) or []) | length -%}
+                  {% if hist_count %}
+                  <button class="article-show-history"
+                          onclick="openHistoryModal('{{ topic.topic }}', '{{ topic.label }}')"
+                          title="View full 6-month article archive">
+                    View {{ hist_count }} historical articles (6 months) &#x2197;
+                  </button>
+                  {% endif %}
                 {% endif %}
               </div>
             </div>
@@ -2702,6 +2836,44 @@
           </div>
         </div>
 
+        <!-- 6-Month Activity Trend -->
+        {% if monthly_trend and monthly_trend.months %}
+        <div class="panel animate-in" data-widget-id="monthly-trend" data-widget-label="6-Month Trend" style="margin-bottom:12px;">
+          <div class="panel-header">
+            <span class="panel-title">6-Month Trend</span>
+            <span class="panel-badge">{{ monthly_trend.total | sum }} articles</span>
+          </div>
+          <div class="panel-body" style="padding:10px 14px 8px;">
+            {%- set max_val = monthly_trend.total | max | default(1) -%}
+            {%- set chart_h = 48 -%}
+            {%- set bar_count = monthly_trend.months | length -%}
+            <svg width="100%" height="{{ chart_h + 18 }}" viewBox="0 0 {{ bar_count * 26 }} {{ chart_h + 18 }}"
+                 preserveAspectRatio="none" style="overflow:visible;">
+              {% for i in range(bar_count) %}
+              {%- set count = monthly_trend.total[i] | default(0) -%}
+              {%- set bar_h = ((count / max_val) * chart_h) | int if max_val > 0 else 1 -%}
+              {%- set x = i * 26 -%}
+              {%- set bar_y = chart_h - bar_h -%}
+              <rect class="monthly-chart-bar"
+                    x="{{ x + 2 }}" y="{{ bar_y }}" width="20" height="{{ bar_h }}"
+                    rx="2" fill="var(--accent)" opacity="0.7"
+                    title="{{ monthly_trend.months[i] }}: {{ count }} articles"/>
+              <text x="{{ x + 12 }}" y="{{ chart_h + 14 }}"
+                    text-anchor="middle" font-size="7" fill="var(--text-tertiary)">
+                {{ monthly_trend.months[i][:3] }}
+              </text>
+              {% if count > 0 %}
+              <text x="{{ x + 12 }}" y="{{ bar_y - 2 }}"
+                    text-anchor="middle" font-size="7" fill="var(--text-secondary)">
+                {{ count }}
+              </text>
+              {% endif %}
+              {% endfor %}
+            </svg>
+          </div>
+        </div>
+        {% endif %}
+
         <!-- 28-Day Trends -->
         {% if trend_data and trend_data.days_with_data >= 2 %}
         <div class="panel animate-in" data-widget-id="trends" data-widget-label="28-Day Trends" style="margin-bottom:12px;">
@@ -3050,6 +3222,20 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
   window.handleSearch = function(query) {
     state.searchQuery = query.trim().toLowerCase();
     applyFilters();
+    // Show archive article count in search results
+    if (state.searchQuery) {
+      var archiveMatches = _allArticles.filter(function(a) {
+        var q = state.searchQuery;
+        return (a.title||'').toLowerCase().indexOf(q) !== -1 ||
+               (a.snippet||'').toLowerCase().indexOf(q) !== -1 ||
+               (a.source||'').toLowerCase().indexOf(q) !== -1;
+      });
+      var countEl = document.getElementById('search-count');
+      if (countEl && archiveMatches.length > 0) {
+        countEl.title = archiveMatches.length + ' matches in 6-month archive (click search bar to see all)';
+        countEl.textContent = countEl.textContent + ' (+' + archiveMatches.length + ' archived)';
+      }
+    }
   };
 
   /* ── Topic filter ── */
@@ -4042,6 +4228,86 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
     });
   });
 })();
+
+  /* ── 6-Month Article History Modal ── */
+  var _allArticles = [];
+  try { _allArticles = {{ all_articles_json | safe }}; } catch(e) {}
+
+  var _historyTopic = null;
+  var _historyPeriod = 'all';
+
+  window.openHistoryModal = function(topic, label) {
+    _historyTopic = topic;
+    _historyPeriod = 'all';
+    document.getElementById('history-modal-title').textContent = label + ' — Article Archive';
+    document.getElementById('history-modal-search').value = '';
+    document.querySelectorAll('.history-filter-chip').forEach(function(c) {
+      c.classList.toggle('active', c.dataset.period === 'all');
+    });
+    filterHistoryModal();
+    var overlay = document.getElementById('history-modal-overlay');
+    overlay.style.display = 'flex';
+    setTimeout(function() { document.getElementById('history-modal-search').focus(); }, 100);
+  };
+
+  window.closeHistoryModal = function(e) {
+    if (e && e.target !== document.getElementById('history-modal-overlay')) return;
+    document.getElementById('history-modal-overlay').style.display = 'none';
+  };
+
+  window.setHistoryPeriod = function(btn, period) {
+    _historyPeriod = period;
+    document.querySelectorAll('.history-filter-chip').forEach(function(c) {
+      c.classList.toggle('active', c === btn);
+    });
+    filterHistoryModal();
+  };
+
+  window.filterHistoryModal = function() {
+    var q = document.getElementById('history-modal-search').value.toLowerCase().trim();
+    var cutoff = '';
+    if (_historyPeriod !== 'all') {
+      var d = new Date();
+      d.setDate(d.getDate() - parseInt(_historyPeriod));
+      cutoff = d.toISOString().slice(0,10);
+    }
+
+    var filtered = _allArticles.filter(function(a) {
+      if (_historyTopic && (a.topic || '').toLowerCase() !== _historyTopic.toLowerCase()) return false;
+      if (cutoff && (a.first_seen || '') < cutoff) return false;
+      if (!q) return true;
+      return (a.title || '').toLowerCase().indexOf(q) !== -1 ||
+             (a.snippet || '').toLowerCase().indexOf(q) !== -1 ||
+             (a.source || '').toLowerCase().indexOf(q) !== -1;
+    });
+
+    filtered.sort(function(a,b) { return (b.first_seen||'').localeCompare(a.first_seen||''); });
+
+    document.getElementById('history-modal-count').textContent = filtered.length + ' articles';
+
+    var html = filtered.length ? filtered.map(function(a) {
+      var badge = a.is_new ? '<span style="background:#EBF8FF;color:#1A56A0;font-size:10px;padding:1px 6px;border-radius:8px;font-weight:600;margin-right:6px;">New</span>' : '';
+      return '<div class="history-modal-article">' +
+        '<div>' + badge + '<a href="' + (a.url||'#') + '" target="_blank">' + (a.title||'Untitled') + '</a></div>' +
+        '<div class="history-modal-meta">' + (a.source||'') + (a.pub_date ? ' &middot; ' + a.pub_date : '') + '</div>' +
+        (a.snippet ? '<div class="history-modal-snippet">' + a.snippet + '</div>' : '') +
+        '</div>';
+    }).join('') : '<p style="color:var(--text-muted);text-align:center;padding:24px 0;">No articles found.</p>';
+
+    document.getElementById('history-modal-body').innerHTML = html;
+  };
+
+  /* ── Updated global search — also searches 6-month article archive ── */
+  // Extend handleSearch to show archive results when searching
+  var _originalHandleSearch = window.handleSearch;
+  window.handleSearch = function(query) {
+    _originalHandleSearch(query);
+    // When query is active, also populate history modal if open
+    var overlay = document.getElementById('history-modal-overlay');
+    if (overlay && overlay.style.display !== 'none') {
+      filterHistoryModal();
+    }
+  };
 </script>
 
 </body>

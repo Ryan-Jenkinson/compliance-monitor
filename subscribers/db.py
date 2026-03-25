@@ -88,6 +88,31 @@ CREATE TABLE IF NOT EXISTS regulatory_deadlines (
     week_start      TEXT            -- which week's pipeline extracted this
 );
 
+-- 6-month article archive (full content, permanent storage)
+CREATE TABLE IF NOT EXISTS articles (
+    id          TEXT PRIMARY KEY,
+    topic       TEXT NOT NULL,
+    title       TEXT NOT NULL,
+    url         TEXT NOT NULL,
+    source      TEXT,
+    pub_date    TEXT,
+    snippet     TEXT,
+    first_seen  TEXT NOT NULL DEFAULT (datetime('now')),
+    week_start  TEXT,
+    is_new      INTEGER DEFAULT 1
+);
+
+-- Topic insights from historical analysis agent (weekly runs)
+CREATE TABLE IF NOT EXISTS topic_insights (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    topic         TEXT NOT NULL,
+    period        TEXT NOT NULL,
+    analysis_date TEXT NOT NULL,
+    insights_json TEXT NOT NULL DEFAULT '{}',
+    created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(topic, period, analysis_date)
+);
+
 -- PowerBI export view
 CREATE VIEW IF NOT EXISTS powerbi_export AS
 SELECT
@@ -220,6 +245,37 @@ def init_db() -> None:
         conn.commit()
     except Exception:
         pass  # Column already exists
+    # Migration: add articles table
+    try:
+        conn.execute("""CREATE TABLE IF NOT EXISTS articles (
+            id TEXT PRIMARY KEY,
+            topic TEXT NOT NULL,
+            title TEXT NOT NULL,
+            url TEXT NOT NULL,
+            source TEXT,
+            pub_date TEXT,
+            snippet TEXT,
+            first_seen TEXT NOT NULL DEFAULT (datetime('now')),
+            week_start TEXT,
+            is_new INTEGER DEFAULT 1
+        )""")
+        conn.commit()
+    except Exception:
+        pass
+    # Migration: add topic_insights table
+    try:
+        conn.execute("""CREATE TABLE IF NOT EXISTS topic_insights (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            topic TEXT NOT NULL,
+            period TEXT NOT NULL,
+            analysis_date TEXT NOT NULL,
+            insights_json TEXT NOT NULL DEFAULT '{}',
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            UNIQUE(topic, period, analysis_date)
+        )""")
+        conn.commit()
+    except Exception:
+        pass
     # Migration: add bill_analyses table
     try:
         conn.execute("""CREATE TABLE IF NOT EXISTS bill_analyses (
@@ -758,3 +814,138 @@ def get_bill_activity_feed(days_past: int = 60, limit: int = 200) -> list[dict]:
     # Sort newest first, high-signal actions bubble up within same date
     results.sort(key=lambda x: (x["date"], x["is_high_signal"]), reverse=True)
     return results[:limit]
+
+
+def save_article(article_id: str, topic: str, title: str, url: str,
+                 source: str | None, pub_date: str | None, snippet: str | None,
+                 week_start: str | None = None, is_new: bool = True) -> None:
+    """Persist full article metadata. INSERT OR IGNORE so we never overwrite first_seen."""
+    conn = get_connection()
+    conn.execute(
+        """INSERT OR IGNORE INTO articles
+               (id, topic, title, url, source, pub_date, snippet, week_start, is_new)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (article_id, topic, title, url, source, pub_date, snippet, week_start, 1 if is_new else 0),
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_articles_for_display(topic: str | None = None, days: int = 180, limit: int = 2000) -> list[dict]:
+    """Return stored articles from the last `days` days, newest first."""
+    conn = get_connection()
+    query = """SELECT id, topic, title, url, source, pub_date, snippet, first_seen, is_new
+               FROM articles
+               WHERE first_seen > datetime('now', ?)"""
+    params: list = [f"-{days} days"]
+    if topic:
+        query += " AND topic = ?"
+        params.append(topic)
+    query += " ORDER BY first_seen DESC LIMIT ?"
+    params.append(limit)
+    rows = conn.execute(query, params).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_monthly_article_counts(months: int = 6) -> dict:
+    """Return monthly article counts per topic over the last `months` months.
+    Returns {months: ["Oct 2025", ...], by_topic: {PFAS: [5,3,...], ...}, total: [...]}.
+    """
+    from datetime import date, timedelta
+    import calendar as _cal
+
+    today = date.today()
+    month_labels = []
+    month_keys = []
+    for i in range(months - 1, -1, -1):
+        # Go back i months
+        m = today.month - i
+        y = today.year
+        while m <= 0:
+            m += 12
+            y -= 1
+        label = date(y, m, 1).strftime("%b %Y")
+        month_labels.append(label)
+        month_keys.append((y, m))
+
+    conn = get_connection()
+    # Get all articles in range
+    cutoff = date(month_keys[0][0], month_keys[0][1], 1).isoformat()
+    rows = conn.execute(
+        "SELECT topic, first_seen FROM articles WHERE first_seen >= ?",
+        (cutoff,)
+    ).fetchall()
+    conn.close()
+
+    from collections import defaultdict
+    counts: dict = defaultdict(lambda: defaultdict(int))
+    for r in rows:
+        try:
+            d = r["first_seen"][:10]  # YYYY-MM-DD
+            y, m = int(d[:4]), int(d[5:7])
+            counts[(y, m)][r["topic"]] += 1
+            counts[(y, m)]["_total"] += 1
+        except Exception:
+            pass
+
+    topics = ["PFAS", "EPR", "REACH", "TSCA", "Prop65", "ConflictMinerals", "ForcedLabor"]
+    by_topic = {t: [counts[mk].get(t, 0) for mk in month_keys] for t in topics}
+    total = [counts[mk].get("_total", 0) for mk in month_keys]
+
+    return {"months": month_labels, "by_topic": by_topic, "total": total}
+
+
+def save_topic_insight(topic: str, period: str, analysis_date: str, insights: dict) -> None:
+    """Save or replace a topic insight analysis."""
+    import json as _json
+    conn = get_connection()
+    conn.execute(
+        """INSERT INTO topic_insights (topic, period, analysis_date, insights_json)
+           VALUES (?, ?, ?, ?)
+           ON CONFLICT(topic, period, analysis_date) DO UPDATE SET
+               insights_json = excluded.insights_json,
+               created_at = datetime('now')""",
+        (topic, period, analysis_date, _json.dumps(insights))
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_topic_insight(topic: str, period: str = "weekly") -> dict | None:
+    """Return the most recent insight for a topic and period."""
+    import json as _json
+    conn = get_connection()
+    row = conn.execute(
+        """SELECT insights_json FROM topic_insights
+           WHERE topic = ? AND period = ?
+           ORDER BY analysis_date DESC LIMIT 1""",
+        (topic, period)
+    ).fetchone()
+    conn.close()
+    if not row:
+        return None
+    try:
+        return _json.loads(row["insights_json"])
+    except Exception:
+        return None
+
+
+def get_all_topic_insights(period: str = "weekly") -> dict:
+    """Return most recent insights for all topics keyed by topic name."""
+    import json as _json
+    conn = get_connection()
+    rows = conn.execute(
+        """SELECT topic, insights_json, analysis_date FROM topic_insights
+           WHERE period = ?
+           GROUP BY topic HAVING analysis_date = MAX(analysis_date)""",
+        (period,)
+    ).fetchall()
+    conn.close()
+    result = {}
+    for r in rows:
+        try:
+            result[r["topic"]] = _json.loads(r["insights_json"])
+        except Exception:
+            pass
+    return result

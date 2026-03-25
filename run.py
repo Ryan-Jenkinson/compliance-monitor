@@ -603,6 +603,15 @@ def run_pipeline(args: argparse.Namespace) -> None:
         except Exception as e:
             logger.warning(f"Cross-state analysis failed (non-fatal): {e}")
 
+    # Topic insights: run weekly on Mondays (or with --force flag)
+    if week_context["is_monday"] or args.force:
+        try:
+            from ai.topic_insight_agent import run_all_insights
+            logger.info("Topic insights: running 6-month analysis…")
+            run_all_insights(force=args.force)
+        except Exception as e:
+            logger.warning(f"Topic insights failed (non-fatal): {e}")
+
     # Glossary: seed on first run, or rebuild on --glossary flag
     if args.glossary:
         try:

@@ -55,15 +55,17 @@ def get_week_context(d: Optional[date] = None) -> dict:
     }
 
 
-ROLLING_DAYS = 39  # Dashboard and pipeline window
+ROLLING_DAYS = 180  # 6-month rolling window for articles
+PIPELINE_DAYS = 14  # AI pipeline processes only the last 14 days (cost control)
 
 
 def apply_weekly_window(articles: list) -> tuple[list, int, int]:
     """
-    Mark articles as new or carried-over within a rolling 39-day window.
+    Mark articles as new or carried-over within a rolling 180-day window.
 
     New articles are recorded in the DB (still tagged with week_start for
-    archiving). Articles older than 39 days are not carried over.
+    archiving) and persisted to the articles table for 6-month history.
+    Articles older than 180 days are not carried over.
 
     Returns:
         (filtered_articles, new_count, carried_count)
@@ -109,6 +111,34 @@ def apply_weekly_window(articles: list) -> tuple[list, int, int]:
         )
         conn.commit()
 
+    # Persist all article content to the articles table (INSERT OR IGNORE — no overwrites)
+    # Runs regardless of new vs carried-over so the 6-month archive fills on every run.
+    try:
+        from subscribers.db import save_article
+        for article in articles:
+            pub_date = None
+            if article.published_at:
+                try:
+                    pub_date = article.published_at.strftime("%Y-%m-%d")
+                except Exception:
+                    pass
+            try:
+                save_article(
+                    article_id=article.id,
+                    topic=article.topic,
+                    title=article.title,
+                    url=article.url,
+                    source=article.source,
+                    pub_date=pub_date,
+                    snippet=(article.snippet or "")[:500],
+                    week_start=week_start_str,
+                    is_new=article.extra.get("is_new", True),
+                )
+            except Exception:
+                pass
+    except Exception:
+        pass
+
     conn.close()
     return result, new_count, carried_count
 
@@ -125,3 +155,9 @@ def last_week_is_archived() -> bool:
     ).fetchone()
     conn.close()
     return row is not None
+
+
+def get_display_articles(days: int = 180) -> list[dict]:
+    """Return articles from the last `days` days for dashboard display."""
+    from subscribers.db import get_articles_for_display
+    return get_articles_for_display(days=days)

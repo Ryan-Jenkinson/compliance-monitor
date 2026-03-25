@@ -1,7 +1,7 @@
 """Jinja2 rendering + premailer CSS inlining."""
 from __future__ import annotations
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Optional
 
@@ -421,6 +421,33 @@ class NewsletterRenderer:
             else:
                 dl["_freshness"] = ""
 
+        # Load 6-month historical articles for display
+        historical_by_topic: dict = {}
+        all_articles_json: str = "[]"
+        monthly_trend: dict = {}
+        topic_insights: dict = {}
+        try:
+            from subscribers.db import get_articles_for_display, get_monthly_article_counts, get_all_topic_insights
+            all_historical = get_articles_for_display(days=180)
+            for art in all_historical:
+                t = art.get("topic", "")
+                if t not in historical_by_topic:
+                    historical_by_topic[t] = []
+                historical_by_topic[t].append(art)
+            import json as _json
+            # Slim down for JS (only fields needed for search/display)
+            slim = [{"id": a["id"], "topic": a["topic"], "title": a["title"],
+                     "url": a["url"], "source": a.get("source",""),
+                     "pub_date": a.get("pub_date") or a.get("first_seen","")[:10],
+                     "snippet": (a.get("snippet") or "")[:200],
+                     "first_seen": a.get("first_seen","")[:10],
+                     "is_new": bool(a.get("is_new"))} for a in all_historical]
+            all_articles_json = _json.dumps(slim)
+            monthly_trend = get_monthly_article_counts(months=6)
+            topic_insights = get_all_topic_insights(period="weekly")
+        except Exception as _e:
+            logger.warning(f"Failed to load historical data for dashboard: {_e}")
+
         template = self.env.get_template("dashboard.html")
         return template.render(
             date_display=now.strftime("%-d %b %Y"),
@@ -463,6 +490,12 @@ class NewsletterRenderer:
             bill_funnel=bill_funnel,
             reg_milestones=[],
             source_health=source_health,
+            historical_by_topic=historical_by_topic,
+            all_articles_json=all_articles_json,
+            monthly_trend=monthly_trend,
+            topic_insights=topic_insights,
+            now=now,
+            timedelta_30=timedelta(days=30),
         )
 
     # Keep old name as alias for any callers
