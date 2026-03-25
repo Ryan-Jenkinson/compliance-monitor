@@ -5,6 +5,7 @@
 data/compliance.db
 data/cache/
 data/preview_*.html
+data/deep_dives/
 logs/
 
 # Python
