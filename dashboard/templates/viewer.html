@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deep Dive — Compliance Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #F4F5F7;
+      --surface: #FFFFFF;
+      --border: #D8DBE0;
+      --border-light: #E8EAED;
+      --text-primary: #111318;
+      --text-secondary: #4A4F5C;
+      --text-muted: #7A8194;
+      --red: #D63031; --red-bg: #FEF0F0; --red-border: #FACACA;
+      --amber: #CB7B0A; --amber-bg: #FEF6E8; --amber-border: #F5DFA6;
+      --green: #0F7B3F; --green-bg: #EEFAF3; --green-border: #B2E0C7;
+      --blue: #1565C0; --blue-bg: #EBF3FD;
+      --topbar: #1A1D23;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'Instrument Sans', sans-serif;
+    }
+    html { font-family: var(--sans); background: var(--bg); color: var(--text-primary); font-size: 14px; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--topbar);
+      border-bottom: 3px solid var(--amber);
+      height: 52px;
+      display: flex; align-items: center; gap: 16px;
+      padding: 0 20px;
+    }
+    .topbar-back {
+      font-family: var(--mono); font-size: 11px; font-weight: 600;
+      color: rgba(255,255,255,0.6); text-decoration: none;
+      display: flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.15);
+      transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
+    }
+    .topbar-back:hover { color: #fff; border-color: rgba(255,255,255,0.35); text-decoration: none; }
+    .topbar-label { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.45); white-space: nowrap; flex-shrink: 0; }
+    .topbar-query { font-size: 15px; font-weight: 700; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+    .topbar-meta { font-family: var(--mono); font-size: 10px; font-weight: 600; color: var(--amber); text-transform: uppercase; letter-spacing: 0.8px; white-space: nowrap; flex-shrink: 0; }
+
+    .status-bar {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      font-family: var(--mono); font-size: 12px; color: var(--text-muted);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .status-count { color: var(--text-primary); font-weight: 600; }
+    .status-sep { color: var(--border); }
+
+    .layout {
+      max-width: 1180px; margin: 0 auto;
+      display: grid; grid-template-columns: 200px 1fr;
+      gap: 0; padding: 24px 20px; align-items: start;
+    }
+
+    .sidebar { position: sticky; top: 76px; padding-right: 20px; }
+    .sidebar-section { margin-bottom: 20px; }
+    .sidebar-label {
+      font-family: var(--mono); font-size: 9px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted);
+      padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 8px;
+    }
+    .topic-chip {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 10px; border-radius: 5px; cursor: pointer; margin-bottom: 3px;
+      border: 1px solid transparent; transition: all 0.12s;
+      font-size: 12px; font-weight: 500; color: var(--text-secondary);
+    }
+    .topic-chip:hover { background: var(--surface); border-color: var(--border); }
+    .topic-chip.active { background: var(--blue-bg); border-color: #BFCFE8; color: var(--blue); }
+    .chip-count { font-family: var(--mono); font-size: 10px; color: var(--text-muted); font-weight: 400; }
+    .topic-chip.active .chip-count { color: var(--blue); }
+
+    .main { min-width: 0; }
+    .results-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 16px;
+    }
+    .results-title { font-size: 18px; font-weight: 700; }
+    .results-sub { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+    .sort-select {
+      font-family: var(--mono); font-size: 11px; font-weight: 600;
+      border: 1px solid var(--border); border-radius: 4px;
+      padding: 4px 8px; background: var(--surface); cursor: pointer; color: var(--text-secondary);
+    }
+
+    .article-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px 16px; margin-bottom: 10px;
+      transition: border-color 0.12s, box-shadow 0.12s;
+    }
+    .article-card:hover { border-color: #BFCFE8; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .article-card.monitor { opacity: 0.55; }
+    .article-card.monitor:hover { opacity: 0.8; }
+    .card-title { font-size: 14px; font-weight: 600; line-height: 1.4; margin-bottom: 6px; }
+    .card-title a { color: var(--text-primary); }
+    .card-title a:hover { color: var(--blue); }
+    .card-meta {
+      font-family: var(--mono); font-size: 11px; color: var(--text-muted);
+      margin-bottom: 8px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    }
+    .meta-sep { color: var(--border-light); }
+    .card-snippet { font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+    .card-footer { margin-top: 10px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .badge {
+      font-family: var(--mono); font-size: 9px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.4px; padding: 2px 6px; border-radius: 3px;
+    }
+    .badge-topic { background: var(--blue-bg); color: var(--blue); }
+    .badge-indirect { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+    .badge-monitor { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+
+    .empty-state {
+      text-align: center; padding: 60px 20px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    }
+    .empty-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.4; }
+    .empty-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+    .empty-text { color: var(--text-muted); font-size: 13px; line-height: 1.6; }
+    .empty-link { margin-top: 20px; display: inline-block; font-size: 13px; }
+
+    .subscribe-card {
+      background: var(--surface); border: 1px solid var(--amber-border);
+      border-radius: 8px; padding: 20px 24px; margin-top: 20px;
+    }
+    .subscribe-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+    .subscribe-card p { font-size: 13px; color: var(--text-secondary); margin-bottom: 14px; line-height: 1.55; }
+    .sub-form { display: flex; gap: 8px; flex-wrap: wrap; }
+    .sub-input {
+      flex: 1; min-width: 200px; border: 1px solid var(--border); border-radius: 5px;
+      padding: 8px 12px; font-family: var(--sans); font-size: 13px; outline: none;
+      transition: border-color 0.12s;
+    }
+    .sub-input:focus { border-color: var(--amber); box-shadow: 0 0 0 2px rgba(203,123,10,0.12); }
+    .sub-btn {
+      background: var(--amber); color: #fff; border: none; border-radius: 5px;
+      padding: 8px 18px; font-family: var(--sans); font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: background 0.12s; white-space: nowrap;
+    }
+    .sub-btn:hover { background: #A8640A; }
+    .sub-result { margin-top: 10px; font-size: 13px; font-weight: 500; }
+    .sub-ok { color: var(--green); }
+    .sub-err { color: var(--red); }
+
+    .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--text-muted); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    mark { background: #FFF3A3; padding: 0 1px; border-radius: 2px; }
+
+    @media (max-width: 700px) {
+      .layout { grid-template-columns: 1fr; padding: 16px; }
+      .sidebar { position: static; padding-right: 0; margin-bottom: 16px; }
+      .topbar-meta { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="topbar-back" href="../dashboard.html">&#8592; Dashboard</a>
+  <span class="topbar-label">Deep Dive /</span>
+  <span class="topbar-query" id="topbar-query"></span>
+  <span class="topbar-meta" id="topbar-meta">Compliance Intelligence</span>
+</div>
+
+<div class="status-bar" id="status-bar">
+  <span class="spinner"></span>&nbsp;Loading article archive&hellip;
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Topics</div>
+      <div id="topic-filters"></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Relevance</div>
+      <div id="rel-filters">
+        <div class="topic-chip active" data-rel="all" onclick="setRel(this,'all')">All <span class="chip-count" id="rel-all-count"></span></div>
+        <div class="topic-chip" data-rel="DIRECT" onclick="setRel(this,'DIRECT')">Direct <span class="chip-count" id="rel-direct-count"></span></div>
+        <div class="topic-chip" data-rel="INDIRECT" onclick="setRel(this,'INDIRECT')">Indirect <span class="chip-count" id="rel-indirect-count"></span></div>
+        <div class="topic-chip" data-rel="MONITOR" onclick="setRel(this,'MONITOR')">Monitor <span class="chip-count" id="rel-monitor-count"></span></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="results-header" id="results-header" style="display:none">
+      <div>
+        <div class="results-title" id="results-title"></div>
+        <div class="results-sub" id="results-sub"></div>
+      </div>
+      <select class="sort-select" id="sort-select" onchange="rerender()">
+        <option value="date">Newest first</option>
+        <option value="topic">By topic</option>
+        <option value="relevance">By relevance</option>
+      </select>
+    </div>
+    <div id="article-list"></div>
+    <div class="empty-state" id="empty-state" style="display:none">
+      <div class="empty-icon">&#128269;</div>
+      <div class="empty-title">No articles found</div>
+      <div class="empty-text">
+        Nothing matched &ldquo;<strong id="empty-q"></strong>&rdquo; in the 6-month archive.<br>
+        Try a shorter or broader search term.
+      </div>
+      <a class="empty-link" href="../dashboard.html">&#8592; Back to dashboard</a>
+    </div>
+    <div class="subscribe-card" id="subscribe-card" style="display:none">
+      <h3>&#9993;&nbsp; Get alerts for &ldquo;<span id="sub-q-label"></span>&rdquo;</h3>
+      <p>Receive email notifications when new compliance articles matching this topic are added.</p>
+      <form class="sub-form" id="sub-form" onsubmit="doSubscribe(event)">
+        <input class="sub-input" type="email" id="sub-email" placeholder="your@email.com" required>
+        <button class="sub-btn" type="submit">Subscribe</button>
+      </form>
+      <div id="sub-result"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+(function() {
+  var _q = '', _articles = [], _filtered = [];
+  var _activeTopic = 'all', _activeRel = 'all';
+
+  // Read query from URL
+  var params = new URLSearchParams(window.location.search);
+  _q = (params.get('q') || '').trim();
+  document.getElementById('topbar-query').textContent = _q || '—';
+  document.title = _q ? ('Deep Dive: ' + _q + ' — Compliance Intelligence') : 'Deep Dive';
+  if (document.getElementById('empty-q')) document.getElementById('empty-q').textContent = _q;
+  if (document.getElementById('sub-q-label')) document.getElementById('sub-q-label').textContent = _q;
+
+  // Set date in topbar
+  var now = new Date();
+  document.getElementById('topbar-meta').textContent =
+    now.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+
+  // Determine articles.json URL
+  var isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  var jsonUrl = isLocal ? '/articles.json' : '../articles.json';
+
+  fetch(jsonUrl)
+    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function(data) { _articles = data || []; init(); })
+    .catch(function(err) {
+      document.getElementById('status-bar').innerHTML =
+        '&#9888;&nbsp; Could not load article data. <a href="../dashboard.html">Return to dashboard</a>.';
+    });
+
+  function init() {
+    if (!_q) {
+      document.getElementById('status-bar').textContent = 'No search term provided.';
+      return;
+    }
+    var ql = _q.toLowerCase();
+    _filtered = _articles.filter(function(a) {
+      return (a.title||'').toLowerCase().indexOf(ql) !== -1
+          || (a.snippet||'').toLowerCase().indexOf(ql) !== -1
+          || (a.source||'').toLowerCase().indexOf(ql) !== -1
+          || (a.topic||'').toLowerCase().indexOf(ql) !== -1;
+    });
+
+    var total = _articles.length.toLocaleString();
+    if (_filtered.length === 0) {
+      document.getElementById('status-bar').innerHTML =
+        '<span class="status-count">0</span><span class="status-sep">·</span>results from ' + total + ' articles';
+      document.getElementById('empty-state').style.display = '';
+    } else {
+      document.getElementById('status-bar').innerHTML =
+        '<span class="status-count">' + _filtered.length + '</span>' +
+        '<span class="status-sep">·</span>results matching &ldquo;' + esc(_q) + '&rdquo;' +
+        '<span class="status-sep">·</span>from ' + total + ' articles in archive';
+      document.getElementById('results-header').style.display = '';
+    }
+    document.getElementById('subscribe-card').style.display = '';
+    buildTopicFilters();
+    buildRelCounts();
+    rerender();
+  }
+
+  function buildTopicFilters() {
+    var counts = {};
+    _filtered.forEach(function(a) { counts[a.topic] = (counts[a.topic]||0) + 1; });
+    var topics = Object.keys(counts).sort(function(a,b) { return counts[b]-counts[a]; });
+    document.getElementById('topic-filters').innerHTML =
+      '<div class="topic-chip active" data-topic="all" onclick="setTopic(this,\'all\')">All <span class="chip-count">' + _filtered.length + '</span></div>' +
+      topics.map(function(t) {
+        return '<div class="topic-chip" data-topic="' + esc(t) + '" onclick="setTopic(this,\'' + esc(t) + '\')">' +
+          esc(t) + ' <span class="chip-count">' + counts[t] + '</span></div>';
+      }).join('');
+  }
+
+  function buildRelCounts() {
+    var c = {DIRECT:0,INDIRECT:0,MONITOR:0};
+    _filtered.forEach(function(a) { var r=a.relevance||'DIRECT'; c[r]=(c[r]||0)+1; });
+    document.getElementById('rel-all-count').textContent = _filtered.length;
+    document.getElementById('rel-direct-count').textContent = c.DIRECT;
+    document.getElementById('rel-indirect-count').textContent = c.INDIRECT;
+    document.getElementById('rel-monitor-count').textContent = c.MONITOR;
+  }
+
+  window.setTopic = function(el, topic) {
+    _activeTopic = topic;
+    document.querySelectorAll('#topic-filters .topic-chip').forEach(function(c) {
+      c.classList.toggle('active', c.dataset.topic === topic);
+    });
+    rerender();
+  };
+
+  window.setRel = function(el, rel) {
+    _activeRel = rel;
+    document.querySelectorAll('#rel-filters .topic-chip').forEach(function(c) {
+      c.classList.toggle('active', c.dataset.rel === rel);
+    });
+    rerender();
+  };
+
+  window.rerender = function() {
+    var sortMode = document.getElementById('sort-select') ? document.getElementById('sort-select').value : 'date';
+    var visible = _filtered.filter(function(a) {
+      var topicOk = _activeTopic === 'all' || a.topic === _activeTopic;
+      var relOk = _activeRel === 'all' || (a.relevance||'DIRECT') === _activeRel;
+      return topicOk && relOk;
+    });
+
+    if (sortMode === 'date') {
+      visible.sort(function(a,b) { return (b.pub_date||'').localeCompare(a.pub_date||''); });
+    } else if (sortMode === 'topic') {
+      visible.sort(function(a,b) { return (a.topic||'').localeCompare(b.topic||''); });
+    } else {
+      var ro = {DIRECT:0,INDIRECT:1,MONITOR:2};
+      visible.sort(function(a,b) { return (ro[a.relevance||'DIRECT']||0)-(ro[b.relevance||'DIRECT']||0); });
+    }
+
+    document.getElementById('results-title').textContent = visible.length + ' article' + (visible.length!==1?'s':'');
+    document.getElementById('results-sub').textContent = '"' + _q + '"' +
+      (_activeTopic!=='all'?' · '+_activeTopic:'') + (_activeRel!=='all'?' · '+_activeRel:'');
+
+    if (visible.length === 0) {
+      document.getElementById('article-list').innerHTML =
+        '<div style="text-align:center;padding:32px;color:var(--text-muted);font-size:13px">No articles match the current filter combination.</div>';
+      return;
+    }
+
+    document.getElementById('article-list').innerHTML = visible.map(function(a) {
+      var rel = a.relevance || 'DIRECT';
+      var relBadge = rel === 'INDIRECT'
+        ? '<span class="badge badge-indirect">Indirect</span>'
+        : rel === 'MONITOR' ? '<span class="badge badge-monitor">Monitor</span>' : '';
+      var dateStr = a.pub_date ? fmtDate(a.pub_date) : '';
+      var snippet = (a.snippet||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      snippet = highlight(snippet, _q);
+      return '<div class="article-card' + (rel==='MONITOR'?' monitor':'') + '">' +
+        '<div class="card-title"><a href="' + esc(a.url) + '" target="_blank" rel="noopener">' + esc(a.title) + '</a></div>' +
+        '<div class="card-meta">' + esc(a.source||'') + (dateStr ? ' <span class="meta-sep">·</span> ' + dateStr : '') + '</div>' +
+        (snippet ? '<div class="card-snippet">' + snippet + '</div>' : '') +
+        '<div class="card-footer"><span class="badge badge-topic">' + esc(a.topic) + '</span>' + relBadge + '</div>' +
+      '</div>';
+    }).join('');
+  };
+
+  window.doSubscribe = function(e) {
+    e.preventDefault();
+    var email = document.getElementById('sub-email').value.trim();
+    if (!email) return;
+    var res = document.getElementById('sub-result');
+    if (isLocal) {
+      fetch('http://localhost:5000/subscribe', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({email: email, keyword: _q})
+      })
+      .then(function(r) { return r.json(); })
+      .then(function() {
+        res.className = 'sub-ok'; res.textContent = '✓ Subscribed — you\'ll get alerts for "' + _q + '"';
+      })
+      .catch(function() {
+        res.className = 'sub-err'; res.textContent = 'Could not connect. Start the server: python3 server.py';
+      });
+    } else {
+      window.location.href = 'mailto:ryan.jenkinson@andersencorp.com?subject=' +
+        encodeURIComponent('Subscribe: ' + _q) +
+        '&body=' + encodeURIComponent('Please add ' + email + ' to keyword alerts for: ' + _q);
+      res.className = 'sub-ok'; res.textContent = 'Opening email client to send subscription request.';
+    }
+  };
+
+  function fmtDate(d) {
+    try { return new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+    catch(e) { return d; }
+  }
+  function highlight(text, q) {
+    if (!q) return text;
+    try {
+      return text.replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>');
+    } catch(e) { return text; }
+  }
+  function esc(s) {
+    return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+})();
+</script>
+</body>
+</html>

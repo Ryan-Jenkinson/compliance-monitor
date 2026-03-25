@@ -550,6 +550,20 @@ def _push_dashboard(dashboard_html: str, repo_dir: Path,
                 fname = f"{topic_name.lower()}.html"
                 (repo_dir / fname).write_text(html, encoding="utf-8")
                 files_to_push.append(fname)
+        # Also export articles.json for static viewer pages
+        try:
+            from subscribers.db import get_articles_for_display
+            import json as _json
+            arts = get_articles_for_display(days=180)
+            slim_arts = [{"id": a["id"], "topic": a["topic"], "title": a["title"],
+                          "url": a["url"], "source": a.get("source",""),
+                          "pub_date": (a.get("pub_date") or a.get("first_seen",""))[:10],
+                          "snippet": (a.get("snippet") or "")[:200],
+                          "relevance": a.get("relevance") or "DIRECT"} for a in arts]
+            (repo_dir / "articles.json").write_text(_json.dumps(slim_arts), encoding="utf-8")
+            files_to_push.append("articles.json")
+        except Exception as _e:
+            pass  # non-fatal
         _git_push(repo_dir, files_to_push, f"Update dashboard {date_str}")
         url = f"{_PAGES_BASE}/dashboard.html"
         logger.info(f"Dashboard pushed: {url}")
@@ -945,6 +959,11 @@ def run_pipeline(args: argparse.Namespace) -> None:
                 dest = deep_dives_dir / f"{slug}.html"
                 _shutil.copy2(path, dest)
                 dd_files.append(f"deep-dives/{slug}.html")
+            # Copy viewer.html (static client-side deep-dive for arbitrary terms)
+            viewer_src = Path(__file__).parent / "dashboard" / "templates" / "viewer.html"
+            if viewer_src.exists():
+                _shutil.copy2(viewer_src, deep_dives_dir / "viewer.html")
+                dd_files.append("deep-dives/viewer.html")
             if dd_files:
                 _git_push(_GITHUB_REPO_DIR, dd_files, f"Update deep-dive pages {date.today().isoformat()}")
                 logger.info(f"Pushed {len(dd_files)} deep-dive page(s)")
