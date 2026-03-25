@@ -3471,19 +3471,6 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
       btn.href = '#';
     }
 
-    // Show archive article count
-    if (state.searchQuery) {
-      var archiveMatches = _allArticles.filter(function(a) {
-        var q = state.searchQuery;
-        return (a.title||'').toLowerCase().indexOf(q) !== -1 ||
-               (a.snippet||'').toLowerCase().indexOf(q) !== -1 ||
-               (a.source||'').toLowerCase().indexOf(q) !== -1;
-      });
-      if (countEl && archiveMatches.length > 0) {
-        countEl.title = archiveMatches.length + ' matches in 6-month archive';
-        countEl.textContent = countEl.textContent + ' (+' + archiveMatches.length + ' archived)';
-      }
-    }
   };
 
   /* ── Topic filter ── */
@@ -4117,7 +4104,22 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
     highlightSearchMatches(q);
 
     var countEl = document.getElementById('search-count');
-    countEl.textContent = (q || state.urgencyFilter !== 'ALL' || state.newFilter !== 'ALL' || state.relFilter !== 'all') ? visibleCount + ' / ' + totalCount : '';
+    if (q) {
+      var archiveTotal = _allArticles.filter(function(a) {
+        return (a.title||'').toLowerCase().indexOf(q) !== -1 ||
+               (a.snippet||'').toLowerCase().indexOf(q) !== -1 ||
+               (a.source||'').toLowerCase().indexOf(q) !== -1;
+      }).length;
+      var corpus = _allArticles.length || totalCount;
+      countEl.textContent = archiveTotal.toLocaleString() + ' / ' + corpus.toLocaleString();
+      countEl.title = archiveTotal + ' of ' + corpus + ' articles match';
+    } else if (state.urgencyFilter !== 'ALL' || state.newFilter !== 'ALL' || state.relFilter !== 'all') {
+      countEl.textContent = visibleCount + ' / ' + totalCount;
+      countEl.title = '';
+    } else {
+      countEl.textContent = '';
+      countEl.title = '';
+    }
     document.getElementById('stat-articles').textContent = visibleCount || totalCount;
   }
 
@@ -4573,6 +4575,13 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
   /* ── 6-Month Article History Modal ── */
   var _allArticles = [];
   try { _allArticles = {{ all_articles_json | safe }}; } catch(e) {}
+  // Update search placeholder to show actual searchable corpus size
+  (function() {
+    var inp = document.getElementById('search-input');
+    if (inp && _allArticles.length > 0) {
+      inp.placeholder = 'Search ' + _allArticles.length.toLocaleString() + ' articles... ( / )';
+    }
+  })();
 
   var _historyTopic = null;
   var _historyPeriod = 'all';
