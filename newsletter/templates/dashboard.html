@@ -1363,6 +1363,7 @@
     .la-item.la-high-signal { background: var(--surface-sunken); }
     .la-item.la-high-signal:hover { background: var(--border-light); }
     .la-item.la-hidden { display: none !important; }
+    .la-item.la-paged-hidden { display: none !important; }
     .la-date {
       min-width: 52px; font-size: 11px; font-family: var(--mono);
       color: var(--text-tertiary); padding-top: 2px; flex-shrink: 0;
@@ -2499,8 +2500,8 @@
             </div>
           </div>
           <div class="panel-body" id="leg-activity-body" style="padding:0;">
-            {% for item in bill_activity[:50] %}
-            <div class="la-item{% if item.is_high_signal %} la-high-signal{% endif %}"
+            {% for item in bill_activity %}
+            <div class="la-item{% if item.is_high_signal %} la-high-signal{% endif %}{% if loop.index0 >= 15 %} la-paged-hidden{% endif %}"
                  data-outcome="{{ item.outcome }}"
                  data-topic="{{ item.topic|lower }}"
                  data-high="{{ 'true' if item.is_high_signal else 'false' }}"
@@ -2509,13 +2510,10 @@
                  onclick="openBillDetailFromEl(this)"
                  style="cursor:pointer;"
                  title="Click for detailed analysis">
-              <!-- Date column -->
               <div class="la-date">{{ item.date[:7] if item.date else '—' }}</div>
-              <!-- Outcome badge -->
               <div class="la-badge-col">
                 <span class="la-badge" style="background:{{ item.outcome_bg }};color:{{ item.outcome_color }};">{{ item.outcome }}</span>
               </div>
-              <!-- Content -->
               <div class="la-content">
                 <div class="la-bill-line">
                   {% if item.source_url %}<a href="{{ item.source_url }}" class="la-bill-link">{{ item.bill }}</a>{% else %}<span class="la-bill-ref">{{ item.bill }}</span>{% endif %}
@@ -2528,38 +2526,14 @@
               </div>
             </div>
             {% endfor %}
-            {% if bill_activity|length > 50 %}
+            {% if bill_activity|length > 15 %}
             <div id="leg-activity-more" style="padding:8px 14px 12px;text-align:center;">
               <button onclick="showMoreLegActivity()" id="leg-more-btn"
                       style="background:none;border:1px solid var(--border);border-radius:4px;
                              padding:4px 14px;font-size:12px;color:var(--text-secondary);
                              cursor:pointer;font-weight:600;">
-                + {{ bill_activity|length - 50 }} more actions
+                + 15 more &nbsp;<span id="leg-remaining-count" style="opacity:.6;font-weight:400;">({{ bill_activity|length - 15 }} remaining)</span>
               </button>
-            </div>
-            <!-- Hidden items for "show more" -->
-            <div id="leg-activity-hidden" style="display:none;">
-              {% for item in bill_activity[50:] %}
-              <div class="la-item{% if item.is_high_signal %} la-high-signal{% endif %}"
-                   data-outcome="{{ item.outcome }}"
-                   data-topic="{{ item.topic|lower }}"
-                   data-high="{{ 'true' if item.is_high_signal else 'false' }}">
-                <div class="la-date">{{ item.date[:7] if item.date else '—' }}</div>
-                <div class="la-badge-col">
-                  <span class="la-badge" style="background:{{ item.outcome_bg }};color:{{ item.outcome_color }};">{{ item.outcome }}</span>
-                </div>
-                <div class="la-content">
-                  <div class="la-bill-line">
-                    {% if item.source_url %}<a href="{{ item.source_url }}" class="la-bill-link">{{ item.bill }}</a>{% else %}<span class="la-bill-ref">{{ item.bill }}</span>{% endif %}
-                    <span class="la-state-tag">{{ item.state }}</span>
-                    <span class="la-topic-tag" style="color:{% for t in topics %}{% if t.topic|lower == item.topic|lower %}{{ t.color }}{% endif %}{% endfor %};">{{ item.topic }}</span>
-                    {% if item.stage %}<span class="la-stage-tag">{{ item.stage }}</span>{% endif %}
-                  </div>
-                  <div class="la-title">{{ item.bill_title|truncate(80, true, '…') }}</div>
-                  <div class="la-action">{{ item.action|truncate(120, true, '…') }}</div>
-                </div>
-              </div>
-              {% endfor %}
             </div>
             {% endif %}
           </div>
@@ -3299,17 +3273,38 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
     applyLegFilters();
   };
 
+  // Tracks how many items are currently visible (paged)
+  var legPageSize = 15;
+  var legVisibleCount = 15;
+
   function applyLegFilters() {
     var outcomeF = legState.outcome;
     var topicF   = legState.topic;
-    // Show hidden items when filtering (un-hide them then re-apply)
-    var hidden = document.getElementById('leg-activity-hidden');
-    if (hidden && hidden.style.display === 'none' && (outcomeF !== 'all' || topicF !== 'all')) {
-      // Expand so filters can reach them
-      hidden.style.display = '';
+    var isFiltering = outcomeF !== 'all' || topicF !== 'all';
+
+    // When a filter is active, temporarily reveal all paged items so filtering works across the full set
+    if (isFiltering) {
+      document.querySelectorAll('#leg-activity-body .la-item').forEach(function(item) {
+        item.classList.remove('la-paged-hidden');
+      });
       var moreBtn = document.getElementById('leg-activity-more');
       if (moreBtn) moreBtn.style.display = 'none';
+    } else {
+      // Re-apply paging when filters are cleared
+      var allItems = document.querySelectorAll('#leg-activity-body .la-item');
+      var shown = 0;
+      allItems.forEach(function(item) {
+        if (shown < legVisibleCount) {
+          item.classList.remove('la-paged-hidden');
+          shown++;
+        } else {
+          item.classList.add('la-paged-hidden');
+        }
+      });
+      var moreBtn = document.getElementById('leg-activity-more');
+      if (moreBtn) moreBtn.style.display = allItems.length > legVisibleCount ? '' : 'none';
     }
+
     document.querySelectorAll('#leg-activity-body .la-item').forEach(function(item) {
       var passOutcome = outcomeF === 'all' ||
         (outcomeF === 'high-signal' && item.dataset.high === 'true') ||
@@ -3320,10 +3315,29 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
   }
 
   window.showMoreLegActivity = function() {
-    var hidden = document.getElementById('leg-activity-hidden');
+    var allItems = document.querySelectorAll('#leg-activity-body .la-item');
+    legVisibleCount += legPageSize;
+    var shown = 0;
+    allItems.forEach(function(item) {
+      if (shown < legVisibleCount) {
+        item.classList.remove('la-paged-hidden');
+        shown++;
+      } else {
+        item.classList.add('la-paged-hidden');
+      }
+    });
+    var remaining = allItems.length - legVisibleCount;
     var moreBtn = document.getElementById('leg-activity-more');
-    if (hidden) { hidden.style.display = ''; applyLegFilters(); }
-    if (moreBtn) moreBtn.style.display = 'none';
+    var remainingEl = document.getElementById('leg-remaining-count');
+    if (remaining <= 0) {
+      if (moreBtn) moreBtn.style.display = 'none';
+    } else {
+      var showNext = Math.min(legPageSize, remaining);
+      var btn = document.getElementById('leg-more-btn');
+      if (btn) btn.childNodes[0].textContent = '+ ' + showNext + ' more \u00a0';
+      if (remainingEl) remainingEl.textContent = '(' + remaining + ' remaining)';
+    }
+    applyLegFilters();
   };
 
   // ── Bill Detail Modal ──────────────────────────────────────────────────
