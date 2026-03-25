@@ -1192,19 +1192,33 @@ def _run_director_review_standalone() -> None:
     init_db()
     logger.info("Running director critique (forced)…")
 
-    # Get latest pipeline output from cache if available, otherwise use minimal stub
+    # Get latest pipeline output from cache — look for stage-3 summary file (s3_*),
+    # then fall back to any recent claude cache with exec_summary, then minimal stub.
+    import glob as _glob, json as _json
+    pipeline_output = {"topics": [], "exec_summary": "", "total_articles": 0, "total_sources": 0}
     try:
         cache_dir = Config.DATA_DIR / "cache" / "claude"
-        import glob as _glob
-        cache_files = sorted(_glob.glob(str(cache_dir / "s3_*.json")), reverse=True)
-        if cache_files:
-            import json as _json
-            with open(cache_files[0]) as f:
-                pipeline_output = _json.load(f)
+        # Stage-3 output files (exec summary)
+        for pattern in ("s3_*.json", "stage3_*.json"):
+            cache_files = sorted(_glob.glob(str(cache_dir / pattern)), reverse=True)
+            if cache_files:
+                with open(cache_files[0]) as f:
+                    pipeline_output = _json.load(f)
+                break
         else:
-            pipeline_output = {"topics": [], "exec_summary": "", "total_articles": 0, "total_sources": 0}
+            # Any recent cache file that looks like pipeline output (has 'topics' key)
+            all_cache = sorted(_glob.glob(str(cache_dir / "*.json")), reverse=True)
+            for cf in all_cache[:20]:
+                try:
+                    with open(cf) as f:
+                        data = _json.load(f)
+                    if isinstance(data, dict) and ("topics" in data or "exec_summary" in data):
+                        pipeline_output = data
+                        break
+                except Exception:
+                    continue
     except Exception:
-        pipeline_output = {"topics": [], "exec_summary": "", "total_articles": 0, "total_sources": 0}
+        pass
 
     try:
         from processors.deadline_watchdog import run_watchdog
@@ -1212,8 +1226,32 @@ def _run_director_review_standalone() -> None:
     except Exception:
         watchdog = None
 
+    # Load LegiScan data for bill tracking counts
+    legiscan_report = None
+    try:
+        import sqlite3 as _sq
+        conn = _sq.connect(str(Config.DB_PATH))
+        conn.row_factory = _sq.Row
+        bill_rows = conn.execute(
+            "SELECT topic, COUNT(*) as cnt FROM legiscan_bills WHERE is_active=1 GROUP BY topic"
+        ).fetchall()
+        changed_rows = conn.execute(
+            "SELECT COUNT(*) as cnt FROM legiscan_change_log WHERE change_date >= date('now', '-7 days')"
+        ).fetchone()
+        conn.close()
+        by_topic = {r["topic"]: [None] * r["cnt"] for r in bill_rows}
+        legiscan_report = {
+            "total_tracked": sum(r["cnt"] for r in bill_rows),
+            "by_topic": by_topic,
+            "changed_bills": [None] * (changed_rows["cnt"] if changed_rows else 0),
+        }
+    except Exception:
+        pass
+
     from ai.director_agent import run_director_critique
-    critique = run_director_critique(pipeline_output, watchdog=watchdog, force=True)
+    critique = run_director_critique(
+        pipeline_output, watchdog=watchdog, legiscan_report=legiscan_report, force=True
+    )
 
     report_path = Config.DATA_DIR / "director_review.html"
     if report_path.exists():

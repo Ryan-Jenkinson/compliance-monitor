@@ -38,9 +38,32 @@ _SYSTEM = """You are a Director of Compliance at a mid-size US manufacturer of w
 You have 15 years of regulatory compliance experience. You are sharp, direct, and results-oriented.
 You do not have patience for dashboards that show information without enabling action.
 You have seen many compliance monitoring tools that look impressive but fail to answer the
-question: "What do I actually need to do today?"
+question: "What is the real regulatory risk here and what should I be watching?"
 
-Your job right now is to review a compliance intelligence dashboard that your team has built.
+CRITICAL CONTEXT about this dashboard's scope:
+This is a regulatory intelligence and risk monitoring tool ONLY. It intentionally does NOT track:
+- Who is assigned to what compliance task
+- Action items or task management
+- Internal project owners or deadlines tied to people
+- Company-internal workflow status
+
+Those activities happen in a separate company-approved tool. This dashboard cannot and should not
+try to replicate them. Do NOT suggest adding task assignments, action item owners, or internal
+project management features — those are out of scope by design.
+
+WHAT THIS DASHBOARD CAN AND SHOULD DO WELL:
+- Track regulatory deadlines, bill stages, and enforcement developments
+- Surface high-risk legislative patterns and jurisdictions
+- Identify which regulations are moving fastest and toward what
+- Provide cross-state pattern analysis (coordinated campaigns, next movers)
+- Give clear signal on urgency and impact level across topics
+- Keep the compliance team informed on what changed and what to watch
+
+Your critique should focus exclusively on improving these capabilities: data coverage,
+signal quality, risk prioritization, legislative intelligence, trend visibility,
+and clarity of what's happening in the regulatory landscape.
+
+Your job right now is to review this compliance intelligence dashboard that your team has built.
 Be honest. Be specific. Reference actual numbers and data you see. Point out what's genuinely
 useful AND what's falling short. Your feedback will directly drive what gets built next."""
 
@@ -53,31 +76,51 @@ _PROMPT = """Review this compliance intelligence dashboard. I need your honest a
 - HIGH urgency: {high_count} | MEDIUM: {medium_count} | LOW: {low_count}
 - Topics covered: {topics_covered}
 
-### Per-Topic Summary
+### Executive Summary (AI-generated)
+{exec_summary}
+
+### Per-Topic Developments + AI Analysis
 {topic_summaries}
 
-### Deadline Status
-- Total tracked deadlines: {total_deadlines}
+### Regulatory Deadlines
+- Total tracked: {total_deadlines} | Overdue: {overdue_count} | Critical (≤14d): {critical_count} | Urgent (≤30d): {urgent_count}
 - Next deadline: {next_deadline}
-- Overdue: {overdue_count} | Critical (≤14d): {critical_count} | Urgent (≤30d): {urgent_count}
 
-### Legislative Intelligence
-- Bills tracked across all topics: {total_bills}
-- By topic: {bills_by_topic}
-- Bills advanced stage this week: {changed_bills}
+**Upcoming deadlines (next 12 months):**
+{deadline_detail}
+
+**AI-generated deadline analysis (what the company must actually do):**
+{deadline_analysis}
+
+### Legislative Intelligence — Advanced Bills
+Bills that have passed at least one chamber or been enacted:
+{advanced_bills}
+
+**All tracked bills:** {total_bills} across topics ({bills_by_topic}) | Stage advances this week: {changed_bills}
+
+### Cross-State Legislative Intelligence
+{cross_state_intel}
+
+### Tracked Regulations (most recently updated)
+{regulations}
 
 ### Change Detection (vs yesterday)
 {changes_summary}
 
 ### What the Dashboard Currently Shows
-Panels: KPI row, PFAS legislative intel, status matrix, urgency breakdown,
-bill stage chart, deadline countdown list, "What Changed Today",
-exec summary, topic cards with article feed, maps & data links,
-28-day trend sparklines, company impact scores (1-10) per article.
+Pages and panels: main dashboard (KPI row, status matrix, urgency breakdown, bill stage chart,
+deadline countdown, "What Changed Today", exec summary, director critique panel, cross-state
+intel widget), per-topic pages (article feed with company impact scores, bills panel, deadlines
+panel, resources strip, cross-state intel section), standalone cross-state intelligence report
+(all 5 topics, sticky nav, watch list + next movers + stage clusters + coordinated campaigns),
+weekly briefing email, executive briefing page, director review page.
 
 ---
 
-Give me your honest director-level critique. Structure your response as JSON:
+Give me your honest director-level critique based on ALL the content above. Be specific —
+reference actual regulation names, bill numbers, deadline dates, and state names you can see.
+
+Structure your response as JSON:
 
 {{
   "verdict": "One sentence: overall usefulness rating and why. Be direct.",
@@ -85,7 +128,7 @@ Give me your honest director-level critique. Structure your response as JSON:
     "Specific thing that is genuinely useful, with why"
   ],
   "questions_raised_unanswered": [
-    "Question the dashboard raises but does not answer"
+    "Question the dashboard raises but does not answer — reference specific data points"
   ],
   "missing_data": [
     "Specific data point or view that is absent but should be there"
@@ -96,8 +139,8 @@ Give me your honest director-level critique. Structure your response as JSON:
   "actionable_suggestions": [
     {{
       "priority": "HIGH|MEDIUM|LOW",
-      "suggestion": "Specific, buildable improvement",
-      "why": "What director problem it solves"
+      "suggestion": "Specific, buildable improvement to the dashboard itself",
+      "why": "What regulatory intelligence problem it solves"
     }}
   ],
   "director_score": {{
@@ -108,8 +151,132 @@ Give me your honest director-level critique. Structure your response as JSON:
   }}
 }}
 
-Be specific. Reference actual numbers. Don't give generic dashboard advice.
+Be specific. Reference actual data. Don't give generic dashboard advice.
 Return JSON only."""
+
+
+def _load_rich_context() -> dict:
+    """
+    Load all rich AI-generated content from the DB for the director review.
+    Returns a dict with topic_insights, deadline_analyses, cross_state, regulations, advanced_bills.
+    """
+    import sqlite3 as _sq
+    conn = _sq.connect(str(_DB_PATH))
+    conn.row_factory = _sq.Row
+
+    # ── Topic insights (6-month trend analysis per topic) ──────────────────
+    topic_insights = {}
+    rows = conn.execute("""
+        SELECT topic, analysis_date, insights_json
+        FROM topic_insights
+        WHERE analysis_date = (SELECT MAX(analysis_date) FROM topic_insights)
+        ORDER BY topic
+    """).fetchall()
+    for row in rows:
+        try:
+            topic_insights[row["topic"]] = json.loads(row["insights_json"])
+        except Exception:
+            pass
+
+    # ── Deadline analyses (AI breakdown per deadline) ──────────────────────
+    deadline_analyses = []
+    rows = conn.execute("""
+        SELECT rd.title, rd.topic, rd.deadline_date, rd.jurisdiction,
+               rd.urgency, rd.description, da.analysis_json
+        FROM deadline_analyses da
+        JOIN regulatory_deadlines rd ON da.deadline_id = rd.id
+        ORDER BY rd.deadline_date ASC
+        LIMIT 20
+    """).fetchall()
+    for row in rows:
+        try:
+            analysis = json.loads(row["analysis_json"])
+            deadline_analyses.append({
+                "title": row["title"],
+                "topic": row["topic"],
+                "deadline_date": row["deadline_date"],
+                "jurisdiction": row["jurisdiction"],
+                "urgency": row["urgency"],
+                "what_is_required": analysis.get("what_is_required", ""),
+                "who_must_comply": analysis.get("who_must_comply", ""),
+                "what_we_must_do": analysis.get("what_we_must_do", ""),
+                "penalties": analysis.get("penalties", ""),
+                "company_impact": analysis.get("company_impact", ""),
+                "recommended_actions": analysis.get("recommended_actions", []),
+            })
+        except Exception:
+            pass
+
+    # ── Cross-state reports (most recent full analysis) ────────────────────
+    cross_state = []
+    rows = conn.execute("""
+        SELECT topic, report_date, raw_json
+        FROM cross_state_reports
+        WHERE report_date = (SELECT MAX(report_date) FROM cross_state_reports)
+        ORDER BY topic
+    """).fetchall()
+    for row in rows:
+        try:
+            analysis = json.loads(row["raw_json"])
+            cross_state.append({
+                "topic": row["topic"],
+                "report_date": row["report_date"],
+                "summary": analysis.get("summary", ""),
+                "watch_list": analysis.get("watch_list", []),
+                "next_mover_predictions": analysis.get("next_mover_predictions", []),
+                "coordinated_campaigns": analysis.get("coordinated_campaigns", []),
+                "stage_clusters": analysis.get("stage_clusters", []),
+            })
+        except Exception:
+            pass
+
+    # ── Regulations (most recently updated) ───────────────────────────────
+    regulations = []
+    rows = conn.execute("""
+        SELECT topic, regulation_name, current_status, effective_date
+        FROM regulations
+        ORDER BY updated_at DESC
+        LIMIT 20
+    """).fetchall()
+    for row in rows:
+        regulations.append(dict(row))
+
+    # ── Advanced bills (passed one chamber or further) ─────────────────────
+    advanced_bills = []
+    rows = conn.execute("""
+        SELECT state, topic, bill_number, title, stage, last_action, last_action_date
+        FROM legiscan_bills
+        WHERE is_active = 1
+          AND stage IN ('passed_one', 'advanced', 'enacted_watching', 'signed')
+        ORDER BY last_action_date DESC
+        LIMIT 30
+    """).fetchall()
+    for row in rows:
+        advanced_bills.append(dict(row))
+
+    # ── Recent regulatory deadlines (next 12 months) ───────────────────────
+    deadline_list = []
+    rows = conn.execute("""
+        SELECT title, topic, deadline_date, jurisdiction, urgency, description
+        FROM regulatory_deadlines
+        WHERE deadline_date >= date('now')
+          AND deadline_date <= date('now', '+365 days')
+        ORDER BY deadline_date ASC
+        LIMIT 25
+    """).fetchall()
+    for row in rows:
+        deadline_list.append(dict(row))
+
+    conn.close()
+
+    return {
+        "topic_insights": topic_insights,
+        "deadline_analyses": deadline_analyses,
+        "cross_state": cross_state,
+        "regulations": regulations,
+        "advanced_bills": advanced_bills,
+        "deadline_list": deadline_list,
+    }
 
 
 def _build_prompt(pipeline_output: dict, watchdog: Optional[dict],
@@ -118,7 +285,10 @@ def _build_prompt(pipeline_output: dict, watchdog: Optional[dict],
     today = date.today().isoformat()
     topics = pipeline_output.get("topics", [])
 
-    # Urgency counts
+    # Load rich DB content
+    ctx = _load_rich_context()
+
+    # ── Pipeline article counts ────────────────────────────────────────────
     high = medium = low = 0
     for t in topics:
         for d in t.get("developments", []):
@@ -130,23 +300,52 @@ def _build_prompt(pipeline_output: dict, watchdog: Optional[dict],
             else:
                 low += 1
 
-    # Per-topic summaries
-    topic_lines = []
-    for t in topics:
-        devs = t.get("developments", [])
-        hi = sum(1 for d in devs if (d.get("urgency") or "").upper() == "HIGH")
-        top_scores = sorted(
-            [d.get("impact_score", 0) for d in devs if d.get("impact_score")],
-            reverse=True
-        )[:3]
-        score_str = f"top impact scores: {top_scores}" if top_scores else "no impact scores yet"
-        headlines = [d.get("headline", "")[:70] for d in devs[:3]]
-        topic_lines.append(
-            f"  {t['topic']}: {len(devs)} developments, {hi} HIGH | {score_str}\n"
-            f"    Top headlines: {'; '.join(headlines) if headlines else 'none'}"
-        )
+    # ── Exec summary ──────────────────────────────────────────────────────
+    exec_summary = pipeline_output.get("exec_summary", "").strip()
 
-    # Deadlines
+    # ── Per-topic: pipeline developments + AI topic insights ──────────────
+    topic_sections = []
+    all_topics = set(t["topic"] for t in topics) | set(ctx["topic_insights"].keys())
+    for topic_name in sorted(all_topics):
+        # Pipeline articles
+        topic_data = next((t for t in topics if t["topic"] == topic_name), {})
+        devs = topic_data.get("developments", [])
+        hi = sum(1 for d in devs if (d.get("urgency") or "").upper() == "HIGH")
+        headlines = [
+            f"    [{d.get('urgency','?')}|score:{d.get('impact_score','?')}] {d.get('headline','')[:80]}"
+            + (f"\n      Impact: {d.get('company_impact','')[:120]}" if d.get('company_impact') else "")
+            for d in devs[:5]
+        ]
+
+        # Topic insight
+        insight = ctx["topic_insights"].get(topic_name, {})
+        insight_lines = []
+        if insight:
+            if insight.get("six_month_trend"):
+                insight_lines.append(f"  6-month trend: {insight['six_month_trend']}")
+            if insight.get("last_30_days"):
+                insight_lines.append(f"  Last 30 days: {insight['last_30_days']}")
+            if insight.get("breaking_news"):
+                insight_lines.append(f"  Breaking: {insight['breaking_news']}")
+            if insight.get("company_impact"):
+                insight_lines.append(f"  Company impact: {insight['company_impact']}")
+            if insight.get("strategic_priorities"):
+                pris = insight["strategic_priorities"]
+                if isinstance(pris, list):
+                    insight_lines.append(f"  Strategic priorities: {'; '.join(str(p)[:80] for p in pris[:3])}")
+                else:
+                    insight_lines.append(f"  Strategic priorities: {str(pris)[:200]}")
+
+        section = f"### {topic_name}\n"
+        section += f"  Articles this cycle: {len(devs)} ({hi} HIGH)\n"
+        if headlines:
+            section += "  Top developments:\n" + "\n".join(headlines) + "\n"
+        if insight_lines:
+            section += "  AI-generated topic analysis:\n" + "\n".join(insight_lines) + "\n"
+
+        topic_sections.append(section)
+
+    # ── Deadlines: watchdog counts + deadline list + AI analyses ──────────
     total_deadlines = 0
     next_dl = "none"
     overdue = critical = urgent = 0
@@ -160,7 +359,68 @@ def _build_prompt(pipeline_output: dict, watchdog: Optional[dict],
         if nd:
             next_dl = f"{nd['title'][:60]} ({nd['deadline_date']}, {nd['days_until']}d)"
 
-    # LegiScan
+    deadline_detail_lines = []
+    for dl in ctx["deadline_list"][:15]:
+        deadline_detail_lines.append(
+            f"  [{dl['urgency'] or 'WATCH'}] {dl['title'][:70]} | {dl['topic']} | {dl['deadline_date']} | {dl['jurisdiction'] or 'Federal'}"
+        )
+
+    def _str(v, limit=100):
+        """Convert any value to a string snippet for the prompt."""
+        if isinstance(v, dict):
+            # Concatenate dict values
+            return "; ".join(f"{kk}: {str(vv)[:60]}" for kk, vv in list(v.items())[:3])[:limit]
+        if isinstance(v, list):
+            return "; ".join(str(i)[:60] for i in v[:3])[:limit]
+        return str(v or "")[:limit]
+
+    deadline_analysis_lines = []
+    for da in ctx["deadline_analyses"][:8]:
+        deadline_analysis_lines.append(
+            f"  {da['title'][:60]} ({da['deadline_date']}, {da['topic']}):\n"
+            f"    Required: {_str(da['what_is_required'])}\n"
+            f"    Who: {_str(da['who_must_comply'], 80)}\n"
+            f"    Company must do: {_str(da['what_we_must_do'])}\n"
+            f"    Company impact: {_str(da['company_impact'])}"
+        )
+
+    # ── Cross-state intelligence ───────────────────────────────────────────
+    cross_state_lines = []
+    for cs in ctx["cross_state"]:
+        topic_name = cs["topic"]
+        watch = cs.get("watch_list", [])
+        movers = [m for m in cs.get("next_mover_predictions", []) if (m.get("urgency") or "").upper() == "HIGH"]
+        campaigns = cs.get("coordinated_campaigns", [])
+        summary_str = cs.get("summary", "")[:200]
+        cross_state_lines.append(
+            f"  {topic_name} (as of {cs['report_date']}): {len(watch)} states on watch, "
+            f"{len(movers)} HIGH urgency movers, {len(campaigns)} coordinated campaigns\n"
+            f"    Summary: {summary_str}"
+        )
+        for w in watch[:3]:
+            cross_state_lines.append(
+                f"    Watch: {w.get('state','?')} — {w.get('reason','')[:80]}"
+            )
+        for m in movers[:2]:
+            cross_state_lines.append(
+                f"    HIGH mover: {m.get('state','?')} — {m.get('prediction','')[:80]}"
+            )
+
+    # ── Regulations ────────────────────────────────────────────────────────
+    reg_lines = []
+    for reg in ctx["regulations"][:12]:
+        reg_lines.append(
+            f"  [{reg['topic']}] {reg['regulation_name'][:70]} | status: {reg['current_status']} | effective: {reg['effective_date'] or 'TBD'}"
+        )
+
+    # ── Advanced bills ─────────────────────────────────────────────────────
+    bill_lines = []
+    for bill in ctx["advanced_bills"][:15]:
+        bill_lines.append(
+            f"  [{bill['topic']}|{bill['state']}] {bill['bill_number']} — {bill['title'][:60]} | stage: {bill['stage']} | {bill['last_action_date']}"
+        )
+
+    # ── LegiScan counts ────────────────────────────────────────────────────
     total_bills = 0
     bills_by_topic = "none"
     changed_bills = 0
@@ -170,11 +430,9 @@ def _build_prompt(pipeline_output: dict, watchdog: Optional[dict],
         bills_by_topic = ", ".join(f"{t}: {len(v)}" for t, v in by_topic.items())
         changed_bills = len(legiscan_report.get("changed_bills", []))
 
-    # Changes
+    # ── Daily changes ──────────────────────────────────────────────────────
     if daily_changes:
-        change_lines = []
-        for c in daily_changes[:8]:
-            change_lines.append(f"  [{c['change_type']}] {c['description'][:80]}")
+        change_lines = [f"  [{c['change_type']}] {c['description'][:80]}" for c in daily_changes[:10]]
         changes_summary = "\n".join(change_lines) if change_lines else "None detected"
     else:
         changes_summary = "Change detection not yet populated (first run)"
@@ -185,16 +443,22 @@ def _build_prompt(pipeline_output: dict, watchdog: Optional[dict],
         high_count=high,
         medium_count=medium,
         low_count=low,
-        topics_covered=", ".join(t["topic"] for t in topics),
-        topic_summaries="\n".join(topic_lines) if topic_lines else "  No topics",
-        total_deadlines=total_deadlines,
+        topics_covered=", ".join(t["topic"] for t in topics) or ", ".join(sorted(ctx["topic_insights"].keys())),
+        exec_summary=exec_summary or "(not available — pipeline not run today)",
+        topic_summaries="\n".join(topic_sections) if topic_sections else "  No topic data available",
+        total_deadlines=total_deadlines or len(ctx["deadline_list"]),
         next_deadline=next_dl,
         overdue_count=overdue,
         critical_count=critical,
         urgent_count=urgent,
+        deadline_detail="\n".join(deadline_detail_lines) if deadline_detail_lines else "  No upcoming deadlines",
+        deadline_analysis="\n".join(deadline_analysis_lines) if deadline_analysis_lines else "  No deadline analyses yet",
+        advanced_bills="\n".join(bill_lines) if bill_lines else "  None",
         total_bills=total_bills,
         bills_by_topic=bills_by_topic,
         changed_bills=changed_bills,
+        cross_state_intel="\n".join(cross_state_lines) if cross_state_lines else "  No cross-state analysis yet",
+        regulations="\n".join(reg_lines) if reg_lines else "  No regulations tracked",
         changes_summary=changes_summary,
     )
 
