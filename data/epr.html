@@ -70,25 +70,69 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      color: rgba(255,255,255,0.55);
+      color: rgba(255,255,255,0.85);
       font-size: 12px;
       font-family: var(--mono);
       text-decoration: none;
-      border: 1px solid rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.30);
       border-radius: 4px;
       padding: 4px 10px;
-      transition: color 0.15s, border-color 0.15s;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
     }
-    .topbar-back:hover { color: #fff; border-color: rgba(255,255,255,0.3); text-decoration: none; }
-    .topbar-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.12); }
+    .topbar-back:hover { color: #fff; border-color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.08); text-decoration: none; }
+    .topbar-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.20); }
     .topbar-topic {
       font-weight: 700;
       font-size: 15px;
       letter-spacing: -0.01em;
       color: var(--topic-color);
     }
-    .topbar-label { color: rgba(255,255,255,0.45); font-size: 12px; font-family: var(--mono); }
-    .topbar-date { margin-left: auto; color: rgba(255,255,255,0.35); font-size: 11px; font-family: var(--mono); }
+    .topbar-label { color: rgba(255,255,255,0.70); font-size: 12px; font-family: var(--mono); }
+    .topbar-spacer { flex: 1; }
+    .topbar-date { color: rgba(255,255,255,0.55); font-size: 11px; font-family: var(--mono); white-space: nowrap; }
+    .topbar-search-wrap {
+      flex: 1 0 180px;
+      max-width: 280px;
+      min-width: 160px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .topbar-search-input {
+      flex: 1;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.20);
+      border-radius: 4px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-family: var(--sans);
+      color: #fff;
+      outline: none;
+      transition: all 0.12s;
+      min-width: 0;
+    }
+    .topbar-search-input::placeholder { color: rgba(255,255,255,0.38); }
+    .topbar-search-input:focus {
+      background: rgba(255,255,255,0.16);
+      border-color: var(--topic-color);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.08);
+    }
+    .topbar-search-count-tp {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(255,255,255,0.45);
+      white-space: nowrap;
+    }
+    .search-highlight {
+      background: #FFF176;
+      color: #111318;
+      border-radius: 2px;
+      padding: 0 1px;
+    }
+    .search-highlight.search-current {
+      background: #FF8F00;
+      color: #fff;
+    }
 
     /* ── LAYOUT: main content + fixed right article sidebar ─────── */
     .layout {
@@ -296,6 +340,48 @@
     .badge-high { background: var(--red-bg); color: var(--red); }
     .badge-medium { background: var(--amber-bg); color: var(--amber); }
     .badge-low { background: var(--green-bg); color: var(--green); }
+    .badge-indirect { background: #FFF8E1; color: #F57F17; border: 1px solid #FFE082; }
+    .badge-monitor  { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+
+    /* MONITOR articles: visually muted */
+    .article-item[data-relevance="MONITOR"] { opacity: 0.45; }
+    .article-item[data-relevance="MONITOR"]:hover { opacity: 0.75; transition: opacity 0.15s; }
+    .article-item[data-relevance="MONITOR"] .badge-high,
+    .article-item[data-relevance="MONITOR"] .badge-medium,
+    .article-item[data-relevance="MONITOR"] .badge-low { display: none; }
+    /* INDIRECT articles: urgency de-emphasized */
+    .article-item[data-relevance="INDIRECT"] .badge-high,
+    .article-item[data-relevance="INDIRECT"] .badge-medium,
+    .article-item[data-relevance="INDIRECT"] .badge-low { opacity: 0.5; font-size: 8px; }
+    .relevance-reason { font-size: 11px; color: #F57F17; font-style: italic; margin-top: 3px; }
+    .article-item.hidden-by-relevance { display: none !important; }
+
+    /* Compact badge legend for sidebar header */
+    .sidebar-legend {
+      background: var(--bg);
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      font-size: 11px;
+    }
+    .sidebar-legend-title {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+    }
+    .sidebar-legend-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 3px;
+      color: var(--text-secondary);
+    }
+    .sidebar-legend-sep { border-top: 1px solid var(--border-light); margin: 5px 0; }
 
     /* ── MAIN CONTENT WIDGETS ───────────────────────────────────── */
 
@@ -383,7 +469,7 @@
 
     /* Insight blocks */
     .insight-block {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--text-secondary);
       line-height: 1.6;
     }
@@ -402,7 +488,7 @@
       margin-top: 6px;
     }
     .insight-bullets li {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--text-secondary);
       padding: 3px 0 3px 14px;
       position: relative;
@@ -564,7 +650,7 @@
       padding-top: 1px;
     }
     .bill-body { flex: 1; min-width: 0; }
-    .bill-title-text { font-size: 13px; font-weight: 500; color: var(--text-primary); line-height: 1.35; margin-bottom: 2px; }
+    .bill-title-text { font-size: 14px; font-weight: 500; color: var(--text-primary); line-height: 1.35; margin-bottom: 2px; }
     .bill-action-text { font-size: 12px; color: var(--text-muted); }
     .bill-stage-tag {
       display: inline-block;
@@ -665,8 +751,8 @@
       font-family: var(--mono); font-size: 10px; font-weight: 700;
       border-radius: 3px; flex-shrink: 0; border: 1px solid var(--red-border);
     }
-    .csi-watch-text { font-size: 13px; color: var(--text-secondary); line-height: 1.45; flex: 1; }
-    .csi-watch-action { font-size: 12px; color: var(--blue); margin-top: 2px; font-style: italic; }
+    .csi-watch-text { font-size: 14px; color: var(--text-secondary); line-height: 1.45; flex: 1; }
+    .csi-watch-action { font-size: 13px; color: var(--blue); margin-top: 2px; font-style: italic; }
     .csi-mover-row { display: flex; align-items: flex-start; gap: 7px;
       padding: 7px 12px; border-bottom: 1px solid var(--border-light); }
     .csi-mover-row:last-child { border-bottom: none; }
@@ -678,7 +764,7 @@
     .csi-urgency.low { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
     .csi-mover-state { font-family: var(--mono); font-size: 11px; font-weight: 700;
       color: var(--text-primary); min-width: 24px; flex-shrink: 0; }
-    .csi-mover-text { font-size: 13px; color: var(--text-secondary); line-height: 1.4; flex: 1; }
+    .csi-mover-text { font-size: 14px; color: var(--text-secondary); line-height: 1.4; flex: 1; }
     .csi-campaign-card { background: var(--surface); border: 1px solid var(--border);
       border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; }
     .csi-campaign-header { display: flex; align-items: center; gap: 8px; padding: 8px 12px;
@@ -689,9 +775,9 @@
     .csi-chip { padding: 2px 6px; background: var(--blue-bg); color: var(--blue);
       font-family: var(--mono); font-size: 10px; font-weight: 700;
       border: 1px solid rgba(21,101,192,0.2); border-radius: 3px; }
-    .csi-campaign-body-text { padding: 10px 12px; font-size: 13px; color: var(--text-secondary);
+    .csi-campaign-body-text { padding: 10px 12px; font-size: 14px; color: var(--text-secondary);
       line-height: 1.55; }
-    .csi-campaign-relevance { padding: 8px 12px; font-size: 13px; color: var(--text-secondary);
+    .csi-campaign-relevance { padding: 8px 12px; font-size: 14px; color: var(--text-secondary);
       background: var(--amber-bg); border-top: 1px solid var(--amber-border); line-height: 1.5; }
     .csi-footer { display: flex; align-items: center; justify-content: space-between;
       margin-top: 8px; font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
@@ -856,6 +942,14 @@
   <div class="topbar-sep"></div>
   <span class="topbar-topic">EPR</span>
   <span class="topbar-label">Extended Producer Responsibility</span>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-search-wrap">
+    <input type="text" id="topbar-search" class="topbar-search-input"
+           placeholder="Search page&#8230; ( / )" oninput="topbarSearch(this.value)"
+           autocomplete="off" spellcheck="false">
+    <span class="topbar-search-count-tp" id="topbar-search-count"></span>
+  </div>
+  <div class="topbar-sep"></div>
   <span class="topbar-date">25 Mar 2026</span>
 </div>
 
@@ -897,11 +991,11 @@
 
     <!-- KPI Row --><div class="kpi-row">
       <div class="kpi-card">
-        <div class="kpi-value">14</div>
+        <div class="kpi-value">15</div>
         <div class="kpi-label">Articles / 6 mo</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-value">0</div>
+        <div class="kpi-value">1</div>
         <div class="kpi-label">New This Week</div>
       </div>
       <div class="kpi-card">
@@ -1010,12 +1104,12 @@
               <stop offset="0%" stop-color="#27AE60" stop-opacity="0.2"/>
               <stop offset="100%" stop-color="#27AE60" stop-opacity="0.02"/>
             </linearGradient>
-          </defs><polygon points="0.0,64 0.0,60.0 17.9,60.0 17.9,60.0 35.9,60.0 35.9,60.0 53.8,60.0 53.8,60.0 71.7,60.0 71.7,60.0 89.7,60.0 89.7,60.0 107.6,60.0 107.6,60.0 125.5,60.0 125.5,60.0 143.4,60.0 143.4,60.0 161.4,60.0 161.4,60.0 179.3,60.0 179.3,30.0 197.2,30.0 197.2,60.0 215.2,60.0 215.2,60.0 233.1,60.0 233.1,0.0 251.0,0.0 251.0,0.0 269.0,0.0 269.0,60.0 286.9,60.0 286.9,30.0 304.8,30.0 304.8,30.0 322.8,30.0 322.8,60.0 340.7,60.0 340.7,60.0 358.6,60.0 358.6,30.0 376.6,30.0 376.6,60.0 394.5,60.0 394.5,60.0 412.4,60.0 412.4,0.0 430.3,0.0 430.3,60.0 448.3,60.0 448.3,60.0 466.2,60.0 466.2,60.0 484.1,60.0 484.1,0.0 502.1,0.0 502.1,30.0 520.0,30.0 520.0,30.0 520.0,64" fill="url(#chart-fill)"/>
-          <polyline points="0.0,60.0 17.9,60.0 17.9,60.0 35.9,60.0 35.9,60.0 53.8,60.0 53.8,60.0 71.7,60.0 71.7,60.0 89.7,60.0 89.7,60.0 107.6,60.0 107.6,60.0 125.5,60.0 125.5,60.0 143.4,60.0 143.4,60.0 161.4,60.0 161.4,60.0 179.3,60.0 179.3,30.0 197.2,30.0 197.2,60.0 215.2,60.0 215.2,60.0 233.1,60.0 233.1,0.0 251.0,0.0 251.0,0.0 269.0,0.0 269.0,60.0 286.9,60.0 286.9,30.0 304.8,30.0 304.8,30.0 322.8,30.0 322.8,60.0 340.7,60.0 340.7,60.0 358.6,60.0 358.6,30.0 376.6,30.0 376.6,60.0 394.5,60.0 394.5,60.0 412.4,60.0 412.4,0.0 430.3,0.0 430.3,60.0 448.3,60.0 448.3,60.0 466.2,60.0 466.2,60.0 484.1,60.0 484.1,0.0 502.1,0.0 502.1,30.0 520.0,30.0 520.0,30.0 " fill="none" stroke="#27AE60" stroke-width="2" stroke-linejoin="round"/>
+          </defs><polygon points="0.0,64 0.0,60.0 17.9,60.0 17.9,60.0 35.9,60.0 35.9,60.0 53.8,60.0 53.8,60.0 71.7,60.0 71.7,60.0 89.7,60.0 89.7,60.0 107.6,60.0 107.6,60.0 125.5,60.0 125.5,60.0 143.4,60.0 143.4,60.0 161.4,60.0 161.4,60.0 179.3,60.0 179.3,30.0 197.2,30.0 197.2,60.0 215.2,60.0 215.2,60.0 233.1,60.0 233.1,0.0 251.0,0.0 251.0,0.0 269.0,0.0 269.0,60.0 286.9,60.0 286.9,30.0 304.8,30.0 304.8,30.0 322.8,30.0 322.8,60.0 340.7,60.0 340.7,60.0 358.6,60.0 358.6,30.0 376.6,30.0 376.6,60.0 394.5,60.0 394.5,60.0 412.4,60.0 412.4,0.0 430.3,0.0 430.3,60.0 448.3,60.0 448.3,60.0 466.2,60.0 466.2,60.0 484.1,60.0 484.1,0.0 502.1,0.0 502.1,30.0 520.0,30.0 520.0,0.0 520.0,64" fill="url(#chart-fill)"/>
+          <polyline points="0.0,60.0 17.9,60.0 17.9,60.0 35.9,60.0 35.9,60.0 53.8,60.0 53.8,60.0 71.7,60.0 71.7,60.0 89.7,60.0 89.7,60.0 107.6,60.0 107.6,60.0 125.5,60.0 125.5,60.0 143.4,60.0 143.4,60.0 161.4,60.0 161.4,60.0 179.3,60.0 179.3,30.0 197.2,30.0 197.2,60.0 215.2,60.0 215.2,60.0 233.1,60.0 233.1,0.0 251.0,0.0 251.0,0.0 269.0,0.0 269.0,60.0 286.9,60.0 286.9,30.0 304.8,30.0 304.8,30.0 322.8,30.0 322.8,60.0 340.7,60.0 340.7,60.0 358.6,60.0 358.6,30.0 376.6,30.0 376.6,60.0 394.5,60.0 394.5,60.0 412.4,60.0 412.4,0.0 430.3,0.0 430.3,60.0 448.3,60.0 448.3,60.0 466.2,60.0 466.2,60.0 484.1,60.0 484.1,0.0 502.1,0.0 502.1,30.0 520.0,30.0 520.0,0.0 " fill="none" stroke="#27AE60" stroke-width="2" stroke-linejoin="round"/>
         </svg>
         <div class="trend-chart-axis">
           <span>30 days ago</span>
-          <span style="font-weight:700;color:var(--text-primary);">14 articles in 30 days</span>
+          <span style="font-weight:700;color:var(--text-primary);">15 articles in 30 days</span>
           <span>Today</span>
         </div>
       </div>
@@ -1036,15 +1130,12 @@
       <div class="impact-grid">
         
         <span class="impact-label">Products</span>
-        <span class="impact-text">Null — EPR packaging requirements do not apply to PFAS-containing product composition, but all packaged shipments into Oregon, California, Maine, and Colorado are subject to producer registration and fee obligations.</span>
+        <span class="impact-text">As a producer shipping packaged products into Oregon, the company will be required to register with an approved PRO and pay associated fees once Oregon&#39;s program activates, with packaging potentially needing redesign to meet recyclability and recycled content standards.</span>
         
-        
-        <span class="impact-label">Supply Chain</span>
-        <span class="impact-text">Null — EPR packaging obligations fall on the company as a producer/shipper, not on component suppliers.</span>
         
         
         <span class="impact-label">Actions</span>
-        <ul class="impact-list"><li>Audit all packaging used for products shipped into Oregon and confirm whether the company meets the definition of a &#39;covered producer&#39; under ORS 459A; if so, initiate PRO registration without delay.</li><li>Cross-reference Oregon packaging obligations against current CA SB 54, ME, and CO EPR registrations to identify any gaps in multi-state PRO enrollment and fee payment status.</li></ul>
+        <ul class="impact-list"><li>Enroll a compliance team representative in the PSI Oregon EPR webinar series to capture registration timelines, PRO options, fee structures, and packaging standards as Oregon rulemaking progresses.</li><li>Conduct a packaging audit across all product lines shipped to Oregon, CA, ME, and CO to identify non-conforming materials and prioritize redesign candidates ahead of recycled content and recyclability deadlines.</li></ul>
         
         
       </div>
@@ -1060,7 +1151,7 @@
       <div class="section-title-line"></div>
     </div>
     <div class="panel">
-      <div class="strategy-text">No new EPR developments were published this cycle, but the Oregon Packaging EPR program remains an active compliance obligation requiring near-term action. This week, the compliance team should confirm Oregon DEQ producer registration status and verify that all covered packaging categories shipped into OR, CA, ME, and CO are captured in the EPR compliance inventory. Prepare a packaging data summary (material type, weight, recyclability) to support PRO reporting and any upcoming recycled content assessments.</div>
+      <div class="strategy-text">With no new EPR articles this cycle, the priority remains building readiness ahead of Oregon and CA SB 54 program activation. This week, the compliance team should confirm participation in the PSI Oregon EPR webinar series and assign ownership for tracking ODEQ rulemaking milestones. Simultaneously, the packaging audit for multi-state EPR exposure (OR, CA, ME, CO) should be initiated or accelerated so that any required redesigns or PRO registrations are not left to the last quarter before deadlines take effect.</div>
     </div>
     
 
@@ -1967,7 +2058,17 @@
           <option value="90">90 days</option>
         </select>
       </div>
-      <div class="filter-count" id="tp-count">14 articles</div>
+      <div class="filter-count" id="tp-count">15 articles</div>
+      <!-- Compact badge legend -->
+      <div class="sidebar-legend">
+        <div class="sidebar-legend-title">&#x25A6; Badge Guide</div>
+        <div class="sidebar-legend-row"><span class="badge badge-new" style="font-size:9px;padding:1px 4px;">New</span> First seen this week</div>
+        <div class="sidebar-legend-row"><span class="badge badge-high" style="font-size:9px;">HIGH</span> &lt;90 days · <span class="badge badge-medium" style="font-size:9px;">MED</span> 90–365d · <span class="badge badge-low" style="font-size:9px;">LOW</span> long-range</div>
+        <div class="sidebar-legend-sep"></div>
+        <div class="sidebar-legend-row"><span class="badge badge-indirect" style="font-size:9px;">Indirect</span> Signals trends for us (hover for why)</div>
+        <div class="sidebar-legend-row"><span class="badge badge-monitor" style="font-size:9px;">Monitor</span> General news — no direct impact</div>
+        <div class="sidebar-legend-row" style="opacity:0.5;">Faded row = older than 30 days</div>
+      </div>
     </div>
 
     <div class="article-list-scroll" id="tp-article-list">
@@ -1977,8 +2078,11 @@
            data-headline="oregon packaging epr for producers"
            data-snippet="psi: oregon packaging epr for producers"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://productstewardship.us/webinar/webinar-series-preparing-producers-for-oregon-packaging-epr/" target="_blank">Oregon Packaging EPR for Producers</a>
@@ -1986,6 +2090,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Product Stewardship Institute</span>
           
@@ -1997,12 +2102,43 @@
         <div class="article-snippet">PSI: Oregon Packaging EPR for Producers</div>
         
       </div>
+      <div class="article-item is-new"
+           data-headline="standard steel welded wire mesh from mexico: final affirmative determination of circumvention"
+           data-snippet="the u.s. department of commerce (commerce) determines that imports of certain low-carbon steel (lcs) wire that are produced in mexico and assembled or completed into standard steel welded wire mesh (welded wire mesh) in the united states are circumventing the antidumping duty (ad) and countervailing duty (cvd) orders on welded wire mesh from mexico."
+           data-urgency="low"
+           data-date="2026-03-25"
+           data-relevance="None">
+        <div class="article-head">
+          <span class="badge badge-new">New</span>
+          
+          
+          <span class="article-headline">
+            <a href="https://www.federalregister.gov/documents/2026/03/25/2026-05809/standard-steel-welded-wire-mesh-from-mexico-final-affirmative-determination-of-circumvention" target="_blank">Standard Steel Welded Wire Mesh From Mexico: Final Affirmative Determination of Circumvention</a>
+          </span>
+          <span class="badge badge-low">LOW</span>
+          
+        </div>
+        
+        <div class="article-meta">
+          <span>Federal Register</span>
+          
+          <span>·</span>
+          <span>2026-03-25</span>
+          
+        </div>
+        
+        <div class="article-snippet">The U.S. Department of Commerce (Commerce) determines that imports of certain low-carbon steel (LCS) wire that are produced in Mexico and assembled or completed into standard steel welded wire mesh (welded wire mesh) in the United States are circumventing the antidumping duty (AD) and countervailing duty (CVD) orders on welded wire mesh from Mexico.</div>
+        
+      </div>
       <div class="article-item"
            data-headline="endangered and threatened wildlife and plants; designation of critical habitat for 22 species in the commonwealth of the northern mariana islands and the territory of guam"
            data-snippet="we, the u.s. fish and wildlife service (service), propose to designate critical habitat for 9 animal species and 13 plant species from the mariana islands (the u.s. territory of guam and the commonwealth of northern mariana islands) under the endangered species act (act). in total across both the territory and commonwealth, approximately 59,886 acres (24,235 hectares) on the islands of aguiguan, alamagan, asunci[oacute]n, guam (including the island of cocos), pagan, rota, saipan, sarigan, and ti"
            data-urgency="low"
-           data-date="2026-03-24">
+           data-date="2026-03-24"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/03/24/2026-05678/endangered-and-threatened-wildlife-and-plants-designation-of-critical-habitat-for-22-species-in-the" target="_blank">Endangered and Threatened Wildlife and Plants; Designation of Critical Habitat for 22 Species in the Commonwealth of the Northern Mariana Islands and the Territory of Guam</a>
@@ -2010,6 +2146,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -2025,8 +2162,11 @@
            data-headline="national organic program: national list of allowed and prohibited substances per october 2021, october 2022, and october 2024 recommendations (crops and livestock)"
            data-snippet="this proposed rule would amend the u.s. department of agriculture&#39;s (usda) organic regulations related to organic crop and livestock production. the proposed rule would provide additional tools to organic producers, allowing carbon dioxide in organic crop production and meloxicam as a pain treatment in organic livestock production. additionally, this rulemaking would remove overly burdensome restrictions for methionine, an amino acid, in organic poultry feed and would affirm that sodium nitrate "
            data-urgency="low"
-           data-date="2026-03-23">
+           data-date="2026-03-23"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/03/23/2026-05598/national-organic-program-national-list-of-allowed-and-prohibited-substances-per-october-2021-october" target="_blank">National Organic Program: National List of Allowed and Prohibited Substances per October 2021, October 2022, and October 2024 Recommendations (Crops and Livestock)</a>
@@ -2034,6 +2174,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -2049,8 +2190,11 @@
            data-headline="agency information collection activities: proposed request and comment request"
            data-snippet=""
            data-urgency="low"
-           data-date="2026-03-23">
+           data-date="2026-03-23"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/03/23/2026-05600/agency-information-collection-activities-proposed-request-and-comment-request" target="_blank">Agency Information Collection Activities: Proposed Request and Comment Request</a>
@@ -2058,6 +2202,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -2071,8 +2216,11 @@
            data-headline="certain uncoated paper from portugal: final results of antidumping duty administrative review; 2023-2024"
            data-snippet="the u.s. department of commerce (commerce) determines that the navigator company, s.a. (navigator), the sole producer or exporter subject to this administrative review, made sales of certain uncoated paper (uncoated paper) from portugal in the united states at prices below normal value (nv) during the period of review. the period of review (por) is march 1, 2023, through february 29, 2024."
            data-urgency="low"
-           data-date="2026-03-19">
+           data-date="2026-03-19"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/03/19/2026-05441/certain-uncoated-paper-from-portugal-final-results-of-antidumping-duty-administrative-review" target="_blank">Certain Uncoated Paper From Portugal: Final Results of Antidumping Duty Administrative Review; 2023-2024</a>
@@ -2080,6 +2228,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -2095,8 +2244,11 @@
            data-headline="certain new pneumatic off-the-road tires from india: final results of countervailing duty administrative review; 2023"
            data-snippet="the u.s. department of commerce (commerce) determines that countervailable subsidies were provided to producers and/or exporters of certain new pneumatic off-the-road tires (otr tires) from india, during the period of review (por) january 1, 2023, through december 31, 2023."
            data-urgency="low"
-           data-date="2026-03-19">
+           data-date="2026-03-19"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/03/19/2026-05440/certain-new-pneumatic-off-the-road-tires-from-india-final-results-of-countervailing-duty" target="_blank">Certain New Pneumatic Off-the-Road Tires From India: Final Results of Countervailing Duty Administrative Review; 2023</a>
@@ -2104,6 +2256,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -2119,8 +2272,11 @@
            data-headline="oil country tubular goods from socialist republic of vietnam: preliminary results and rescission, in part, of antidumping duty administrative review; 2023-2024"
            data-snippet="the u.s. department of commerce (commerce) preliminarily finds that producers and/or exporters subject to this administrative review made sales of subject merchandise at less than normal value (nv) during the period of review (por) september 1, 2023, through august 31, 2024. commerce is also rescinding this review, in part, with respect to two companies. interested parties are invited to comment on these preliminary results."
            data-urgency="low"
-           data-date="2026-03-16">
+           data-date="2026-03-16"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/03/16/2026-04995/oil-country-tubular-goods-from-socialist-republic-of-vietnam-preliminary-results-and-rescission-in" target="_blank">Oil Country Tubular Goods From Socialist Republic of Vietnam: Preliminary Results and Rescission, in Part, of Antidumping Duty Administrative Review; 2023-2024</a>
@@ -2128,6 +2284,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -2143,8 +2300,11 @@
            data-headline="wooden cabinets and vanities and components thereof from the people&#39;s republic of china: final results of countervailing duty administrative review; 2023"
            data-snippet="the u.s. department of commerce (commerce) determines that certain producers and exporters of wooden cabinets and vanities and components thereof (wooden cabinets) from the people&#39;s republic of china (china) received countervailable subsidies during the period of review (por) january 1, 2023, through december 31, 2023."
            data-urgency="low"
-           data-date="2026-03-13">
+           data-date="2026-03-13"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/03/13/2026-04943/wooden-cabinets-and-vanities-and-components-thereof-from-the-peoples-republic-of-china-final-results" target="_blank">Wooden Cabinets and Vanities and Components Thereof From the People&#39;s Republic of China: Final Results of Countervailing Duty Administrative Review; 2023</a>
@@ -2152,6 +2312,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -2167,8 +2328,11 @@
            data-headline="certain corrosion inhibitors from the people&#39;s republic of china: final results of countervailing duty administrative review; 2023"
            data-snippet="the u.s. department of commerce (commerce) determines that certain producers/exporters of certain corrosion inhibitors (corrosion inhibitors) from the people&#39;s republic of china (china) received countervailable subsidies during the period of review (por) january 1, 2023, through december 31, 2023."
            data-urgency="low"
-           data-date="2026-03-12">
+           data-date="2026-03-12"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/03/12/2026-04877/certain-corrosion-inhibitors-from-the-peoples-republic-of-china-final-results-of-countervailing-duty" target="_blank">Certain Corrosion Inhibitors From the People&#39;s Republic of China: Final Results of Countervailing Duty Administrative Review; 2023</a>
@@ -2176,6 +2340,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -2191,8 +2356,11 @@
            data-headline="diffusion-annealed, nickel-plated flat-rolled steel products from japan: final results of antidumping duty administrative review; 2023-2024"
            data-snippet="the u.s. department of commerce (commerce) determines that toyo kohan co., ltd. (toyo kohan), the sole producer/exporter subject to this administrative review, did not make sales of subject merchandise at less than normal value during the period of review (por) may 1, 2023, through april 30, 2024."
            data-urgency="low"
-           data-date="2026-03-10">
+           data-date="2026-03-10"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/03/10/2026-04611/diffusion-annealed-nickel-plated-flat-rolled-steel-products-from-japan-final-results-of-antidumping" target="_blank">Diffusion-Annealed, Nickel-Plated Flat-Rolled Steel Products From Japan: Final Results of Antidumping Duty Administrative Review; 2023-2024</a>
@@ -2200,6 +2368,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -2215,8 +2384,11 @@
            data-headline="common alloy aluminum sheet from india: final results of countervailing duty administrative review; 2023"
            data-snippet="the u.s. department of commerce (commerce) determines that manaksia aluminium company limited (malco), a producer/exporter of common alloy aluminum sheet from india, received countervailable subsidies during the period of review (por), january 1, 2023, through december 31, 2023."
            data-urgency="low"
-           data-date="2026-03-10">
+           data-date="2026-03-10"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/03/10/2026-04610/common-alloy-aluminum-sheet-from-india-final-results-of-countervailing-duty-administrative-review" target="_blank">Common Alloy Aluminum Sheet From India: Final Results of Countervailing Duty Administrative Review; 2023</a>
@@ -2224,6 +2396,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -2239,8 +2412,11 @@
            data-headline="christmas tree promotion, research, and information order"
            data-snippet="this final rule implements changes to the christmas tree promotion, research, and information order (order). these changes include amending the board&#39;s name from &#34;christmas tree promotion board&#34; to &#34;real christmas tree board&#34;, increasing the administrative expenses cap from 10 to 15 percent, allowing importers to request refunds of assessments paid on trees that were shipped to the united states but not sold, and increasing the mandatory period to maintain books and records relating to the order"
            data-urgency="low"
-           data-date="2026-03-09">
+           data-date="2026-03-09"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/03/09/2026-04586/christmas-tree-promotion-research-and-information-order" target="_blank">Christmas Tree Promotion, Research, and Information Order</a>
@@ -2248,6 +2424,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -2263,8 +2440,11 @@
            data-headline="almonds grown in california; extension of inedible disposition obligation deadline"
            data-snippet="this proposed rule would implement a recommendation from the almond board of california (board) to extend the inedible disposition obligation deadline prescribed under the federal marketing order for almonds grown in california (order) from september 30 to november 30 indefinitely."
            data-urgency="low"
-           data-date="2026-03-09">
+           data-date="2026-03-09"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/03/09/2026-04573/almonds-grown-in-california-extension-of-inedible-disposition-obligation-deadline" target="_blank">Almonds Grown in California; Extension of Inedible Disposition Obligation Deadline</a>
@@ -2272,6 +2452,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -2287,8 +2468,11 @@
            data-headline="certain cold-rolled steel flat products from the republic of korea: preliminary results and rescission, in part, of antidumping administrative review; 2023-2024"
            data-snippet="the u.s. department of commerce (commerce) preliminarily determines that certain cold-rolled steel flat products (cold-rolled steel) from the republic of korea (korea) were not made at less than normal value (nv) during the period of review (por) september 1, 2023, through august 31, 2024. in addition, commerce is rescinding the review, in part, with respect to 35 companies. interested parties are invited to comment on these preliminary results."
            data-urgency="low"
-           data-date="2026-03-06">
+           data-date="2026-03-06"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/03/06/2026-04405/certain-cold-rolled-steel-flat-products-from-the-republic-of-korea-preliminary-results-and" target="_blank">Certain Cold-Rolled Steel Flat Products From the Republic of Korea: Preliminary Results and Rescission, in Part, of Antidumping Administrative Review; 2023-2024</a>
@@ -2296,6 +2480,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -2391,6 +2576,113 @@
     document.getElementById('tp-count').textContent = visibleCount + ' articles';
     document.getElementById('tp-no-results').classList.toggle('visible', visibleCount === 0 && items.length > 0);
   }
+
+  /* ── Topbar search: drives sidebar filter + main content highlight ── */
+  var _currentHighlightIdx = -1;
+  var _highlights = [];
+
+  function clearHighlights() {
+    var marks = document.querySelectorAll('.main .search-highlight');
+    marks.forEach(function(m) {
+      m.parentNode.replaceChild(document.createTextNode(m.textContent), m);
+    });
+    var main = document.querySelector('.main');
+    if (main) main.normalize();
+    _highlights = [];
+    _currentHighlightIdx = -1;
+  }
+
+  function highlightMainContent(query) {
+    clearHighlights();
+    if (!query || query.length < 2) return 0;
+
+    var container = document.querySelector('.main');
+    if (!container) return 0;
+
+    var lq = query.toLowerCase();
+    var walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
+      acceptNode: function(n) {
+        var tag = n.parentNode.nodeName.toLowerCase();
+        if (tag === 'script' || tag === 'style' || tag === 'mark') return NodeFilter.FILTER_REJECT;
+        return n.textContent.toLowerCase().includes(lq) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+      }
+    });
+
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+
+    nodes.forEach(function(node) {
+      var text = node.textContent;
+      var lower = text.toLowerCase();
+      var frag = document.createDocumentFragment();
+      var last = 0, idx;
+      while ((idx = lower.indexOf(lq, last)) !== -1) {
+        if (idx > last) frag.appendChild(document.createTextNode(text.slice(last, idx)));
+        var mark = document.createElement('mark');
+        mark.className = 'search-highlight';
+        mark.textContent = text.slice(idx, idx + query.length);
+        frag.appendChild(mark);
+        _highlights.push(mark);
+        last = idx + query.length;
+      }
+      if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    });
+
+    return _highlights.length;
+  }
+
+  function jumpToHighlight(idx) {
+    if (!_highlights.length) return;
+    _highlights.forEach(function(m) { m.classList.remove('search-current'); });
+    _currentHighlightIdx = ((idx % _highlights.length) + _highlights.length) % _highlights.length;
+    var target = _highlights[_currentHighlightIdx];
+    target.classList.add('search-current');
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function topbarSearch(query) {
+    query = query.trim();
+    // Mirror to sidebar
+    var sidebarInput = document.getElementById('tp-search');
+    if (sidebarInput && sidebarInput.value !== query) {
+      sidebarInput.value = query;
+      filterArticles();
+    }
+    var countEl = document.getElementById('topbar-search-count');
+    if (!query) {
+      clearHighlights();
+      countEl.textContent = '';
+      return;
+    }
+    var n = highlightMainContent(query);
+    if (n > 0) {
+      jumpToHighlight(0);
+      countEl.textContent = n + ' match' + (n === 1 ? '' : 'es');
+    } else {
+      countEl.textContent = 'no matches';
+    }
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      document.getElementById('topbar-search').focus();
+    }
+    if (e.key === 'Escape') {
+      var inp = document.getElementById('topbar-search');
+      inp.value = '';
+      topbarSearch('');
+      inp.blur();
+    }
+    // Enter / Shift+Enter cycles through matches
+    if (e.key === 'Enter' && document.activeElement === document.getElementById('topbar-search')) {
+      e.preventDefault();
+      if (_highlights.length) {
+        jumpToHighlight(e.shiftKey ? _currentHighlightIdx - 1 : _currentHighlightIdx + 1);
+      }
+    }
+  });
 </script>
 
 <script>

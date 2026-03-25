@@ -70,25 +70,69 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      color: rgba(255,255,255,0.55);
+      color: rgba(255,255,255,0.85);
       font-size: 12px;
       font-family: var(--mono);
       text-decoration: none;
-      border: 1px solid rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.30);
       border-radius: 4px;
       padding: 4px 10px;
-      transition: color 0.15s, border-color 0.15s;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
     }
-    .topbar-back:hover { color: #fff; border-color: rgba(255,255,255,0.3); text-decoration: none; }
-    .topbar-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.12); }
+    .topbar-back:hover { color: #fff; border-color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.08); text-decoration: none; }
+    .topbar-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.20); }
     .topbar-topic {
       font-weight: 700;
       font-size: 15px;
       letter-spacing: -0.01em;
       color: var(--topic-color);
     }
-    .topbar-label { color: rgba(255,255,255,0.45); font-size: 12px; font-family: var(--mono); }
-    .topbar-date { margin-left: auto; color: rgba(255,255,255,0.35); font-size: 11px; font-family: var(--mono); }
+    .topbar-label { color: rgba(255,255,255,0.70); font-size: 12px; font-family: var(--mono); }
+    .topbar-spacer { flex: 1; }
+    .topbar-date { color: rgba(255,255,255,0.55); font-size: 11px; font-family: var(--mono); white-space: nowrap; }
+    .topbar-search-wrap {
+      flex: 1 0 180px;
+      max-width: 280px;
+      min-width: 160px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .topbar-search-input {
+      flex: 1;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.20);
+      border-radius: 4px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-family: var(--sans);
+      color: #fff;
+      outline: none;
+      transition: all 0.12s;
+      min-width: 0;
+    }
+    .topbar-search-input::placeholder { color: rgba(255,255,255,0.38); }
+    .topbar-search-input:focus {
+      background: rgba(255,255,255,0.16);
+      border-color: var(--topic-color);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.08);
+    }
+    .topbar-search-count-tp {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(255,255,255,0.45);
+      white-space: nowrap;
+    }
+    .search-highlight {
+      background: #FFF176;
+      color: #111318;
+      border-radius: 2px;
+      padding: 0 1px;
+    }
+    .search-highlight.search-current {
+      background: #FF8F00;
+      color: #fff;
+    }
 
     /* ── LAYOUT: main content + fixed right article sidebar ─────── */
     .layout {
@@ -296,6 +340,48 @@
     .badge-high { background: var(--red-bg); color: var(--red); }
     .badge-medium { background: var(--amber-bg); color: var(--amber); }
     .badge-low { background: var(--green-bg); color: var(--green); }
+    .badge-indirect { background: #FFF8E1; color: #F57F17; border: 1px solid #FFE082; }
+    .badge-monitor  { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+
+    /* MONITOR articles: visually muted */
+    .article-item[data-relevance="MONITOR"] { opacity: 0.45; }
+    .article-item[data-relevance="MONITOR"]:hover { opacity: 0.75; transition: opacity 0.15s; }
+    .article-item[data-relevance="MONITOR"] .badge-high,
+    .article-item[data-relevance="MONITOR"] .badge-medium,
+    .article-item[data-relevance="MONITOR"] .badge-low { display: none; }
+    /* INDIRECT articles: urgency de-emphasized */
+    .article-item[data-relevance="INDIRECT"] .badge-high,
+    .article-item[data-relevance="INDIRECT"] .badge-medium,
+    .article-item[data-relevance="INDIRECT"] .badge-low { opacity: 0.5; font-size: 8px; }
+    .relevance-reason { font-size: 11px; color: #F57F17; font-style: italic; margin-top: 3px; }
+    .article-item.hidden-by-relevance { display: none !important; }
+
+    /* Compact badge legend for sidebar header */
+    .sidebar-legend {
+      background: var(--bg);
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      font-size: 11px;
+    }
+    .sidebar-legend-title {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+    }
+    .sidebar-legend-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 3px;
+      color: var(--text-secondary);
+    }
+    .sidebar-legend-sep { border-top: 1px solid var(--border-light); margin: 5px 0; }
 
     /* ── MAIN CONTENT WIDGETS ───────────────────────────────────── */
 
@@ -383,7 +469,7 @@
 
     /* Insight blocks */
     .insight-block {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--text-secondary);
       line-height: 1.6;
     }
@@ -402,7 +488,7 @@
       margin-top: 6px;
     }
     .insight-bullets li {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--text-secondary);
       padding: 3px 0 3px 14px;
       position: relative;
@@ -564,7 +650,7 @@
       padding-top: 1px;
     }
     .bill-body { flex: 1; min-width: 0; }
-    .bill-title-text { font-size: 13px; font-weight: 500; color: var(--text-primary); line-height: 1.35; margin-bottom: 2px; }
+    .bill-title-text { font-size: 14px; font-weight: 500; color: var(--text-primary); line-height: 1.35; margin-bottom: 2px; }
     .bill-action-text { font-size: 12px; color: var(--text-muted); }
     .bill-stage-tag {
       display: inline-block;
@@ -665,8 +751,8 @@
       font-family: var(--mono); font-size: 10px; font-weight: 700;
       border-radius: 3px; flex-shrink: 0; border: 1px solid var(--red-border);
     }
-    .csi-watch-text { font-size: 13px; color: var(--text-secondary); line-height: 1.45; flex: 1; }
-    .csi-watch-action { font-size: 12px; color: var(--blue); margin-top: 2px; font-style: italic; }
+    .csi-watch-text { font-size: 14px; color: var(--text-secondary); line-height: 1.45; flex: 1; }
+    .csi-watch-action { font-size: 13px; color: var(--blue); margin-top: 2px; font-style: italic; }
     .csi-mover-row { display: flex; align-items: flex-start; gap: 7px;
       padding: 7px 12px; border-bottom: 1px solid var(--border-light); }
     .csi-mover-row:last-child { border-bottom: none; }
@@ -678,7 +764,7 @@
     .csi-urgency.low { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
     .csi-mover-state { font-family: var(--mono); font-size: 11px; font-weight: 700;
       color: var(--text-primary); min-width: 24px; flex-shrink: 0; }
-    .csi-mover-text { font-size: 13px; color: var(--text-secondary); line-height: 1.4; flex: 1; }
+    .csi-mover-text { font-size: 14px; color: var(--text-secondary); line-height: 1.4; flex: 1; }
     .csi-campaign-card { background: var(--surface); border: 1px solid var(--border);
       border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; }
     .csi-campaign-header { display: flex; align-items: center; gap: 8px; padding: 8px 12px;
@@ -689,9 +775,9 @@
     .csi-chip { padding: 2px 6px; background: var(--blue-bg); color: var(--blue);
       font-family: var(--mono); font-size: 10px; font-weight: 700;
       border: 1px solid rgba(21,101,192,0.2); border-radius: 3px; }
-    .csi-campaign-body-text { padding: 10px 12px; font-size: 13px; color: var(--text-secondary);
+    .csi-campaign-body-text { padding: 10px 12px; font-size: 14px; color: var(--text-secondary);
       line-height: 1.55; }
-    .csi-campaign-relevance { padding: 8px 12px; font-size: 13px; color: var(--text-secondary);
+    .csi-campaign-relevance { padding: 8px 12px; font-size: 14px; color: var(--text-secondary);
       background: var(--amber-bg); border-top: 1px solid var(--amber-border); line-height: 1.5; }
     .csi-footer { display: flex; align-items: center; justify-content: space-between;
       margin-top: 8px; font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
@@ -856,6 +942,14 @@
   <div class="topbar-sep"></div>
   <span class="topbar-topic">ConflictMinerals</span>
   <span class="topbar-label">Conflict Minerals (SEC/Dodd-Frank)</span>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-search-wrap">
+    <input type="text" id="topbar-search" class="topbar-search-input"
+           placeholder="Search page&#8230; ( / )" oninput="topbarSearch(this.value)"
+           autocomplete="off" spellcheck="false">
+    <span class="topbar-search-count-tp" id="topbar-search-count"></span>
+  </div>
+  <div class="topbar-sep"></div>
   <span class="topbar-date">25 Mar 2026</span>
 </div>
 
@@ -897,11 +991,11 @@
 
     <!-- KPI Row --><div class="kpi-row">
       <div class="kpi-card">
-        <div class="kpi-value">14</div>
+        <div class="kpi-value">15</div>
         <div class="kpi-label">Articles / 6 mo</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-value">0</div>
+        <div class="kpi-value">1</div>
         <div class="kpi-label">New This Week</div>
       </div>
       <div class="kpi-card">
@@ -982,12 +1076,12 @@
               <stop offset="0%" stop-color="#1A7A87" stop-opacity="0.2"/>
               <stop offset="100%" stop-color="#1A7A87" stop-opacity="0.02"/>
             </linearGradient>
-          </defs><polygon points="0.0,64 0.0,0.0 17.9,0.0 17.9,30.0 35.9,30.0 35.9,30.0 53.8,30.0 53.8,30.0 71.7,30.0 71.7,60.0 89.7,60.0 89.7,60.0 107.6,60.0 107.6,60.0 125.5,60.0 125.5,60.0 143.4,60.0 143.4,60.0 161.4,60.0 161.4,60.0 179.3,60.0 179.3,60.0 197.2,60.0 197.2,60.0 215.2,60.0 215.2,60.0 233.1,60.0 233.1,60.0 251.0,60.0 251.0,60.0 269.0,60.0 269.0,60.0 286.9,60.0 286.9,60.0 304.8,60.0 304.8,60.0 322.8,60.0 322.8,60.0 340.7,60.0 340.7,60.0 358.6,60.0 358.6,60.0 376.6,60.0 376.6,60.0 394.5,60.0 394.5,60.0 412.4,60.0 412.4,30.0 430.3,30.0 430.3,60.0 448.3,60.0 448.3,60.0 466.2,60.0 466.2,60.0 484.1,60.0 484.1,0.0 502.1,0.0 502.1,30.0 520.0,30.0 520.0,60.0 520.0,64" fill="url(#chart-fill)"/>
-          <polyline points="0.0,0.0 17.9,0.0 17.9,30.0 35.9,30.0 35.9,30.0 53.8,30.0 53.8,30.0 71.7,30.0 71.7,60.0 89.7,60.0 89.7,60.0 107.6,60.0 107.6,60.0 125.5,60.0 125.5,60.0 143.4,60.0 143.4,60.0 161.4,60.0 161.4,60.0 179.3,60.0 179.3,60.0 197.2,60.0 197.2,60.0 215.2,60.0 215.2,60.0 233.1,60.0 233.1,60.0 251.0,60.0 251.0,60.0 269.0,60.0 269.0,60.0 286.9,60.0 286.9,60.0 304.8,60.0 304.8,60.0 322.8,60.0 322.8,60.0 340.7,60.0 340.7,60.0 358.6,60.0 358.6,60.0 376.6,60.0 376.6,60.0 394.5,60.0 394.5,60.0 412.4,60.0 412.4,30.0 430.3,30.0 430.3,60.0 448.3,60.0 448.3,60.0 466.2,60.0 466.2,60.0 484.1,60.0 484.1,0.0 502.1,0.0 502.1,30.0 520.0,30.0 520.0,60.0 " fill="none" stroke="#1A7A87" stroke-width="2" stroke-linejoin="round"/>
+          </defs><polygon points="0.0,64 0.0,0.0 17.9,0.0 17.9,30.0 35.9,30.0 35.9,30.0 53.8,30.0 53.8,30.0 71.7,30.0 71.7,60.0 89.7,60.0 89.7,60.0 107.6,60.0 107.6,60.0 125.5,60.0 125.5,60.0 143.4,60.0 143.4,60.0 161.4,60.0 161.4,60.0 179.3,60.0 179.3,60.0 197.2,60.0 197.2,60.0 215.2,60.0 215.2,60.0 233.1,60.0 233.1,60.0 251.0,60.0 251.0,60.0 269.0,60.0 269.0,60.0 286.9,60.0 286.9,60.0 304.8,60.0 304.8,60.0 322.8,60.0 322.8,60.0 340.7,60.0 340.7,60.0 358.6,60.0 358.6,60.0 376.6,60.0 376.6,60.0 394.5,60.0 394.5,60.0 412.4,60.0 412.4,30.0 430.3,30.0 430.3,60.0 448.3,60.0 448.3,60.0 466.2,60.0 466.2,60.0 484.1,60.0 484.1,0.0 502.1,0.0 502.1,30.0 520.0,30.0 520.0,30.0 520.0,64" fill="url(#chart-fill)"/>
+          <polyline points="0.0,0.0 17.9,0.0 17.9,30.0 35.9,30.0 35.9,30.0 53.8,30.0 53.8,30.0 71.7,30.0 71.7,60.0 89.7,60.0 89.7,60.0 107.6,60.0 107.6,60.0 125.5,60.0 125.5,60.0 143.4,60.0 143.4,60.0 161.4,60.0 161.4,60.0 179.3,60.0 179.3,60.0 197.2,60.0 197.2,60.0 215.2,60.0 215.2,60.0 233.1,60.0 233.1,60.0 251.0,60.0 251.0,60.0 269.0,60.0 269.0,60.0 286.9,60.0 286.9,60.0 304.8,60.0 304.8,60.0 322.8,60.0 322.8,60.0 340.7,60.0 340.7,60.0 358.6,60.0 358.6,60.0 376.6,60.0 376.6,60.0 394.5,60.0 394.5,60.0 412.4,60.0 412.4,30.0 430.3,30.0 430.3,60.0 448.3,60.0 448.3,60.0 466.2,60.0 466.2,60.0 484.1,60.0 484.1,0.0 502.1,0.0 502.1,30.0 520.0,30.0 520.0,30.0 " fill="none" stroke="#1A7A87" stroke-width="2" stroke-linejoin="round"/>
         </svg>
         <div class="trend-chart-axis">
           <span>30 days ago</span>
-          <span style="font-weight:700;color:var(--text-primary);">9 articles in 30 days</span>
+          <span style="font-weight:700;color:var(--text-primary);">10 articles in 30 days</span>
           <span>Today</span>
         </div>
       </div>
@@ -1008,19 +1102,19 @@
       <div class="impact-grid">
         
         <span class="impact-label">Products</span>
-        <span class="impact-text">If the company is a public SEC reporting issuer, Form SD for calendar year 2025 is due May 31, 2026, requiring documented RCOI covering tin in solder and hardware coatings, tantalum in automation capacitors, tungsten in wear coatings and tooling, and gold in electronics contacts.</span>
+        <span class="impact-text">If the company is a public issuer or files with the SEC, the May 31, 2026 Form SD deadline for calendar year 2025 3TG disclosure is imminent and requires completed RCOI documentation covering tin in solder and hardware coatings, tantalum in capacitors, tungsten in wear coatings and tools, and gold in electronic contacts.</span>
         
         
         <span class="impact-label">Supply Chain</span>
-        <span class="impact-text">Electronics and automation components — sensors, motor control boards, PLCs, and power semiconductors — represent the highest 3TG exposure in the purchased component supply chain, with tantalum and gold present in virtually every active electronic assembly sourced from distributors.</span>
+        <span class="impact-text">Automation electronics (sensors, motors, control boards), hardware fasteners, and wear-resistant tooling components purchased from distributors and integrators contain 3TG sourced from complex upstream supply chains, and the company must collect current CMRTs from all direct suppliers to support its own RCOI.</span>
         
         
         <span class="impact-label">Actions</span>
-        <ul class="impact-list"><li>Complete internal 3TG scoping for calendar year 2025 products this week — confirm whether tin, tantalum, tungsten, or gold are &#39;necessary to the functionality or production&#39; of manufactured components and document the determination to support Form SD filing or customer CMRT response by May 31, 2026.</li><li>Review OSI Systems&#39; and Alpha &amp; Omega Semiconductor&#39;s publicly filed Form SDs and CMRTs to benchmark smelter lists and RCOI methodology for comparability with the company&#39;s own conflict minerals program.</li></ul>
+        <ul class="impact-list"><li>Confirm calendar year 2025 Form SD filing obligation (public issuer or major customer CMRT requirement), compile internal 3TG use inventory across product lines, and assign a filing owner to complete the Conflict Minerals Report by May 31, 2026.</li><li>Review completed RCOI documentation to assess whether due diligence has reached the OECD 5-Step Framework level required for a &#39;DRC conflict undeterminable&#39; or &#39;DRC conflict free&#39; determination, and identify any smelters/refiners in the supply chain not yet RMAP-certified.</li></ul>
         
         
         <span class="impact-label">Supplier</span>
-        <ul class="impact-list"><li>Issue CMRT 6.0 requests immediately to all electronics, automation component, and hardware suppliers — set a response deadline of April 30, 2026 to allow consolidation and gap follow-up before the May 31 Form SD filing window.</li><li>Add conflict minerals CMRT collection to the existing Assent supplier outreach campaign so that 3TG data collection runs concurrently with PFAS declarations, reducing supplier fatigue and maximizing response rates from shared distributor contacts.</li></ul>
+        <ul class="impact-list"><li>Issue formal CMRT collection requests immediately to all direct suppliers of electronics, automation components, hardware (fasteners, hinges, locks), lubricants with metallic additives, and tooling — specifying the May 31, 2026 deadline and requiring completion of the CMRT v6.2 template.</li><li>For non-responsive distributors of automation electronics and industrial hardware, escalate to their upstream manufacturers directly and flag that unresponsive suppliers create RCOI documentation gaps that could result in a &#39;conflict undeterminable&#39; finding or customer compliance failure.</li></ul>
         
       </div>
     </div>
@@ -1035,7 +1129,7 @@
       <div class="section-title-line"></div>
     </div>
     <div class="panel">
-      <div class="strategy-text">With the Form SD filing deadline of May 31, 2026 now under 70 days away, the compliance team must treat CMRT collection from electronics and automation component suppliers as an active deadline, not a background task — issue formal CMRT requests this week with a hard April 30 response cutoff. Leverage the existing Assent platform and supplier email campaign infrastructure already running for PFAS to bundle conflict minerals CMRT requests, avoiding duplicate outreach efforts and maximizing supplier response rates. Simultaneously, finalize the internal product scoping determination for calendar year 2025 to confirm Form SD filing obligation and document the reasonable country of origin inquiry (RCOI) methodology before external smelter data consolidation begins.</div>
+      <div class="strategy-text">The May 31, 2026 Form SD filing deadline for calendar year 2025 conflict minerals is approximately 60 days out — treat this as a HIGH urgency item this week. Launch CMRT collection requests to all direct suppliers of electronics, automation components, and hardware immediately, using the concurrent OSI Systems and Alpha &amp; Omega Form SD filings as evidence that peer manufacturers are completing their 2025 disclosures now. Simultaneously, finalize the internal 3TG use inventory across all product lines and assign clear ownership for the Form SD filing or customer CMRT response deliverable to avoid a last-minute documentation scramble.</div>
     </div>
     
 
@@ -1372,18 +1466,59 @@
           <option value="90">90 days</option>
         </select>
       </div>
-      <div class="filter-count" id="tp-count">14 articles</div>
+      <div class="filter-count" id="tp-count">15 articles</div>
+      <!-- Compact badge legend -->
+      <div class="sidebar-legend">
+        <div class="sidebar-legend-title">&#x25A6; Badge Guide</div>
+        <div class="sidebar-legend-row"><span class="badge badge-new" style="font-size:9px;padding:1px 4px;">New</span> First seen this week</div>
+        <div class="sidebar-legend-row"><span class="badge badge-high" style="font-size:9px;">HIGH</span> &lt;90 days · <span class="badge badge-medium" style="font-size:9px;">MED</span> 90–365d · <span class="badge badge-low" style="font-size:9px;">LOW</span> long-range</div>
+        <div class="sidebar-legend-sep"></div>
+        <div class="sidebar-legend-row"><span class="badge badge-indirect" style="font-size:9px;">Indirect</span> Signals trends for us (hover for why)</div>
+        <div class="sidebar-legend-row"><span class="badge badge-monitor" style="font-size:9px;">Monitor</span> General news — no direct impact</div>
+        <div class="sidebar-legend-row" style="opacity:0.5;">Faded row = older than 30 days</div>
+      </div>
     </div>
 
     <div class="article-list-scroll" id="tp-article-list">
       <div class="no-results" id="tp-no-results">No articles match your filters.</div>
       
-      <div class="month-divider" data-month-divider>2026-03</div><div class="article-item"
+      <div class="month-divider" data-month-divider>2026-03</div><div class="article-item is-new"
+           data-headline="definition of a ski area"
+           data-snippet="the united states department of agriculture, forest service (forest service or agency) is issuing a final rule revising the definition of a ski area in its special use regulations. the revised definition aligns more closely with the forest service&#39;s statutory authority for ski area administration and reduces burden on the agency and special use permit holders."
+           data-urgency="low"
+           data-date="2026-03-25"
+           data-relevance="None">
+        <div class="article-head">
+          <span class="badge badge-new">New</span>
+          
+          
+          <span class="article-headline">
+            <a href="https://www.federalregister.gov/documents/2026/03/25/2026-05767/definition-of-a-ski-area" target="_blank">Definition of a Ski Area</a>
+          </span>
+          <span class="badge badge-low">LOW</span>
+          
+        </div>
+        
+        <div class="article-meta">
+          <span>Federal Register</span>
+          
+          <span>·</span>
+          <span>2026-03-25</span>
+          
+        </div>
+        
+        <div class="article-snippet">The United States Department of Agriculture, Forest Service (Forest Service or Agency) is issuing a final rule revising the definition of a ski area in its special use regulations. The revised definition aligns more closely with the Forest Service&#39;s statutory authority for ski area administration and reduces burden on the agency and special use permit holders.</div>
+        
+      </div>
+      <div class="article-item"
            data-headline="direct sale of public land for affordable housing purposes in the city of henderson, nevada"
            data-snippet="the bureau of land management (blm) proposes to sell an 18.59- acre parcel of public land located in the west portion of henderson, nevada, under the authority of section 203 of the federal land policy and management act of 1976, as amended (flpma); applicable blm land sale regulations; and the southern nevada public land management act of 1998, as amended (snplma). the blm intends to conduct a direct sale of the parcel to the city of henderson, a political subdivision of the state of nevada, at"
            data-urgency="low"
-           data-date="2026-03-24">
+           data-date="2026-03-24"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/03/24/2026-05669/direct-sale-of-public-land-for-affordable-housing-purposes-in-the-city-of-henderson-nevada" target="_blank">Direct Sale of Public Land for Affordable Housing Purposes in the City of Henderson, Nevada</a>
@@ -1391,6 +1526,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -1406,8 +1542,11 @@
            data-headline="deep seabed mining: notice of receipt of applications for deep seabed mining exploration licenses and announcement of public comment period and virtual public hearings"
            data-snippet="noaa has received two applications for licenses to conduct seabed mining exploration activities that are fully compliant with the applicable information requirements of the deep seabed hard mineral resources act (dshmra or the act) and the act&#39;s implementing regulations. as part of the application review process, noaa will hold one virtual public hearing on american metal resources, llc&#39;s (amr) application and one virtual public hearing on seax, inc.&#39;s (seax) application, and will accept written"
            data-urgency="low"
-           data-date="2026-03-23">
+           data-date="2026-03-23"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/03/23/2026-05599/deep-seabed-mining-notice-of-receipt-of-applications-for-deep-seabed-mining-exploration-licenses-and" target="_blank">Deep Seabed Mining: Notice of Receipt of Applications for Deep Seabed Mining Exploration Licenses and Announcement of Public Comment Period and Virtual Public Hearings</a>
@@ -1415,6 +1554,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -1430,8 +1570,11 @@
            data-headline="osi systems inc  (osis)  (cik 0001039065) — form sd conflict minerals report (2026-03)"
            data-snippet="sec form sd annual conflict minerals disclosure under dodd-frank section 1502. company: osi systems inc  (osis)  (cik 0001039065). filed: 2026-03-23. accession: 0001104659-26-033292."
            data-urgency="low"
-           data-date="2026-03-23">
+           data-date="2026-03-23"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.sec.gov/Archives/edgar/data/0001039065/000110465926033292/0001104659-26-033292-index.htm" target="_blank">OSI SYSTEMS INC  (OSIS)  (CIK 0001039065) — Form SD Conflict Minerals Report (2026-03)</a>
@@ -1439,6 +1582,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>SEC EDGAR — Form SD</span>
           
@@ -1454,8 +1598,11 @@
            data-headline="land uses; special uses"
            data-snippet="the united states department of agriculture (department), forest service (forest service or agency), is issuing this final rule to update its special uses regulations on filming and still photography to be consistent with the new requirements in the expanding public lands outdoor recreation experiences act (explore act or act). the technical revisions include adding a statutory reference to the explore act and updating terminology and definitions to be consistent with the act."
            data-urgency="low"
-           data-date="2026-03-19">
+           data-date="2026-03-19"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/03/19/2026-05457/land-uses-special-uses" target="_blank">Land Uses; Special Uses</a>
@@ -1463,6 +1610,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -1478,8 +1626,11 @@
            data-headline="alpha &amp; omega semiconductor ltd  (aosl)  (cik 0001387467) — form sd conflict minerals report (2026-02)"
            data-snippet="sec form sd annual conflict minerals disclosure under dodd-frank section 1502. company: alpha &amp; omega semiconductor ltd  (aosl)  (cik 0001387467). filed: 2026-02-27. accession: 0001387467-26-000015."
            data-urgency="low"
-           data-date="2026-02-27">
+           data-date="2026-02-27"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.sec.gov/Archives/edgar/data/0001387467/000138746726000015/0001387467-26-000015-index.htm" target="_blank">ALPHA &amp; OMEGA SEMICONDUCTOR Ltd  (AOSL)  (CIK 0001387467) — Form SD Conflict Minerals Report (2026-02)</a>
@@ -1487,6 +1638,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>SEC EDGAR — Form SD</span>
           
@@ -1502,8 +1654,11 @@
            data-headline="endangered and threatened wildlife and plants; removal of geocarpon minimum from the list of endangered and threatened plants"
            data-snippet="we, the u.s. fish and wildlife service (service), propose to remove geocarpon minimum from the federal list of endangered and threatened plants. our review indicates that the threats to geocarpon minimum have been eliminated or reduced to the point that the species no longer meets the definition of an endangered or threatened species under the endangered species act of 1973, as amended (act). accordingly, we propose to delist geocarpon minimum. this proposed rule completes the 5-year status revi"
            data-urgency="low"
-           data-date="2026-02-26">
+           data-date="2026-02-26"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/02/26/2026-03831/endangered-and-threatened-wildlife-and-plants-removal-of-geocarpon-minimum-from-the-list-of" target="_blank">Endangered and Threatened Wildlife and Plants; Removal of Geocarpon Minimum From the List of Endangered and Threatened Plants</a>
@@ -1511,6 +1666,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -1526,8 +1682,11 @@
            data-headline="public land order no. 7966; partial revocation of public land order nos. 5150 and 5180, as amended, modified, or corrected; alaska"
            data-snippet="this order partially revokes two public land orders (plos) insofar as they affect approximately 2,127,845 acres of public land reserved for use as the dalton utility corridor and for study and classification, as appropriate, by the department of the interior. revocation of the plos within the dalton utility corridor opens these lands to mineral and resource development opportunity. the bureau of land management (blm) analyzed partial revocation of these plos in the final environmental impact sta"
            data-urgency="low"
-           data-date="2026-02-25">
+           data-date="2026-02-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/02/25/2026-03777/public-land-order-no-7966-partial-revocation-of-public-land-order-nos-5150-and-5180-as-amended" target="_blank">Public Land Order No. 7966; Partial Revocation of Public Land Order Nos. 5150 and 5180, as Amended, Modified, or Corrected; Alaska</a>
@@ -1535,6 +1694,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -1550,8 +1710,11 @@
            data-headline="national environmental policy act implementing regulations"
            data-snippet="the department of the interior (department or doi) is adopting the interim final rule (ifr) published on july 3, 2025, with minor changes, as final. in the ifr, doi provided a 30-day comment period for the public to review and make comments. this final rule addresses public comments and adopts as final the ifr, with certain substantive changes as explained herein. the ifr partially rescinded doi&#39;s regulations implementing the national environmental policy act (nepa) and made necessary targeted u"
            data-urgency="low"
-           data-date="2026-02-24">
+           data-date="2026-02-24"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/02/24/2026-03708/national-environmental-policy-act-implementing-regulations" target="_blank">National Environmental Policy Act Implementing Regulations</a>
@@ -1559,6 +1722,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -1574,8 +1738,11 @@
            data-headline="taking and importing marine mammals; taking marine mammals incidental to geophysical surveys in the gulf of america"
            data-snippet="nmfs has received a request for the reimplementation of incidental take regulations (itr) governing the incidental taking of marine mammals during geophysical survey activity conducted in the gulf of america (goa). pursuant to the marine mammal protection act (mmpa), nmfs is requesting comments on its proposed rule and will consider public comments relevant to this proposed rule prior to issuing any final rule."
            data-urgency="low"
-           data-date="2026-02-24">
+           data-date="2026-02-24"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/02/24/2026-03691/taking-and-importing-marine-mammals-taking-marine-mammals-incidental-to-geophysical-surveys-in-the" target="_blank">Taking and Importing Marine Mammals; Taking Marine Mammals Incidental to Geophysical Surveys in the Gulf of America</a>
@@ -1583,6 +1750,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -1598,8 +1766,11 @@
            data-headline="west virginia regulatory program"
            data-snippet="we, the office of surface mining reclamation and enforcement (osmre), are publishing this final rule to amend the existing federal lands cooperative agreement between west virginia and the u.s. department of the interior (department). the surface mining control and reclamation act of 1977 (smcra or the act) and the federal regulations authorize a state with an approved permanent regulatory program to enter into an agreement for the state regulation of surface coal mining and reclamation operatio"
            data-urgency="low"
-           data-date="2026-02-20">
+           data-date="2026-02-20"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/02/20/2026-03413/west-virginia-regulatory-program" target="_blank">West Virginia Regulatory Program</a>
@@ -1607,6 +1778,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -1622,8 +1794,11 @@
            data-headline="locatable minerals"
            data-snippet="the u.s. department of agriculture, forest service (agency), is proposing to revise its regulations governing occupancy and use of the surface of national forest system lands in connection with prospecting, exploration, development, mining, processing, and reclamation and reasonably incident uses authorized by u.s. mining laws and the organic administration act of 1897. regulatory revisions are needed to improve the efficiency and transparency of forest service regulation of locatable mineral op"
            data-urgency="low"
-           data-date="2026-02-20">
+           data-date="2026-02-20"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/02/20/2026-03364/locatable-minerals" target="_blank">Locatable Minerals</a>
@@ -1631,6 +1806,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -1646,8 +1822,11 @@
            data-headline="rescission of the “ten-day notices and corrective action for state regulatory program issues” rule, issued april 9, 2024"
            data-snippet="the office of surface mining reclamation and enforcement (&#34;osmre&#34; or &#34;osm&#34;) is rescinding the &#34;ten-day notices and corrective action for state regulatory program issues&#34; rule adopted on april 9, 2024 (the &#34;2024 rule&#34;), and replacing it, in large part, with the rule titled, &#34;clarification of provisions related to the issuance of ten-day notices to state regulatory authorities and enhancement of corrective action for state regulatory program issues,&#34; which was first adopted on november 24, 2020 (t"
            data-urgency="low"
-           data-date="2026-02-19">
+           data-date="2026-02-19"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/02/19/2026-03301/rescission-of-the-ten-day-notices-and-corrective-action-for-state-regulatory-program-issues-rule" target="_blank">Rescission of the “Ten-Day Notices and Corrective Action for State Regulatory Program Issues” Rule, Issued April 9, 2024</a>
@@ -1655,6 +1834,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -1670,8 +1850,11 @@
            data-headline="tongass national forest; alaska; land management plan revision"
            data-snippet="the u.s. department of agriculture, forest service is revising the land management plan for the tongass national forest. this notice announces the forest service&#39;s initiation of the development of a revised land management plan (revised plan) and intent to prepare an environmental impact statement (eis) to evaluate the effects of revising the current plan. this notice initiates the scoping period on the development of the proposed action and eis. this notice also describes the documents and back"
            data-urgency="low"
-           data-date="2026-02-18">
+           data-date="2026-02-18"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/02/18/2026-03197/tongass-national-forest-alaska-land-management-plan-revision" target="_blank">Tongass National Forest; Alaska; Land Management Plan Revision</a>
@@ -1679,6 +1862,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -1694,8 +1878,11 @@
            data-headline="united states v. reddy ice llc, et al. proposed final judgment and competitive impact statement"
            data-snippet=""
            data-urgency="low"
-           data-date="2026-02-18">
+           data-date="2026-02-18"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/02/18/2026-03102/united-states-v-reddy-ice-llc-et-al-proposed-final-judgment-and-competitive-impact-statement" target="_blank">United States v. Reddy Ice LLC, et al. Proposed Final Judgment and Competitive Impact Statement</a>
@@ -1703,6 +1890,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -1796,6 +1984,113 @@
     document.getElementById('tp-count').textContent = visibleCount + ' articles';
     document.getElementById('tp-no-results').classList.toggle('visible', visibleCount === 0 && items.length > 0);
   }
+
+  /* ── Topbar search: drives sidebar filter + main content highlight ── */
+  var _currentHighlightIdx = -1;
+  var _highlights = [];
+
+  function clearHighlights() {
+    var marks = document.querySelectorAll('.main .search-highlight');
+    marks.forEach(function(m) {
+      m.parentNode.replaceChild(document.createTextNode(m.textContent), m);
+    });
+    var main = document.querySelector('.main');
+    if (main) main.normalize();
+    _highlights = [];
+    _currentHighlightIdx = -1;
+  }
+
+  function highlightMainContent(query) {
+    clearHighlights();
+    if (!query || query.length < 2) return 0;
+
+    var container = document.querySelector('.main');
+    if (!container) return 0;
+
+    var lq = query.toLowerCase();
+    var walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
+      acceptNode: function(n) {
+        var tag = n.parentNode.nodeName.toLowerCase();
+        if (tag === 'script' || tag === 'style' || tag === 'mark') return NodeFilter.FILTER_REJECT;
+        return n.textContent.toLowerCase().includes(lq) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+      }
+    });
+
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+
+    nodes.forEach(function(node) {
+      var text = node.textContent;
+      var lower = text.toLowerCase();
+      var frag = document.createDocumentFragment();
+      var last = 0, idx;
+      while ((idx = lower.indexOf(lq, last)) !== -1) {
+        if (idx > last) frag.appendChild(document.createTextNode(text.slice(last, idx)));
+        var mark = document.createElement('mark');
+        mark.className = 'search-highlight';
+        mark.textContent = text.slice(idx, idx + query.length);
+        frag.appendChild(mark);
+        _highlights.push(mark);
+        last = idx + query.length;
+      }
+      if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    });
+
+    return _highlights.length;
+  }
+
+  function jumpToHighlight(idx) {
+    if (!_highlights.length) return;
+    _highlights.forEach(function(m) { m.classList.remove('search-current'); });
+    _currentHighlightIdx = ((idx % _highlights.length) + _highlights.length) % _highlights.length;
+    var target = _highlights[_currentHighlightIdx];
+    target.classList.add('search-current');
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function topbarSearch(query) {
+    query = query.trim();
+    // Mirror to sidebar
+    var sidebarInput = document.getElementById('tp-search');
+    if (sidebarInput && sidebarInput.value !== query) {
+      sidebarInput.value = query;
+      filterArticles();
+    }
+    var countEl = document.getElementById('topbar-search-count');
+    if (!query) {
+      clearHighlights();
+      countEl.textContent = '';
+      return;
+    }
+    var n = highlightMainContent(query);
+    if (n > 0) {
+      jumpToHighlight(0);
+      countEl.textContent = n + ' match' + (n === 1 ? '' : 'es');
+    } else {
+      countEl.textContent = 'no matches';
+    }
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      document.getElementById('topbar-search').focus();
+    }
+    if (e.key === 'Escape') {
+      var inp = document.getElementById('topbar-search');
+      inp.value = '';
+      topbarSearch('');
+      inp.blur();
+    }
+    // Enter / Shift+Enter cycles through matches
+    if (e.key === 'Enter' && document.activeElement === document.getElementById('topbar-search')) {
+      e.preventDefault();
+      if (_highlights.length) {
+        jumpToHighlight(e.shiftKey ? _currentHighlightIdx - 1 : _currentHighlightIdx + 1);
+      }
+    }
+  });
 </script>
 
 <script>

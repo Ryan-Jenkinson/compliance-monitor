@@ -70,25 +70,69 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      color: rgba(255,255,255,0.55);
+      color: rgba(255,255,255,0.85);
       font-size: 12px;
       font-family: var(--mono);
       text-decoration: none;
-      border: 1px solid rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.30);
       border-radius: 4px;
       padding: 4px 10px;
-      transition: color 0.15s, border-color 0.15s;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
     }
-    .topbar-back:hover { color: #fff; border-color: rgba(255,255,255,0.3); text-decoration: none; }
-    .topbar-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.12); }
+    .topbar-back:hover { color: #fff; border-color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.08); text-decoration: none; }
+    .topbar-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.20); }
     .topbar-topic {
       font-weight: 700;
       font-size: 15px;
       letter-spacing: -0.01em;
       color: var(--topic-color);
     }
-    .topbar-label { color: rgba(255,255,255,0.45); font-size: 12px; font-family: var(--mono); }
-    .topbar-date { margin-left: auto; color: rgba(255,255,255,0.35); font-size: 11px; font-family: var(--mono); }
+    .topbar-label { color: rgba(255,255,255,0.70); font-size: 12px; font-family: var(--mono); }
+    .topbar-spacer { flex: 1; }
+    .topbar-date { color: rgba(255,255,255,0.55); font-size: 11px; font-family: var(--mono); white-space: nowrap; }
+    .topbar-search-wrap {
+      flex: 1 0 180px;
+      max-width: 280px;
+      min-width: 160px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .topbar-search-input {
+      flex: 1;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.20);
+      border-radius: 4px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-family: var(--sans);
+      color: #fff;
+      outline: none;
+      transition: all 0.12s;
+      min-width: 0;
+    }
+    .topbar-search-input::placeholder { color: rgba(255,255,255,0.38); }
+    .topbar-search-input:focus {
+      background: rgba(255,255,255,0.16);
+      border-color: var(--topic-color);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.08);
+    }
+    .topbar-search-count-tp {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(255,255,255,0.45);
+      white-space: nowrap;
+    }
+    .search-highlight {
+      background: #FFF176;
+      color: #111318;
+      border-radius: 2px;
+      padding: 0 1px;
+    }
+    .search-highlight.search-current {
+      background: #FF8F00;
+      color: #fff;
+    }
 
     /* ── LAYOUT: main content + fixed right article sidebar ─────── */
     .layout {
@@ -296,6 +340,48 @@
     .badge-high { background: var(--red-bg); color: var(--red); }
     .badge-medium { background: var(--amber-bg); color: var(--amber); }
     .badge-low { background: var(--green-bg); color: var(--green); }
+    .badge-indirect { background: #FFF8E1; color: #F57F17; border: 1px solid #FFE082; }
+    .badge-monitor  { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+
+    /* MONITOR articles: visually muted */
+    .article-item[data-relevance="MONITOR"] { opacity: 0.45; }
+    .article-item[data-relevance="MONITOR"]:hover { opacity: 0.75; transition: opacity 0.15s; }
+    .article-item[data-relevance="MONITOR"] .badge-high,
+    .article-item[data-relevance="MONITOR"] .badge-medium,
+    .article-item[data-relevance="MONITOR"] .badge-low { display: none; }
+    /* INDIRECT articles: urgency de-emphasized */
+    .article-item[data-relevance="INDIRECT"] .badge-high,
+    .article-item[data-relevance="INDIRECT"] .badge-medium,
+    .article-item[data-relevance="INDIRECT"] .badge-low { opacity: 0.5; font-size: 8px; }
+    .relevance-reason { font-size: 11px; color: #F57F17; font-style: italic; margin-top: 3px; }
+    .article-item.hidden-by-relevance { display: none !important; }
+
+    /* Compact badge legend for sidebar header */
+    .sidebar-legend {
+      background: var(--bg);
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      font-size: 11px;
+    }
+    .sidebar-legend-title {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+    }
+    .sidebar-legend-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 3px;
+      color: var(--text-secondary);
+    }
+    .sidebar-legend-sep { border-top: 1px solid var(--border-light); margin: 5px 0; }
 
     /* ── MAIN CONTENT WIDGETS ───────────────────────────────────── */
 
@@ -383,7 +469,7 @@
 
     /* Insight blocks */
     .insight-block {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--text-secondary);
       line-height: 1.6;
     }
@@ -402,7 +488,7 @@
       margin-top: 6px;
     }
     .insight-bullets li {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--text-secondary);
       padding: 3px 0 3px 14px;
       position: relative;
@@ -564,7 +650,7 @@
       padding-top: 1px;
     }
     .bill-body { flex: 1; min-width: 0; }
-    .bill-title-text { font-size: 13px; font-weight: 500; color: var(--text-primary); line-height: 1.35; margin-bottom: 2px; }
+    .bill-title-text { font-size: 14px; font-weight: 500; color: var(--text-primary); line-height: 1.35; margin-bottom: 2px; }
     .bill-action-text { font-size: 12px; color: var(--text-muted); }
     .bill-stage-tag {
       display: inline-block;
@@ -665,8 +751,8 @@
       font-family: var(--mono); font-size: 10px; font-weight: 700;
       border-radius: 3px; flex-shrink: 0; border: 1px solid var(--red-border);
     }
-    .csi-watch-text { font-size: 13px; color: var(--text-secondary); line-height: 1.45; flex: 1; }
-    .csi-watch-action { font-size: 12px; color: var(--blue); margin-top: 2px; font-style: italic; }
+    .csi-watch-text { font-size: 14px; color: var(--text-secondary); line-height: 1.45; flex: 1; }
+    .csi-watch-action { font-size: 13px; color: var(--blue); margin-top: 2px; font-style: italic; }
     .csi-mover-row { display: flex; align-items: flex-start; gap: 7px;
       padding: 7px 12px; border-bottom: 1px solid var(--border-light); }
     .csi-mover-row:last-child { border-bottom: none; }
@@ -678,7 +764,7 @@
     .csi-urgency.low { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
     .csi-mover-state { font-family: var(--mono); font-size: 11px; font-weight: 700;
       color: var(--text-primary); min-width: 24px; flex-shrink: 0; }
-    .csi-mover-text { font-size: 13px; color: var(--text-secondary); line-height: 1.4; flex: 1; }
+    .csi-mover-text { font-size: 14px; color: var(--text-secondary); line-height: 1.4; flex: 1; }
     .csi-campaign-card { background: var(--surface); border: 1px solid var(--border);
       border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; }
     .csi-campaign-header { display: flex; align-items: center; gap: 8px; padding: 8px 12px;
@@ -689,9 +775,9 @@
     .csi-chip { padding: 2px 6px; background: var(--blue-bg); color: var(--blue);
       font-family: var(--mono); font-size: 10px; font-weight: 700;
       border: 1px solid rgba(21,101,192,0.2); border-radius: 3px; }
-    .csi-campaign-body-text { padding: 10px 12px; font-size: 13px; color: var(--text-secondary);
+    .csi-campaign-body-text { padding: 10px 12px; font-size: 14px; color: var(--text-secondary);
       line-height: 1.55; }
-    .csi-campaign-relevance { padding: 8px 12px; font-size: 13px; color: var(--text-secondary);
+    .csi-campaign-relevance { padding: 8px 12px; font-size: 14px; color: var(--text-secondary);
       background: var(--amber-bg); border-top: 1px solid var(--amber-border); line-height: 1.5; }
     .csi-footer { display: flex; align-items: center; justify-content: space-between;
       margin-top: 8px; font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
@@ -856,6 +942,14 @@
   <div class="topbar-sep"></div>
   <span class="topbar-topic">Prop65</span>
   <span class="topbar-label">California Proposition 65</span>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-search-wrap">
+    <input type="text" id="topbar-search" class="topbar-search-input"
+           placeholder="Search page&#8230; ( / )" oninput="topbarSearch(this.value)"
+           autocomplete="off" spellcheck="false">
+    <span class="topbar-search-count-tp" id="topbar-search-count"></span>
+  </div>
+  <div class="topbar-sep"></div>
   <span class="topbar-date">25 Mar 2026</span>
 </div>
 
@@ -897,11 +991,11 @@
 
     <!-- KPI Row --><div class="kpi-row">
       <div class="kpi-card">
-        <div class="kpi-value">21</div>
+        <div class="kpi-value">22</div>
         <div class="kpi-label">Articles / 6 mo</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-value">1</div>
+        <div class="kpi-value">3</div>
         <div class="kpi-label">New This Week</div>
       </div>
       <div class="kpi-card">
@@ -982,12 +1076,12 @@
               <stop offset="0%" stop-color="#E67E22" stop-opacity="0.2"/>
               <stop offset="100%" stop-color="#E67E22" stop-opacity="0.02"/>
             </linearGradient>
-          </defs><polygon points="0.0,64 0.0,60.0 17.9,60.0 17.9,60.0 35.9,60.0 35.9,60.0 53.8,60.0 53.8,60.0 71.7,60.0 71.7,60.0 89.7,60.0 89.7,60.0 107.6,60.0 107.6,60.0 125.5,60.0 125.5,60.0 143.4,60.0 143.4,60.0 161.4,60.0 161.4,60.0 179.3,60.0 179.3,60.0 197.2,60.0 197.2,60.0 215.2,60.0 215.2,60.0 233.1,60.0 233.1,60.0 251.0,60.0 251.0,60.0 269.0,60.0 269.0,60.0 286.9,60.0 286.9,60.0 304.8,60.0 304.8,60.0 322.8,60.0 322.8,60.0 340.7,60.0 340.7,60.0 358.6,60.0 358.6,60.0 376.6,60.0 376.6,60.0 394.5,60.0 394.5,60.0 412.4,60.0 412.4,60.0 430.3,60.0 430.3,60.0 448.3,60.0 448.3,60.0 466.2,60.0 466.2,60.0 484.1,60.0 484.1,60.0 502.1,60.0 502.1,41.2 520.0,41.2 520.0,0.0 520.0,64" fill="url(#chart-fill)"/>
-          <polyline points="0.0,60.0 17.9,60.0 17.9,60.0 35.9,60.0 35.9,60.0 53.8,60.0 53.8,60.0 71.7,60.0 71.7,60.0 89.7,60.0 89.7,60.0 107.6,60.0 107.6,60.0 125.5,60.0 125.5,60.0 143.4,60.0 143.4,60.0 161.4,60.0 161.4,60.0 179.3,60.0 179.3,60.0 197.2,60.0 197.2,60.0 215.2,60.0 215.2,60.0 233.1,60.0 233.1,60.0 251.0,60.0 251.0,60.0 269.0,60.0 269.0,60.0 286.9,60.0 286.9,60.0 304.8,60.0 304.8,60.0 322.8,60.0 322.8,60.0 340.7,60.0 340.7,60.0 358.6,60.0 358.6,60.0 376.6,60.0 376.6,60.0 394.5,60.0 394.5,60.0 412.4,60.0 412.4,60.0 430.3,60.0 430.3,60.0 448.3,60.0 448.3,60.0 466.2,60.0 466.2,60.0 484.1,60.0 484.1,60.0 502.1,60.0 502.1,41.2 520.0,41.2 520.0,0.0 " fill="none" stroke="#E67E22" stroke-width="2" stroke-linejoin="round"/>
+          </defs><polygon points="0.0,64 0.0,60.0 17.9,60.0 17.9,60.0 35.9,60.0 35.9,60.0 53.8,60.0 53.8,60.0 71.7,60.0 71.7,60.0 89.7,60.0 89.7,60.0 107.6,60.0 107.6,60.0 125.5,60.0 125.5,60.0 143.4,60.0 143.4,60.0 161.4,60.0 161.4,60.0 179.3,60.0 179.3,60.0 197.2,60.0 197.2,60.0 215.2,60.0 215.2,60.0 233.1,60.0 233.1,60.0 251.0,60.0 251.0,60.0 269.0,60.0 269.0,60.0 286.9,60.0 286.9,60.0 304.8,60.0 304.8,60.0 322.8,60.0 322.8,60.0 340.7,60.0 340.7,60.0 358.6,60.0 358.6,60.0 376.6,60.0 376.6,60.0 394.5,60.0 394.5,60.0 412.4,60.0 412.4,60.0 430.3,60.0 430.3,60.0 448.3,60.0 448.3,60.0 466.2,60.0 466.2,60.0 484.1,60.0 484.1,60.0 502.1,60.0 502.1,42.4 520.0,42.4 520.0,0.0 520.0,64" fill="url(#chart-fill)"/>
+          <polyline points="0.0,60.0 17.9,60.0 17.9,60.0 35.9,60.0 35.9,60.0 53.8,60.0 53.8,60.0 71.7,60.0 71.7,60.0 89.7,60.0 89.7,60.0 107.6,60.0 107.6,60.0 125.5,60.0 125.5,60.0 143.4,60.0 143.4,60.0 161.4,60.0 161.4,60.0 179.3,60.0 179.3,60.0 197.2,60.0 197.2,60.0 215.2,60.0 215.2,60.0 233.1,60.0 233.1,60.0 251.0,60.0 251.0,60.0 269.0,60.0 269.0,60.0 286.9,60.0 286.9,60.0 304.8,60.0 304.8,60.0 322.8,60.0 322.8,60.0 340.7,60.0 340.7,60.0 358.6,60.0 358.6,60.0 376.6,60.0 376.6,60.0 394.5,60.0 394.5,60.0 412.4,60.0 412.4,60.0 430.3,60.0 430.3,60.0 448.3,60.0 448.3,60.0 466.2,60.0 466.2,60.0 484.1,60.0 484.1,60.0 502.1,60.0 502.1,42.4 520.0,42.4 520.0,0.0 " fill="none" stroke="#E67E22" stroke-width="2" stroke-linejoin="round"/>
         </svg>
         <div class="trend-chart-axis">
           <span>30 days ago</span>
-          <span style="font-weight:700;color:var(--text-primary);">21 articles in 30 days</span>
+          <span style="font-weight:700;color:var(--text-primary);">22 articles in 30 days</span>
           <span>Today</span>
         </div>
       </div>
@@ -1008,19 +1102,19 @@
       <div class="impact-grid">
         
         <span class="impact-label">Products</span>
-        <span class="impact-text">DEHP and DINP enforcement actions against vinyl accessories confirm active plaintiff targeting of flexible PVC components — if any company products sold in California contain vinyl profiles, jacketing, or soft-goods with phthalate-containing PVC, current warning label status and safe harbor documentation must be verified immediately.</span>
+        <span class="impact-text">DEHP and DINP enforcement against vinyl and plastic consumer goods sold through major retailers confirms that the company&#39;s products incorporating vinyl profiles or flexible plastic components sold in California require verified phthalate safe harbor analysis before California shipment.</span>
         
         
         <span class="impact-label">Supply Chain</span>
-        <span class="impact-text">Vinyl profiles, cable jacketing, gaskets, O-rings, and any flexible PVC-based purchased components from suppliers are at elevated risk for DEHP/DINP exceedances that would require Prop 65 warnings on finished products sold in California.</span>
+        <span class="impact-text">Vinyl profiles, plastic protective accessories, and any PVC-containing purchased components are at active enforcement risk for DEHP and DINP; hardware and coating components remain at risk for lead and cadmium based on the continued volume of notices in those substance categories.</span>
         
         
         <span class="impact-label">Actions</span>
-        <ul class="impact-list"><li>Audit all vinyl-containing components in California-sold product BOMs for DEHP and DINP concentrations; obtain third-party test data or supplier certifications confirming compliance with safe harbor thresholds (DEHP: 14 µg/day, DINP: 114 µg/day) and apply warnings where exceedance cannot be ruled out.</li><li>Review current Prop 65 warning label status for any product lines containing lead-bearing coatings or cadmium-containing hardware sold in California and confirm MADL/NSRL documentation is current and defensible.</li></ul>
+        <ul class="impact-list"><li>Pull bill of materials for all products sold in California and cross-reference vinyl profile and flexible plastic components against DEHP safe harbor (1,000 µg/day) and DINP safe harbor (3,300 µg/day) — prioritize any component without a current third-party test report.</li><li>Confirm Prop 65 warning label compliance for all California-shipped products containing lead-bearing hardware or cadmium-containing coatings; if safe harbor cannot be demonstrated by test data, implement point-of-sale or product-affixed warnings immediately.</li></ul>
         
         
         <span class="impact-label">Supplier</span>
-        <ul class="impact-list"><li>Issue formal Prop 65 declaration requests via Assent to all suppliers providing vinyl profiles, flexible PVC components, coated fasteners, and adhesives, requiring quantified substance disclosures for DEHP, DINP, lead, and cadmium with comparison to Prop 65 safe harbor levels.</li><li>Add Prop 65 phthalate and heavy metals compliance to the existing supplier education campaign, emphasizing that distributor co-defendant exposure — as seen in the Best Buy and Walmart notices — means the company as a California seller bears direct litigation risk from supplier non-disclosure.</li></ul>
+        <ul class="impact-list"><li>Issue a targeted Prop 65 compliance request to all suppliers of vinyl profiles, PVC components, and flexible plastic accessories, requiring DEHP and DINP test reports (third-party, California-representative sample) within 30 days.</li><li>Update supplier onboarding requirements in Assent to flag any Prop 65-listed substance (lead, cadmium, DEHP, DINP, PFOA, PFOS) as mandatory disclosure fields, and set re-attestation triggers whenever OEHHA adds a new listing affecting those component categories.</li></ul>
         
       </div>
     </div>
@@ -1035,7 +1129,7 @@
       <div class="section-title-line"></div>
     </div>
     <div class="panel">
-      <div class="strategy-text">The new DEHP notice (AG# 2026-01348) against Best Buy for a vinyl accessory product, combined with the carried-over DINP toiletry bag notice (AG# 2026-01340), signals that plaintiff firms are running systematic testing campaigns against PVC/vinyl consumer and accessory products — a category pattern that directly implicates any flexible vinyl components in the company&#39;s California product line. This week, the compliance team should pull the California BOM and cross-reference all vinyl profile, gasket, seal, and coated hardware line items against existing phthalate and heavy metals test data, identifying any gaps where safe harbor documentation is absent. Simultaneously, the Assent supplier outreach should be updated to explicitly request Prop 65 DEHP/DINP/lead/cadmium declarations from vinyl and coating suppliers, framing the request around the active enforcement wave and the company&#39;s own litigation exposure as a California seller.</div>
+      <div class="strategy-text">The March 2026 60-day notice wave — particularly the DEHP action against Best Buy for plastic accessories (2026-01348) and the DINP action against Walmart for vinyl bags (2026-01340) — confirms that phthalate enforcement has moved firmly into non-food, non-apparel product categories that directly parallel the company&#39;s vinyl and plastic component exposure. This week, the compliance team should complete a targeted audit of all California-shipped products containing flexible PVC or vinyl components and confirm whether current test data supports DEHP and DINP safe harbor clearance; any component without a current (within 24 months) third-party test report should be escalated immediately for expedited testing or warning label implementation. In parallel, the Assent supplier outreach should be extended to explicitly request Prop 65 phthalate declarations from vinyl profile and PVC component suppliers, framing the request around the active enforcement environment and the 60-day notice mechanism that makes retailers and distributors jointly liable alongside manufacturers.</div>
     </div>
     
 
@@ -1192,7 +1286,17 @@
           <option value="90">90 days</option>
         </select>
       </div>
-      <div class="filter-count" id="tp-count">21 articles</div>
+      <div class="filter-count" id="tp-count">22 articles</div>
+      <!-- Compact badge legend -->
+      <div class="sidebar-legend">
+        <div class="sidebar-legend-title">&#x25A6; Badge Guide</div>
+        <div class="sidebar-legend-row"><span class="badge badge-new" style="font-size:9px;padding:1px 4px;">New</span> First seen this week</div>
+        <div class="sidebar-legend-row"><span class="badge badge-high" style="font-size:9px;">HIGH</span> &lt;90 days · <span class="badge badge-medium" style="font-size:9px;">MED</span> 90–365d · <span class="badge badge-low" style="font-size:9px;">LOW</span> long-range</div>
+        <div class="sidebar-legend-sep"></div>
+        <div class="sidebar-legend-row"><span class="badge badge-indirect" style="font-size:9px;">Indirect</span> Signals trends for us (hover for why)</div>
+        <div class="sidebar-legend-row"><span class="badge badge-monitor" style="font-size:9px;">Monitor</span> General news — no direct impact</div>
+        <div class="sidebar-legend-row" style="opacity:0.5;">Faded row = older than 30 days</div>
+      </div>
     </div>
 
     <div class="article-list-scroll" id="tp-article-list">
@@ -1202,15 +1306,19 @@
            data-headline="ag number 2026-01348 (view details) notice pdf: 2026-01348.pdf date filed: 03/24/2026 noticing party: gabriel espinoza p"
            data-snippet="ag number 2026-01348 (view details) notice pdf: 2026-01348.pdf date filed: 03/24/2026 noticing party: gabriel espinoza plaintiff attorney: evan smith alleged violators: bestbuy.com, llc; best buy co., inc.; best buy stores, l.p.; bby solutions, inc.; best buy enterprise services, inc.; dapper styles, inc. chemical: di(2-ethylhexyl)phthalate (dehp) source: dapper styles 5 pack cases comments: this "
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
           <span class="badge badge-new">New</span>
+          
+          
           <span class="article-headline">
             <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01348" target="_blank">AG Number 2026-01348 (View Details) Notice PDF: 2026-01348.pdf Date Filed: 03/24/2026 Noticing Party: Gabriel Espinoza P</a>
           </span>
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>CA AG — Prop 65 60-Day Notices</span>
           
@@ -1222,12 +1330,71 @@
         <div class="article-snippet">AG Number 2026-01348 (View Details) Notice PDF: 2026-01348.pdf Date Filed: 03/24/2026 Noticing Party: Gabriel Espinoza Plaintiff Attorney: Evan Smith Alleged Violators: BestBuy.com, LLC; Best Buy Co., Inc.; Best Buy Stores, L.P.; BBY Solutions, Inc.; Best Buy Enterprise Services, Inc.; Dapper Styles, Inc. Chemical: Di(2-ethylhexyl)phthalate (DEHP) Source: Dapper Styles 5 Pack Cases Comments: This </div>
         
       </div>
+      <div class="article-item is-new"
+           data-headline="ag number 2026-01350 (view details) notice pdf: 2026-01350.pdf date filed: 03/25/2026 noticing party: ema bell plaintiff"
+           data-snippet="ag number 2026-01350 (view details) notice pdf: 2026-01350.pdf date filed: 03/25/2026 noticing party: ema bell plaintiff attorney: evan smith alleged violators: nutrient foods, llc; nutrient foods management, llc; sierra trading post, inc.; the tjx companies, inc. chemical: lead source: brain care apple almond crisp omega 3 bar complaint (0)   settlement (0)   judgment (0)"
+           data-urgency="low"
+           data-date="2026-03-25"
+           data-relevance="None">
+        <div class="article-head">
+          <span class="badge badge-new">New</span>
+          
+          
+          <span class="article-headline">
+            <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01350" target="_blank">AG Number 2026-01350 (View Details) Notice PDF: 2026-01350.pdf Date Filed: 03/25/2026 Noticing Party: Ema Bell Plaintiff</a>
+          </span>
+          <span class="badge badge-low">LOW</span>
+          
+        </div>
+        
+        <div class="article-meta">
+          <span>CA AG — Prop 65 60-Day Notices</span>
+          
+          <span>·</span>
+          <span>2026-03-25</span>
+          
+        </div>
+        
+        <div class="article-snippet">AG Number 2026-01350 (View Details) Notice PDF: 2026-01350.pdf Date Filed: 03/25/2026 Noticing Party: Ema Bell Plaintiff Attorney: Evan Smith Alleged Violators: Nutrient Foods, LLC; Nutrient Foods Management, LLC; Sierra Trading Post, Inc.; The TJX Companies, Inc. Chemical: Lead Source: Brain Care Apple Almond Crisp Omega 3 Bar Complaint (0)   Settlement (0)   Judgment (0)</div>
+        
+      </div>
+      <div class="article-item is-new"
+           data-headline="ag number 2026-01349 (view details) notice pdf: 2026-01349.pdf date filed: 03/24/2026 noticing party: clean product advo"
+           data-snippet="ag number 2026-01349 (view details) notice pdf: 2026-01349.pdf date filed: 03/24/2026 noticing party: clean product advocates, llc plaintiff attorney: cliffwood law firm, pc alleged violators: abbot&#39;s butcher, inc.; sprouts farmers market, llc chemical: lead source: abbot&#39;s protein veggie burger classic smokehouse complaint (0)   settlement (0)   judgment (0)"
+           data-urgency="low"
+           data-date="2026-03-25"
+           data-relevance="None">
+        <div class="article-head">
+          <span class="badge badge-new">New</span>
+          
+          
+          <span class="article-headline">
+            <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01349" target="_blank">AG Number 2026-01349 (View Details) Notice PDF: 2026-01349.pdf Date Filed: 03/24/2026 Noticing Party: Clean Product Advo</a>
+          </span>
+          <span class="badge badge-low">LOW</span>
+          
+        </div>
+        
+        <div class="article-meta">
+          <span>CA AG — Prop 65 60-Day Notices</span>
+          
+          <span>·</span>
+          <span>2026-03-25</span>
+          
+        </div>
+        
+        <div class="article-snippet">AG Number 2026-01349 (View Details) Notice PDF: 2026-01349.pdf Date Filed: 03/24/2026 Noticing Party: Clean Product Advocates, LLC Plaintiff Attorney: Cliffwood Law Firm, PC Alleged Violators: Abbot&#39;s Butcher, Inc.; Sprouts Farmers Market, LLC Chemical: Lead Source: Abbot&#39;s Protein Veggie Burger Classic Smokehouse Complaint (0)   Settlement (0)   Judgment (0)</div>
+        
+      </div>
       <div class="article-item"
            data-headline="ag number 2026-01346 (view details) notice pdf: 2026-01346.pdf date filed: 03/24/2026 noticing party: calsafe research c"
            data-snippet="ag number 2026-01346 (view details) notice pdf: 2026-01346.pdf date filed: 03/24/2026 noticing party: calsafe research center, inc. plaintiff attorney: manning law, apc. alleged violators: magma foods pvt. ltd. chemical: lead and lead compounds source: tamicon tamarind concentrate, sweet &amp; sour tamarind paste, upc#812664009455 comments: re: this notice amends the original notice of violation ag#20"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01346" target="_blank">AG Number 2026-01346 (View Details) Notice PDF: 2026-01346.pdf Date Filed: 03/24/2026 Noticing Party: Calsafe Research C</a>
@@ -1235,6 +1402,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>CA AG — Prop 65 60-Day Notices</span>
           
@@ -1250,8 +1418,11 @@
            data-headline="ag number 2026-01345 (view details) notice pdf: 2026-01345.pdf date filed: 03/16/2026 noticing party: consumer advocacy"
            data-snippet="ag number 2026-01345 (view details) notice pdf: 2026-01345.pdf date filed: 03/16/2026 noticing party: consumer advocacy group, inc. plaintiff attorney: reuben yeroushalmi alleged violators: takari international, inc.; amazon.com, inc.; amazon.com services llc; amazon.com sales, inc. chemical: lead and lead compounds source: oven dried jeprox fish complaint (0)   settlement (0)   judgment (0)"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01345" target="_blank">AG Number 2026-01345 (View Details) Notice PDF: 2026-01345.pdf Date Filed: 03/16/2026 Noticing Party: Consumer Advocacy</a>
@@ -1259,6 +1430,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>CA AG — Prop 65 60-Day Notices</span>
           
@@ -1274,8 +1446,11 @@
            data-headline="ag number 2026-01344 (view details) notice pdf: 2026-01344.pdf date filed: 03/16/2026 noticing party: consumer advocacy"
            data-snippet="ag number 2026-01344 (view details) notice pdf: 2026-01344.pdf date filed: 03/16/2026 noticing party: consumer advocacy group, inc. plaintiff attorney: reuben yeroushalmi alleged violators: fish tales nl b.v.; sea tales usa; the tjx companies, inc.; t.j. maxx chemical: cadmium and cadmium compounds, lead and lead compounds source: smoked mussels complaint (0)   settlement (0)   judgment (0)"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01344" target="_blank">AG Number 2026-01344 (View Details) Notice PDF: 2026-01344.pdf Date Filed: 03/16/2026 Noticing Party: Consumer Advocacy</a>
@@ -1283,6 +1458,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>CA AG — Prop 65 60-Day Notices</span>
           
@@ -1298,8 +1474,11 @@
            data-headline="ag number 2026-01343 (view details) notice pdf: 2026-01343.pdf date filed: 03/16/2026 noticing party: consumer advocacy"
            data-snippet="ag number 2026-01343 (view details) notice pdf: 2026-01343.pdf date filed: 03/16/2026 noticing party: consumer advocacy group, inc. plaintiff attorney: reuben yeroushalmi alleged violators: seasnax inc.; seasnax, llc; lassens natural foods &amp; vitamins; lassens natural foods &amp; vitamins, llc chemical: cadmium and cadmium compounds source: seaweed chips complaint (0)   settlement (0)   judgment (0)"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01343" target="_blank">AG Number 2026-01343 (View Details) Notice PDF: 2026-01343.pdf Date Filed: 03/16/2026 Noticing Party: Consumer Advocacy</a>
@@ -1307,6 +1486,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>CA AG — Prop 65 60-Day Notices</span>
           
@@ -1322,8 +1502,11 @@
            data-headline="ag number 2026-01341 (view details) notice pdf: 2026-01341.pdf date filed: 03/16/2026 noticing party: consumer advocacy"
            data-snippet="ag number 2026-01341 (view details) notice pdf: 2026-01341.pdf date filed: 03/16/2026 noticing party: consumer advocacy group, inc. plaintiff attorney: reuben yeroushalmi alleged violators: mariner group co., ltd.; amazon.com sales, inc.; amazon.com services llc; amazon.com, inc. chemical: lead and lead compounds source: crispy white sardine original complaint (0)   settlement (0)   judgment (0)"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01341" target="_blank">AG Number 2026-01341 (View Details) Notice PDF: 2026-01341.pdf Date Filed: 03/16/2026 Noticing Party: Consumer Advocacy</a>
@@ -1331,6 +1514,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>CA AG — Prop 65 60-Day Notices</span>
           
@@ -1346,8 +1530,11 @@
            data-headline="ag number 2026-01340 (view details) notice pdf: 2026-01340.pdf date filed: 03/16/2026 noticing party: consumer advocacy"
            data-snippet="ag number 2026-01340 (view details) notice pdf: 2026-01340.pdf date filed: 03/16/2026 noticing party: consumer advocacy group, inc. plaintiff attorney: reuben yeroushalmi alleged violators: ezpacking, inc.; walmart, inc.; wal-mart.com usa, llc chemical: diisononyl phthalate (dinp) source: toiletry bags complaint (0)   settlement (0)   judgment (0)"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01340" target="_blank">AG Number 2026-01340 (View Details) Notice PDF: 2026-01340.pdf Date Filed: 03/16/2026 Noticing Party: Consumer Advocacy</a>
@@ -1355,6 +1542,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>CA AG — Prop 65 60-Day Notices</span>
           
@@ -1370,8 +1558,11 @@
            data-headline="ag number 2026-01339 (view details) notice pdf: 2026-01339.pdf date filed: 03/16/2026 noticing party: consumer advocacy"
            data-snippet="ag number 2026-01339 (view details) notice pdf: 2026-01339.pdf date filed: 03/16/2026 noticing party: consumer advocacy group, inc. plaintiff attorney: reuben yeroushalmi alleged violators: evriholder products, llc; homegoods, inc.; t.j. maxx; the tjx companies, inc. chemical: di(2-ethylhexyl)phthalate (dehp) source: premium makeup organizer makeup bag complaint (0)   settlement (0)   judgment (0)"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01339" target="_blank">AG Number 2026-01339 (View Details) Notice PDF: 2026-01339.pdf Date Filed: 03/16/2026 Noticing Party: Consumer Advocacy</a>
@@ -1379,6 +1570,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>CA AG — Prop 65 60-Day Notices</span>
           
@@ -1394,8 +1586,11 @@
            data-headline="ag number 2026-01338 (view details) notice pdf: 2026-01338.pdf date filed: 03/16/2026 noticing party: consumer advocacy"
            data-snippet="ag number 2026-01338 (view details) notice pdf: 2026-01338.pdf date filed: 03/16/2026 noticing party: consumer advocacy group, inc. plaintiff attorney: reuben yeroushalmi alleged violators: snack right super foods, inc.; brad&#39;s raw chips, llc; brad&#39;s raw chips, llc dba brad&#39;s raw foods; brad&#39;s plant based, llc; sprouts farmers market, inc. chemical: cadmium and cadmium compounds source: crunchy ka"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01338" target="_blank">AG Number 2026-01338 (View Details) Notice PDF: 2026-01338.pdf Date Filed: 03/16/2026 Noticing Party: Consumer Advocacy</a>
@@ -1403,6 +1598,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>CA AG — Prop 65 60-Day Notices</span>
           
@@ -1418,8 +1614,11 @@
            data-headline="ag number 2026-01337 (view details) notice pdf: 2026-01337.pdf date filed: 03/16/2026 noticing party: consumer advocacy"
            data-snippet="ag number 2026-01337 (view details) notice pdf: 2026-01337.pdf date filed: 03/16/2026 noticing party: consumer advocacy group, inc. plaintiff attorney: reuben yeroushalmi alleged violators: 100 misterios usa, llc; viva oliva llc chemical: cadmium and cadmium compounds source: spiced calamari in ragout sauce complaint (0)   settlement (0)   judgment (0)"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01337" target="_blank">AG Number 2026-01337 (View Details) Notice PDF: 2026-01337.pdf Date Filed: 03/16/2026 Noticing Party: Consumer Advocacy</a>
@@ -1427,6 +1626,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>CA AG — Prop 65 60-Day Notices</span>
           
@@ -1442,8 +1642,11 @@
            data-headline="ag number 2026-01335 (view details) notice pdf: 2026-01335.pdf date filed: 03/22/2026 noticing party: clean product advo"
            data-snippet="ag number 2026-01335 (view details) notice pdf: 2026-01335.pdf date filed: 03/22/2026 noticing party: clean product advocates, llc plaintiff attorney: cliffwood law firm, pc alleged violators: better living brands, llc; albertsons companies, inc. dba vons; albertsons companies, inc. chemical: lead source: organics chopped kale complaint (0)   settlement (0)   judgment (0)"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01335" target="_blank">AG Number 2026-01335 (View Details) Notice PDF: 2026-01335.pdf Date Filed: 03/22/2026 Noticing Party: Clean Product Advo</a>
@@ -1451,6 +1654,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>CA AG — Prop 65 60-Day Notices</span>
           
@@ -1466,8 +1670,11 @@
            data-headline="ag number 2026-01334 (view details) notice pdf: 2026-01334.pdf date filed: 03/22/2026 noticing party: clean product advo"
            data-snippet="ag number 2026-01334 (view details) notice pdf: 2026-01334.pdf date filed: 03/22/2026 noticing party: clean product advocates, llc plaintiff attorney: cliffwood law firm, pc alleged violators: kraft heinz foods company; albertsons companies, inc. dba vons chemical: lead source: smart ones angel hair marinara complaint (0)   settlement (0)   judgment (0)"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01334" target="_blank">AG Number 2026-01334 (View Details) Notice PDF: 2026-01334.pdf Date Filed: 03/22/2026 Noticing Party: Clean Product Advo</a>
@@ -1475,6 +1682,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>CA AG — Prop 65 60-Day Notices</span>
           
@@ -1490,8 +1698,11 @@
            data-headline="ag number 2026-01333 (view details) notice pdf: 2026-01333.pdf date filed: 03/22/2026 noticing party: clean product advo"
            data-snippet="ag number 2026-01333 (view details) notice pdf: 2026-01333.pdf date filed: 03/22/2026 noticing party: clean product advocates, llc plaintiff attorney: cliffwood law firm, pc alleged violators: united natural foods, inc. (unfi); united natural foods west, inc.; gelson&#39;s markets chemical: lead source: wild harvest organic cream of mushroom soup complaint (0)   settlement (0)   judgment (0)"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01333" target="_blank">AG Number 2026-01333 (View Details) Notice PDF: 2026-01333.pdf Date Filed: 03/22/2026 Noticing Party: Clean Product Advo</a>
@@ -1499,6 +1710,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>CA AG — Prop 65 60-Day Notices</span>
           
@@ -1514,8 +1726,11 @@
            data-headline="ag number 2026-01332 (view details) notice pdf: 2026-01332.pdf date filed: 03/22/2026 noticing party: clean product advo"
            data-snippet="ag number 2026-01332 (view details) notice pdf: 2026-01332.pdf date filed: 03/22/2026 noticing party: clean product advocates, llc plaintiff attorney: cliffwood law firm, pc alleged violators: lgm usa, inc.; weee! inc. chemical: lead source: laoganma spicy chili crisp complaint (0)   settlement (0)   judgment (0)"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01332" target="_blank">AG Number 2026-01332 (View Details) Notice PDF: 2026-01332.pdf Date Filed: 03/22/2026 Noticing Party: Clean Product Advo</a>
@@ -1523,6 +1738,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>CA AG — Prop 65 60-Day Notices</span>
           
@@ -1538,8 +1754,11 @@
            data-headline="ag number 2026-01331 (view details) notice pdf: 2026-01331.pdf date filed: 03/22/2026 noticing party: clean product advo"
            data-snippet="ag number 2026-01331 (view details) notice pdf: 2026-01331.pdf date filed: 03/22/2026 noticing party: clean product advocates, llc plaintiff attorney: cliffwood law firm, pc alleged violators: kraft heinz foods company; smart &amp; final stores llc chemical: lead source: lunchables extra cheesy pizza complaint (0)   settlement (0)   judgment (0)"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01331" target="_blank">AG Number 2026-01331 (View Details) Notice PDF: 2026-01331.pdf Date Filed: 03/22/2026 Noticing Party: Clean Product Advo</a>
@@ -1547,6 +1766,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>CA AG — Prop 65 60-Day Notices</span>
           
@@ -1559,35 +1779,14 @@
         
       </div>
       <div class="article-item"
-           data-headline="ag number 2026-01329 (view details) notice pdf: 2026-01329.pdf date filed: 03/21/2026 noticing party: clean product advo"
-           data-snippet="ag number 2026-01329 (view details) notice pdf: 2026-01329.pdf date filed: 03/21/2026 noticing party: clean product advocates, llc plaintiff attorney: cliffwood law firm, pc alleged violators: walmart inc. chemical: lead source: parent&#39;s choice apple mango &amp; spinach complaint (0)   settlement (0)   judgment (0)"
-           data-urgency="low"
-           data-date="2026-03-25">
-        <div class="article-head">
-          
-          <span class="article-headline">
-            <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01329" target="_blank">AG Number 2026-01329 (View Details) Notice PDF: 2026-01329.pdf Date Filed: 03/21/2026 Noticing Party: Clean Product Advo</a>
-          </span>
-          <span class="badge badge-low">LOW</span>
-          
-        </div>
-        <div class="article-meta">
-          <span>CA AG — Prop 65 60-Day Notices</span>
-          
-          <span>·</span>
-          <span>2026-03-25</span>
-          
-        </div>
-        
-        <div class="article-snippet">AG Number 2026-01329 (View Details) Notice PDF: 2026-01329.pdf Date Filed: 03/21/2026 Noticing Party: Clean Product Advocates, LLC Plaintiff Attorney: Cliffwood Law Firm, PC Alleged Violators: Walmart Inc. Chemical: Lead Source: Parent&#39;s Choice Apple Mango &amp; Spinach Complaint (0)   Settlement (0)   Judgment (0)</div>
-        
-      </div>
-      <div class="article-item"
            data-headline="ag number 2026-01347 (view details) notice pdf: 2026-01347.pdf date filed: 03/24/2026 noticing party: calsafe research c"
            data-snippet="ag number 2026-01347 (view details) notice pdf: 2026-01347.pdf date filed: 03/24/2026 noticing party: calsafe research center, inc. plaintiff attorney: manning law, apc. alleged violators: nutrasky, llc chemical: lead and lead compounds source: ninja supplements, guardian (reds and greens) - mango crush, upc#748515976464, ninja supplements, zen (sleep aid) - mango ginger tea, upc#748515976570, nin"
            data-urgency="low"
-           data-date="2026-03-24">
+           data-date="2026-03-24"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01347" target="_blank">AG Number 2026-01347 (View Details) Notice PDF: 2026-01347.pdf Date Filed: 03/24/2026 Noticing Party: Calsafe Research C</a>
@@ -1595,6 +1794,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>CA AG — Prop 65 60-Day Notices</span>
           
@@ -1610,8 +1810,11 @@
            data-headline="ag number 2026-01342 (view details) notice pdf: 2026-01342.pdf date filed: 03/16/2026 noticing party: consumer advocacy"
            data-snippet="ag number 2026-01342 (view details) notice pdf: 2026-01342.pdf date filed: 03/16/2026 noticing party: consumer advocacy group, inc. plaintiff attorney: reuben yeroushalmi alleged violators: seapoint farms, llc; seaside farms, inc.; iherb holdings, llc; iherb, llc chemical: cadmium and cadmium compounds, lead and lead compounds source: seaweed crisps pumpkin sesame complaint (0)   settlement (0)   "
            data-urgency="low"
-           data-date="2026-03-24">
+           data-date="2026-03-24"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01342" target="_blank">AG Number 2026-01342 (View Details) Notice PDF: 2026-01342.pdf Date Filed: 03/16/2026 Noticing Party: Consumer Advocacy</a>
@@ -1619,6 +1822,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>CA AG — Prop 65 60-Day Notices</span>
           
@@ -1634,8 +1838,11 @@
            data-headline="ag number 2026-01336 (view details) notice pdf: 2026-01336.pdf date filed: 03/23/2026 noticing party: clean product advo"
            data-snippet="ag number 2026-01336 (view details) notice pdf: 2026-01336.pdf date filed: 03/23/2026 noticing party: clean product advocates, llc plaintiff attorney: cliffwood law firm, pc alleged violators: cucina and amore inc.; marshalls of ca, llc; the tjx companies, inc. dba marshalls chemical: lead source: cucina &amp; amore bruschetta tapenade comments: this first amendment amends nov 2026-01221, filed on 03/"
            data-urgency="low"
-           data-date="2026-03-24">
+           data-date="2026-03-24"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01336" target="_blank">AG Number 2026-01336 (View Details) Notice PDF: 2026-01336.pdf Date Filed: 03/23/2026 Noticing Party: Clean Product Advo</a>
@@ -1643,6 +1850,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>CA AG — Prop 65 60-Day Notices</span>
           
@@ -1658,8 +1866,11 @@
            data-headline="ag number 2026-01330 (view details) notice pdf: 2026-01330.pdf date filed: 03/22/2026 noticing party: clean product advo"
            data-snippet="ag number 2026-01330 (view details) notice pdf: 2026-01330.pdf date filed: 03/22/2026 noticing party: clean product advocates, llc plaintiff attorney: cliffwood law firm, pc alleged violators: michael angelo’s gourmet foods; bottom line food processors, inc.; smart &amp; final stores llc chemical: cadmium, lead source: michael angelo&#39;s eggplant parmigiana complaint (0)   settlement (0)   judgment (0)"
            data-urgency="low"
-           data-date="2026-03-24">
+           data-date="2026-03-24"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01330" target="_blank">AG Number 2026-01330 (View Details) Notice PDF: 2026-01330.pdf Date Filed: 03/22/2026 Noticing Party: Clean Product Advo</a>
@@ -1667,6 +1878,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>CA AG — Prop 65 60-Day Notices</span>
           
@@ -1682,8 +1894,11 @@
            data-headline="ag number 2026-01328 (view details) notice pdf: 2026-01328.pdf date filed: 03/21/2026 noticing party: clean product advo"
            data-snippet="ag number 2026-01328 (view details) notice pdf: 2026-01328.pdf date filed: 03/21/2026 noticing party: clean product advocates, llc plaintiff attorney: cliffwood law firm, pc alleged violators: salad savoy corporation; smart &amp; final stores llc chemical: cadmium, lead source: tasty tuscany lacinato green kale complaint (0)   settlement (0)   judgment (0)"
            data-urgency="low"
-           data-date="2026-03-24">
+           data-date="2026-03-24"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://oag.ca.gov/prop65/60-Day-Notice-2026-01328" target="_blank">AG Number 2026-01328 (View Details) Notice PDF: 2026-01328.pdf Date Filed: 03/21/2026 Noticing Party: Clean Product Advo</a>
@@ -1691,6 +1906,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>CA AG — Prop 65 60-Day Notices</span>
           
@@ -1786,6 +2002,113 @@
     document.getElementById('tp-count').textContent = visibleCount + ' articles';
     document.getElementById('tp-no-results').classList.toggle('visible', visibleCount === 0 && items.length > 0);
   }
+
+  /* ── Topbar search: drives sidebar filter + main content highlight ── */
+  var _currentHighlightIdx = -1;
+  var _highlights = [];
+
+  function clearHighlights() {
+    var marks = document.querySelectorAll('.main .search-highlight');
+    marks.forEach(function(m) {
+      m.parentNode.replaceChild(document.createTextNode(m.textContent), m);
+    });
+    var main = document.querySelector('.main');
+    if (main) main.normalize();
+    _highlights = [];
+    _currentHighlightIdx = -1;
+  }
+
+  function highlightMainContent(query) {
+    clearHighlights();
+    if (!query || query.length < 2) return 0;
+
+    var container = document.querySelector('.main');
+    if (!container) return 0;
+
+    var lq = query.toLowerCase();
+    var walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
+      acceptNode: function(n) {
+        var tag = n.parentNode.nodeName.toLowerCase();
+        if (tag === 'script' || tag === 'style' || tag === 'mark') return NodeFilter.FILTER_REJECT;
+        return n.textContent.toLowerCase().includes(lq) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+      }
+    });
+
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+
+    nodes.forEach(function(node) {
+      var text = node.textContent;
+      var lower = text.toLowerCase();
+      var frag = document.createDocumentFragment();
+      var last = 0, idx;
+      while ((idx = lower.indexOf(lq, last)) !== -1) {
+        if (idx > last) frag.appendChild(document.createTextNode(text.slice(last, idx)));
+        var mark = document.createElement('mark');
+        mark.className = 'search-highlight';
+        mark.textContent = text.slice(idx, idx + query.length);
+        frag.appendChild(mark);
+        _highlights.push(mark);
+        last = idx + query.length;
+      }
+      if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    });
+
+    return _highlights.length;
+  }
+
+  function jumpToHighlight(idx) {
+    if (!_highlights.length) return;
+    _highlights.forEach(function(m) { m.classList.remove('search-current'); });
+    _currentHighlightIdx = ((idx % _highlights.length) + _highlights.length) % _highlights.length;
+    var target = _highlights[_currentHighlightIdx];
+    target.classList.add('search-current');
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function topbarSearch(query) {
+    query = query.trim();
+    // Mirror to sidebar
+    var sidebarInput = document.getElementById('tp-search');
+    if (sidebarInput && sidebarInput.value !== query) {
+      sidebarInput.value = query;
+      filterArticles();
+    }
+    var countEl = document.getElementById('topbar-search-count');
+    if (!query) {
+      clearHighlights();
+      countEl.textContent = '';
+      return;
+    }
+    var n = highlightMainContent(query);
+    if (n > 0) {
+      jumpToHighlight(0);
+      countEl.textContent = n + ' match' + (n === 1 ? '' : 'es');
+    } else {
+      countEl.textContent = 'no matches';
+    }
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      document.getElementById('topbar-search').focus();
+    }
+    if (e.key === 'Escape') {
+      var inp = document.getElementById('topbar-search');
+      inp.value = '';
+      topbarSearch('');
+      inp.blur();
+    }
+    // Enter / Shift+Enter cycles through matches
+    if (e.key === 'Enter' && document.activeElement === document.getElementById('topbar-search')) {
+      e.preventDefault();
+      if (_highlights.length) {
+        jumpToHighlight(e.shiftKey ? _currentHighlightIdx - 1 : _currentHighlightIdx + 1);
+      }
+    }
+  });
 </script>
 
 <script>

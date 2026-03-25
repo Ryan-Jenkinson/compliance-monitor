@@ -70,25 +70,69 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      color: rgba(255,255,255,0.55);
+      color: rgba(255,255,255,0.85);
       font-size: 12px;
       font-family: var(--mono);
       text-decoration: none;
-      border: 1px solid rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.30);
       border-radius: 4px;
       padding: 4px 10px;
-      transition: color 0.15s, border-color 0.15s;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
     }
-    .topbar-back:hover { color: #fff; border-color: rgba(255,255,255,0.3); text-decoration: none; }
-    .topbar-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.12); }
+    .topbar-back:hover { color: #fff; border-color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.08); text-decoration: none; }
+    .topbar-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.20); }
     .topbar-topic {
       font-weight: 700;
       font-size: 15px;
       letter-spacing: -0.01em;
       color: var(--topic-color);
     }
-    .topbar-label { color: rgba(255,255,255,0.45); font-size: 12px; font-family: var(--mono); }
-    .topbar-date { margin-left: auto; color: rgba(255,255,255,0.35); font-size: 11px; font-family: var(--mono); }
+    .topbar-label { color: rgba(255,255,255,0.70); font-size: 12px; font-family: var(--mono); }
+    .topbar-spacer { flex: 1; }
+    .topbar-date { color: rgba(255,255,255,0.55); font-size: 11px; font-family: var(--mono); white-space: nowrap; }
+    .topbar-search-wrap {
+      flex: 1 0 180px;
+      max-width: 280px;
+      min-width: 160px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .topbar-search-input {
+      flex: 1;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.20);
+      border-radius: 4px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-family: var(--sans);
+      color: #fff;
+      outline: none;
+      transition: all 0.12s;
+      min-width: 0;
+    }
+    .topbar-search-input::placeholder { color: rgba(255,255,255,0.38); }
+    .topbar-search-input:focus {
+      background: rgba(255,255,255,0.16);
+      border-color: var(--topic-color);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.08);
+    }
+    .topbar-search-count-tp {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(255,255,255,0.45);
+      white-space: nowrap;
+    }
+    .search-highlight {
+      background: #FFF176;
+      color: #111318;
+      border-radius: 2px;
+      padding: 0 1px;
+    }
+    .search-highlight.search-current {
+      background: #FF8F00;
+      color: #fff;
+    }
 
     /* ── LAYOUT: main content + fixed right article sidebar ─────── */
     .layout {
@@ -296,6 +340,48 @@
     .badge-high { background: var(--red-bg); color: var(--red); }
     .badge-medium { background: var(--amber-bg); color: var(--amber); }
     .badge-low { background: var(--green-bg); color: var(--green); }
+    .badge-indirect { background: #FFF8E1; color: #F57F17; border: 1px solid #FFE082; }
+    .badge-monitor  { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+
+    /* MONITOR articles: visually muted */
+    .article-item[data-relevance="MONITOR"] { opacity: 0.45; }
+    .article-item[data-relevance="MONITOR"]:hover { opacity: 0.75; transition: opacity 0.15s; }
+    .article-item[data-relevance="MONITOR"] .badge-high,
+    .article-item[data-relevance="MONITOR"] .badge-medium,
+    .article-item[data-relevance="MONITOR"] .badge-low { display: none; }
+    /* INDIRECT articles: urgency de-emphasized */
+    .article-item[data-relevance="INDIRECT"] .badge-high,
+    .article-item[data-relevance="INDIRECT"] .badge-medium,
+    .article-item[data-relevance="INDIRECT"] .badge-low { opacity: 0.5; font-size: 8px; }
+    .relevance-reason { font-size: 11px; color: #F57F17; font-style: italic; margin-top: 3px; }
+    .article-item.hidden-by-relevance { display: none !important; }
+
+    /* Compact badge legend for sidebar header */
+    .sidebar-legend {
+      background: var(--bg);
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      font-size: 11px;
+    }
+    .sidebar-legend-title {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+    }
+    .sidebar-legend-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 3px;
+      color: var(--text-secondary);
+    }
+    .sidebar-legend-sep { border-top: 1px solid var(--border-light); margin: 5px 0; }
 
     /* ── MAIN CONTENT WIDGETS ───────────────────────────────────── */
 
@@ -383,7 +469,7 @@
 
     /* Insight blocks */
     .insight-block {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--text-secondary);
       line-height: 1.6;
     }
@@ -402,7 +488,7 @@
       margin-top: 6px;
     }
     .insight-bullets li {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--text-secondary);
       padding: 3px 0 3px 14px;
       position: relative;
@@ -564,7 +650,7 @@
       padding-top: 1px;
     }
     .bill-body { flex: 1; min-width: 0; }
-    .bill-title-text { font-size: 13px; font-weight: 500; color: var(--text-primary); line-height: 1.35; margin-bottom: 2px; }
+    .bill-title-text { font-size: 14px; font-weight: 500; color: var(--text-primary); line-height: 1.35; margin-bottom: 2px; }
     .bill-action-text { font-size: 12px; color: var(--text-muted); }
     .bill-stage-tag {
       display: inline-block;
@@ -665,8 +751,8 @@
       font-family: var(--mono); font-size: 10px; font-weight: 700;
       border-radius: 3px; flex-shrink: 0; border: 1px solid var(--red-border);
     }
-    .csi-watch-text { font-size: 13px; color: var(--text-secondary); line-height: 1.45; flex: 1; }
-    .csi-watch-action { font-size: 12px; color: var(--blue); margin-top: 2px; font-style: italic; }
+    .csi-watch-text { font-size: 14px; color: var(--text-secondary); line-height: 1.45; flex: 1; }
+    .csi-watch-action { font-size: 13px; color: var(--blue); margin-top: 2px; font-style: italic; }
     .csi-mover-row { display: flex; align-items: flex-start; gap: 7px;
       padding: 7px 12px; border-bottom: 1px solid var(--border-light); }
     .csi-mover-row:last-child { border-bottom: none; }
@@ -678,7 +764,7 @@
     .csi-urgency.low { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
     .csi-mover-state { font-family: var(--mono); font-size: 11px; font-weight: 700;
       color: var(--text-primary); min-width: 24px; flex-shrink: 0; }
-    .csi-mover-text { font-size: 13px; color: var(--text-secondary); line-height: 1.4; flex: 1; }
+    .csi-mover-text { font-size: 14px; color: var(--text-secondary); line-height: 1.4; flex: 1; }
     .csi-campaign-card { background: var(--surface); border: 1px solid var(--border);
       border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; }
     .csi-campaign-header { display: flex; align-items: center; gap: 8px; padding: 8px 12px;
@@ -689,9 +775,9 @@
     .csi-chip { padding: 2px 6px; background: var(--blue-bg); color: var(--blue);
       font-family: var(--mono); font-size: 10px; font-weight: 700;
       border: 1px solid rgba(21,101,192,0.2); border-radius: 3px; }
-    .csi-campaign-body-text { padding: 10px 12px; font-size: 13px; color: var(--text-secondary);
+    .csi-campaign-body-text { padding: 10px 12px; font-size: 14px; color: var(--text-secondary);
       line-height: 1.55; }
-    .csi-campaign-relevance { padding: 8px 12px; font-size: 13px; color: var(--text-secondary);
+    .csi-campaign-relevance { padding: 8px 12px; font-size: 14px; color: var(--text-secondary);
       background: var(--amber-bg); border-top: 1px solid var(--amber-border); line-height: 1.5; }
     .csi-footer { display: flex; align-items: center; justify-content: space-between;
       margin-top: 8px; font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
@@ -856,6 +942,14 @@
   <div class="topbar-sep"></div>
   <span class="topbar-topic">TSCA</span>
   <span class="topbar-label">TSCA &amp; US Chemical Regulation</span>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-search-wrap">
+    <input type="text" id="topbar-search" class="topbar-search-input"
+           placeholder="Search page&#8230; ( / )" oninput="topbarSearch(this.value)"
+           autocomplete="off" spellcheck="false">
+    <span class="topbar-search-count-tp" id="topbar-search-count"></span>
+  </div>
+  <div class="topbar-sep"></div>
   <span class="topbar-date">25 Mar 2026</span>
 </div>
 
@@ -1022,19 +1116,19 @@
       <div class="impact-grid">
         
         <span class="impact-label">Products</span>
-        <span class="impact-text">TCE and PCE extensions are directly relevant if fluoropolymer coating or surface preparation processes use chlorinated solvents — confirm current process chemistry against the extended-but-not-repealed Section 6 restrictions before the ~May 2026 TCE exemption conditions take effect.</span>
+        <span class="impact-text">The TCE, PCE, and carbon tetrachloride TSCA Section 6 rules directly threaten solvent-based cleaning and surface preparation steps upstream of fluoropolymer coating application; extended deadlines provide a temporary window to assess and transition these process chemistries.</span>
         
         
         <span class="impact-label">Supply Chain</span>
-        <span class="impact-text">Suppliers of cleaning agents, degreasers, adhesives, and industrial process chemicals containing TCE, PCE, or carbon tetrachloride face near-term use restrictions that could disrupt availability of those materials as components of purchased products or maintenance supplies.</span>
+        <span class="impact-text">Suppliers providing precision-cleaned metal components, electronic subassemblies, or degreased parts may use TCE or PCE in their manufacturing processes, creating a risk of supply disruption or forced reformulation once Section 6 exemption postponements expire.</span>
         
         
         <span class="impact-label">Actions</span>
-        <ul class="impact-list"><li>Audit internal manufacturing processes and coating operations for any use of TCE, PCE, or carbon tetrachloride, and map exact compliance deadlines from the Federal Register notices for each chemical to ensure no gap when the current postponements expire (~May 2026 for TCE Section 6(g) conditions; confirm PCE/CCl4 dates from the EPA extension notice).</li><li>Review CDR threshold quantities against 2025 production volumes for any TSCA-listed substances manufactured or imported in-house, and initiate the 2026 CDR submission workflow now to meet the September 30, 2026 deadline without a last-minute scramble.</li></ul>
+        <ul class="impact-list"><li>Audit internal manufacturing processes for any use of TCE, PCE, or carbon tetrachloride in surface prep or coating operations and document current Section 6(g) exemption status before the ~May 19, 2026 TCE postponement expiration.</li><li>Confirm whether any chemicals in the company&#39;s fluoropolymer coating formulations or process chemistries appear in the September–December 2025 or January 2026 new chemical findings batches, and assess CDR reporting obligations ahead of the October 2026 ICR expiration.</li></ul>
         
         
         <span class="impact-label">Supplier</span>
-        <ul class="impact-list"><li>Add TCE/PCE/carbon tetrachloride TSCA Section 6 compliance status to the existing supplier outreach campaign for distributors and chemical suppliers, requesting confirmation of their transition plans before the postponement windows close.</li><li>Request that suppliers of composite wood components (used in equipment enclosures or fixtures) confirm current TSCA Title VI formaldehyde compliance and notify you of any product changes triggered by the proposed QC test method update.</li></ul>
+        <ul class="impact-list"><li>Add TSCA Section 6 solvent restriction risk (TCE, PCE, carbon tetrachloride) to the existing supplier education campaign, specifically targeting metal fabrication, precision machining, and electronics suppliers who commonly use these solvents in cleaning steps.</li><li>Request that key component suppliers confirm whether they hold Section 6(g) exemptions for TCE or PCE use and what their substitution timeline is, to assess supply continuity risk before exemption deadlines arrive.</li></ul>
         
       </div>
     </div>
@@ -1049,7 +1143,7 @@
       <div class="section-title-line"></div>
     </div>
     <div class="panel">
-      <div class="strategy-text">The most urgent TSCA action this week is confirming whether any internal manufacturing or coating preparation processes use TCE, PCE, or carbon tetrachloride — the Section 6 postponements are temporary and the TCE Section 6(g) exemption conditions are approximately 90 days from activation as of mid-February. In parallel, the compliance team should retrieve the exact extended compliance dates for the PCE and carbon tetrachloride rules from the Federal Register docket and build a consolidated TSCA Section 6 deadline tracker covering all three solvents. Supplier outreach on these solvent restrictions should be folded into the existing PFAS/PRISM campaign as a parallel chemical compliance risk thread, particularly targeting chemical distributors and maintenance supply vendors.</div>
+      <div class="strategy-text">The most time-sensitive TSCA item this week is the TCE Section 6(g) postponement expiration around May 19, 2026 — the compliance team should immediately identify any internal or supplier-side TCE use and map exposure before that window closes. In parallel, the PCE and carbon tetrachloride compliance date extensions should be tracked for their exact new deadlines via the Federal Register, and both solvents should be added to the supplier risk screening process running alongside the PFAS/PRISM campaign. The CDR ICR renewal signals that the next Chemical Data Reporting cycle is approaching; confirm now whether production volumes of any TSCA-listed chemicals in coating formulations meet reporting thresholds so submissions can be prepared ahead of the 2026 cycle.</div>
     </div>
     
 
@@ -1980,6 +2074,16 @@
         </select>
       </div>
       <div class="filter-count" id="tp-count">17 articles</div>
+      <!-- Compact badge legend -->
+      <div class="sidebar-legend">
+        <div class="sidebar-legend-title">&#x25A6; Badge Guide</div>
+        <div class="sidebar-legend-row"><span class="badge badge-new" style="font-size:9px;padding:1px 4px;">New</span> First seen this week</div>
+        <div class="sidebar-legend-row"><span class="badge badge-high" style="font-size:9px;">HIGH</span> &lt;90 days · <span class="badge badge-medium" style="font-size:9px;">MED</span> 90–365d · <span class="badge badge-low" style="font-size:9px;">LOW</span> long-range</div>
+        <div class="sidebar-legend-sep"></div>
+        <div class="sidebar-legend-row"><span class="badge badge-indirect" style="font-size:9px;">Indirect</span> Signals trends for us (hover for why)</div>
+        <div class="sidebar-legend-row"><span class="badge badge-monitor" style="font-size:9px;">Monitor</span> General news — no direct impact</div>
+        <div class="sidebar-legend-row" style="opacity:0.5;">Faded row = older than 30 days</div>
+      </div>
     </div>
 
     <div class="article-list-scroll" id="tp-article-list">
@@ -1989,8 +2093,11 @@
            data-headline="recent actions on pollution prevention and toxic chemicals"
            data-snippet="epa tsca update: recent actions on pollution prevention and toxic chemicals"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.epa.gov/chemicals-under-tsca/pollution-prevention-and-toxics-news-stories" target="_blank">recent actions on pollution prevention and toxic chemicals</a>
@@ -1998,6 +2105,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>EPA</span>
           
@@ -2013,8 +2121,11 @@
            data-headline="frank r. lautenberg chemical safety for the 21st century act"
            data-snippet="epa tsca update: frank r. lautenberg chemical safety for the 21st century act"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.epa.gov/assessing-and-managing-chemicals-under-tsca/frank-r-lautenberg-chemical-safety-21st-century-act" target="_blank">Frank R. Lautenberg Chemical Safety for the 21st Century Act</a>
@@ -2022,6 +2133,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>EPA</span>
           
@@ -2037,8 +2149,11 @@
            data-headline="epa extends compliance dates for perchloroethylene and carbon tetrachloride tsca rules"
            data-snippet="epa tsca update: epa extends compliance dates for perchloroethylene and carbon tetrachloride tsca rules"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.epa.gov/chemicals-under-tsca/epa-extends-compliance-dates-perchloroethylene-and-carbon-tetrachloride-tsca" target="_blank">EPA Extends Compliance Dates for Perchloroethylene and Carbon Tetrachloride TSCA Rules</a>
@@ -2046,6 +2161,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>EPA</span>
           
@@ -2061,8 +2177,11 @@
            data-headline="epa to showcase gold standard science at 2026 society of toxicology’s annual meeting"
            data-snippet="epa tsca update: epa to showcase gold standard science at 2026 society of toxicology’s annual meeting"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.epa.gov/chemicals-under-tsca/epa-showcase-gold-standard-science-2026-society-toxicologys-annual-meeting" target="_blank">EPA to Showcase Gold Standard Science at 2026 Society of Toxicology’s Annual Meeting</a>
@@ -2070,6 +2189,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>EPA</span>
           
@@ -2085,8 +2205,11 @@
            data-headline="epa proposes updates to formaldehyde emission standards, adding new quality control test method for composite wood products"
            data-snippet="epa tsca update: epa proposes updates to formaldehyde emission standards, adding new quality control test method for composite wood products"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.epa.gov/chemicals-under-tsca/epa-proposes-updates-formaldehyde-emission-standards-adding-new-quality" target="_blank">EPA Proposes Updates to Formaldehyde Emission Standards, Adding New Quality Control Test Method for Composite Wood Products</a>
@@ -2094,6 +2217,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>EPA</span>
           
@@ -2109,8 +2233,11 @@
            data-headline="icymi: epa requests nominations for panel members and ad hoc reviewers for the science advisory committee on chemicals"
            data-snippet="epa tsca update: icymi: epa requests nominations for panel members and ad hoc reviewers for the science advisory committee on chemicals"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.epa.gov/chemicals-under-tsca/icymi-epa-requests-nominations-panel-members-and-ad-hoc-reviewers-science" target="_blank">ICYMI: EPA Requests Nominations for Panel Members and Ad Hoc Reviewers for the Science Advisory Committee on Chemicals</a>
@@ -2118,6 +2245,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>EPA</span>
           
@@ -2133,8 +2261,11 @@
            data-headline="tsca chemical substance inventory"
            data-snippet="epa tsca update: tsca chemical substance inventory"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.epa.gov/tsca-inventory" target="_blank">TSCA Chemical Substance Inventory</a>
@@ -2142,6 +2273,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>EPA</span>
           
@@ -2157,8 +2289,11 @@
            data-headline="contact us about chemicals under the toxic substance control act (tsca)"
            data-snippet="epa tsca update: contact us about chemicals under the toxic substance control act (tsca)"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.epa.gov/chemicals-under-tsca/forms/contact-us-about-chemicals-under-toxic-substance-control-act-tsca" target="_blank">Contact Us about Chemicals under the Toxic Substance Control Act (TSCA)</a>
@@ -2166,6 +2301,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>EPA</span>
           
@@ -2181,8 +2317,11 @@
            data-headline="250+ groups urge congress to reject chemical lobby push to weaken tsca"
            data-snippet="safer states: 250+ groups urge congress to reject chemical lobby push to weaken tsca"
            data-urgency="low"
-           data-date="2026-03-25">
+           data-date="2026-03-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.saferstates.org/insights/250-groups-urge-congress-to-reject-chemical-lobby-push-to-weaken-tsca/" target="_blank">250+ groups urge Congress to reject chemical lobby push to weaken TSCA</a>
@@ -2190,6 +2329,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Safer States</span>
           
@@ -2205,8 +2345,11 @@
            data-headline="certain new chemicals or significant new uses; statements of findings-january 2026"
            data-snippet="the toxic substances control act (tsca) requires epa to publish in the federal register a statement of its findings after its review of certain tsca submissions when epa makes a finding that a new chemical substance or significant new use is not likely to present an unreasonable risk of injury to health or the environment. such statements apply to premanufacture notices (pmns), microbial commercial activity notices (mcans), and significant new use notices (snuns) submitted to epa under tsca. thi"
            data-urgency="low"
-           data-date="2026-03-23">
+           data-date="2026-03-23"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/03/23/2026-05584/certain-new-chemicals-or-significant-new-uses-statements-of-findings-january-2026" target="_blank">Certain New Chemicals or Significant New Uses; Statements of Findings-January 2026</a>
@@ -2214,6 +2357,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -2229,8 +2373,11 @@
            data-headline="certain new chemicals; receipt and status information for september-december 2025"
            data-snippet="this document announces the agency&#39;s receipt of new chemical submissions under the toxic substances control act (tsca), including information about the receipt of a premanufacture notice (pmn), significant new use notice (snun), microbial commercial activity notice (mcan), and an amendment to a previously submitted notice; test information; a biotechnology exemption application; an application for a test marketing exemption (tme); and a notice of commencement of manufacture (defined by statute t"
            data-urgency="low"
-           data-date="2026-03-10">
+           data-date="2026-03-10"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/03/10/2026-04651/certain-new-chemicals-receipt-and-status-information-for-september-december-2025" target="_blank">Certain New Chemicals; Receipt and Status Information for September-December 2025</a>
@@ -2238,6 +2385,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -2253,8 +2401,11 @@
            data-headline="developing specifications for in-home disposal systems for opioid analgesics dispensed in an outpatient setting; establishment of a public docket; request for comments"
            data-snippet="the food and drug administration (fda, the agency, or we) is announcing the establishment of a docket to solicit public comment on what specifications for in-home disposal systems, if application holders are required to make them available under the opioid analgesic risk evaluation and mitigation strategy, would be necessary to show that these systems may mitigate the serious risks of abuse or overdose involving these medications."
            data-urgency="low"
-           data-date="2026-03-06">
+           data-date="2026-03-06"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/03/06/2026-04479/developing-specifications-for-in-home-disposal-systems-for-opioid-analgesics-dispensed-in-an" target="_blank">Developing Specifications for In-Home Disposal Systems for Opioid Analgesics Dispensed in an Outpatient Setting; Establishment of a Public Docket; Request for Comments</a>
@@ -2262,6 +2413,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -2277,8 +2429,11 @@
            data-headline="certain new chemicals or significant new uses; statements of findings-november 2025 to december 2025"
            data-snippet="the toxic substances control act (tsca) requires epa to publish in the federal register a statement of its findings after its review of certain tsca submissions when epa makes a finding that a new chemical substance or significant new use is not likely to present an unreasonable risk of injury to health or the environment. such statements apply to premanufacture notices (pmns), microbial commercial activity notices (mcans), and significant new use notices (snuns) submitted to epa under tsca. thi"
            data-urgency="low"
-           data-date="2026-03-04">
+           data-date="2026-03-04"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/03/04/2026-04301/certain-new-chemicals-or-significant-new-uses-statements-of-findings-november-2025-to-december-2025" target="_blank">Certain New Chemicals or Significant New Uses; Statements of Findings-November 2025 to December 2025</a>
@@ -2286,6 +2441,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -2301,8 +2457,11 @@
            data-headline="agency information collection activities; proposed renewal collection and request for comment; confidential business information claims under the toxic substances control act (tsca)"
            data-snippet="in compliance with the paperwork reduction act (pra), this document announces the availability of and solicits public comment on the following information collection request (icr) that epa is planning to submit to the office of management and budget (omb): confidential business information claims under the toxic substances control act (tsca) (epa icr no. 2706.04 and omb control no. 2070-0223). this icr represents a renewal of an existing icr that is currently approved through august 31, 2026. be"
            data-urgency="low"
-           data-date="2026-02-25">
+           data-date="2026-02-25"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/02/25/2026-03763/agency-information-collection-activities-proposed-renewal-collection-and-request-for-comment" target="_blank">Agency Information Collection Activities; Proposed Renewal Collection and Request for Comment; Confidential Business Information Claims Under the Toxic Substances Control Act (TSCA)</a>
@@ -2310,6 +2469,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -2325,8 +2485,11 @@
            data-headline="prior notice of citizen suits"
            data-snippet="the environmental protection agency (epa) is proposing to amend its regulations prescribing the manner in which prior notice of citizen suits is to be provided as required under the citizen suit provisions of the clean air act (caa), the clean water act (cwa), the safe drinking water act (sdwa), the noise control act (nca), the resource conservation and recovery act (rcra), the comprehensive environmental response, compensation, and liability act (cercla), and the toxic substances control act (t"
            data-urgency="low"
-           data-date="2026-02-24">
+           data-date="2026-02-24"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/02/24/2026-03646/prior-notice-of-citizen-suits" target="_blank">Prior Notice of Citizen Suits</a>
@@ -2334,6 +2497,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -2349,8 +2513,11 @@
            data-headline="agency information collection activities; proposed renewal collection and request for comment; chemical data reporting under the toxic substances control act (tsca)"
            data-snippet="in compliance with the paperwork reduction act (pra), this document announces the availability of and solicits public comment on the following information collection request (icr) that epa is planning to submit to the office of management and budget (omb): chemical data reporting under the toxic substances control act (tsca) (epa icr no. 1884.17 and omb control no. 2070-0162). this icr represents a renewal of an existing icr that is currently approved through october 31, 2026. before submitting "
            data-urgency="low"
-           data-date="2026-02-24">
+           data-date="2026-02-24"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/02/24/2026-03636/agency-information-collection-activities-proposed-renewal-collection-and-request-for-comment" target="_blank">Agency Information Collection Activities; Proposed Renewal Collection and Request for Comment; Chemical Data Reporting Under the Toxic Substances Control Act (TSCA)</a>
@@ -2358,6 +2525,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -2373,8 +2541,11 @@
            data-headline="extension of postponement of effectiveness for certain provisions of trichloroethylene (tce); regulation under the toxic substances control act (tsca)"
            data-snippet="the environmental protection agency (epa or agency) is extending the postponement of the effectiveness of certain regulatory provisions of the final rule entitled &#34;trichloroethylene (tce); regulation under the toxic substances control act (tsca)&#34; for an additional 90 days. specifically, this postponement applies to the conditions imposed on the uses with tsca section 6(g) exemptions."
            data-urgency="low"
-           data-date="2026-02-18">
+           data-date="2026-02-18"
+           data-relevance="None">
         <div class="article-head">
+          
+          
           
           <span class="article-headline">
             <a href="https://www.federalregister.gov/documents/2026/02/18/2026-03155/extension-of-postponement-of-effectiveness-for-certain-provisions-of-trichloroethylene-tce" target="_blank">Extension of Postponement of Effectiveness for Certain Provisions of Trichloroethylene (TCE); Regulation Under the Toxic Substances Control Act (TSCA)</a>
@@ -2382,6 +2553,7 @@
           <span class="badge badge-low">LOW</span>
           
         </div>
+        
         <div class="article-meta">
           <span>Federal Register</span>
           
@@ -2477,6 +2649,113 @@
     document.getElementById('tp-count').textContent = visibleCount + ' articles';
     document.getElementById('tp-no-results').classList.toggle('visible', visibleCount === 0 && items.length > 0);
   }
+
+  /* ── Topbar search: drives sidebar filter + main content highlight ── */
+  var _currentHighlightIdx = -1;
+  var _highlights = [];
+
+  function clearHighlights() {
+    var marks = document.querySelectorAll('.main .search-highlight');
+    marks.forEach(function(m) {
+      m.parentNode.replaceChild(document.createTextNode(m.textContent), m);
+    });
+    var main = document.querySelector('.main');
+    if (main) main.normalize();
+    _highlights = [];
+    _currentHighlightIdx = -1;
+  }
+
+  function highlightMainContent(query) {
+    clearHighlights();
+    if (!query || query.length < 2) return 0;
+
+    var container = document.querySelector('.main');
+    if (!container) return 0;
+
+    var lq = query.toLowerCase();
+    var walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
+      acceptNode: function(n) {
+        var tag = n.parentNode.nodeName.toLowerCase();
+        if (tag === 'script' || tag === 'style' || tag === 'mark') return NodeFilter.FILTER_REJECT;
+        return n.textContent.toLowerCase().includes(lq) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+      }
+    });
+
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+
+    nodes.forEach(function(node) {
+      var text = node.textContent;
+      var lower = text.toLowerCase();
+      var frag = document.createDocumentFragment();
+      var last = 0, idx;
+      while ((idx = lower.indexOf(lq, last)) !== -1) {
+        if (idx > last) frag.appendChild(document.createTextNode(text.slice(last, idx)));
+        var mark = document.createElement('mark');
+        mark.className = 'search-highlight';
+        mark.textContent = text.slice(idx, idx + query.length);
+        frag.appendChild(mark);
+        _highlights.push(mark);
+        last = idx + query.length;
+      }
+      if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    });
+
+    return _highlights.length;
+  }
+
+  function jumpToHighlight(idx) {
+    if (!_highlights.length) return;
+    _highlights.forEach(function(m) { m.classList.remove('search-current'); });
+    _currentHighlightIdx = ((idx % _highlights.length) + _highlights.length) % _highlights.length;
+    var target = _highlights[_currentHighlightIdx];
+    target.classList.add('search-current');
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function topbarSearch(query) {
+    query = query.trim();
+    // Mirror to sidebar
+    var sidebarInput = document.getElementById('tp-search');
+    if (sidebarInput && sidebarInput.value !== query) {
+      sidebarInput.value = query;
+      filterArticles();
+    }
+    var countEl = document.getElementById('topbar-search-count');
+    if (!query) {
+      clearHighlights();
+      countEl.textContent = '';
+      return;
+    }
+    var n = highlightMainContent(query);
+    if (n > 0) {
+      jumpToHighlight(0);
+      countEl.textContent = n + ' match' + (n === 1 ? '' : 'es');
+    } else {
+      countEl.textContent = 'no matches';
+    }
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      document.getElementById('topbar-search').focus();
+    }
+    if (e.key === 'Escape') {
+      var inp = document.getElementById('topbar-search');
+      inp.value = '';
+      topbarSearch('');
+      inp.blur();
+    }
+    // Enter / Shift+Enter cycles through matches
+    if (e.key === 'Enter' && document.activeElement === document.getElementById('topbar-search')) {
+      e.preventDefault();
+      if (_highlights.length) {
+        jumpToHighlight(e.shiftKey ? _currentHighlightIdx - 1 : _currentHighlightIdx + 1);
+      }
+    }
+  });
 </script>
 
 <script>
