@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regulatory Deadline Timeline</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F4F5F7;
+      --surface: #FFFFFF;
+      --surface-sunken: #EBEDF0;
+      --surface-dark: #1A1D23;
+      --surface-dark-2: #22252C;
+      --border: #D8DBE0;
+      --border-light: #E8EAED;
+      --text-primary: #111318;
+      --text-secondary: #4A4F5C;
+      --text-tertiary: #7A8194;
+      --red: #D63031;
+      --red-bg: #FEF0F0;
+      --red-border: #FACACA;
+      --amber: #CB7B0A;
+      --amber-bg: #FEF6E8;
+      --amber-border: #F5DFA6;
+      --green: #0F7B3F;
+      --green-bg: #EEFAF3;
+      --green-border: #B2E0C7;
+      --blue: #1565C0;
+      --teal: #0F766E;
+      --accent: #D64045;
+      --sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'IBM Plex Mono', 'Consolas', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--sans);
+      font-size: 13px;
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+    }
+
+    /* ── Page layout ─────────────────────────── */
+    .page-wrap {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* ── Topbar ─────────────────────────────── */
+    .page-hdr {
+      background: var(--surface);
+      border-bottom: 3px solid #D64045;
+      padding: 0 24px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+    .hdr-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .hdr-brand {
+      width: 26px; height: 26px;
+      background: linear-gradient(135deg, #0F766E, #1565C0);
+      border-radius: 5px;
+      flex-shrink: 0;
+    }
+    .hdr-eyebrow {
+      font-family: var(--mono);
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #D64045;
+    }
+    .hdr-title {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: .5px;
+    }
+    .hdr-sub {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--text-tertiary);
+      letter-spacing: .5px;
+      margin-top: 2px;
+    }
+    /* ── Site nav ─────────────────────────────── */
+    .site-nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .nav-section {
+      font-family: var(--mono);
+      color: var(--text-tertiary);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 0 8px 0 4px;
+    }
+    .nav-sep {
+      width: 1px;
+      height: 14px;
+      background: var(--border);
+      margin: 0 8px;
+    }
+    .nav-item {
+      font-family: var(--mono);
+      color: var(--text-secondary);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: .5px;
+      text-decoration: none;
+      padding: 4px 10px;
+      border-radius: 4px;
+      transition: background 0.12s, color 0.12s;
+    }
+    .nav-item:hover { background: var(--surface-sunken); color: var(--text-primary); }
+    .nav-item.active { background: var(--bg); color: #D64045; font-weight: 700; border: 1px solid var(--border); }
+
+    /* ── Gantt scroll container ───────────────── */
+    .tl-scroll {
+      flex: 1;
+      overflow: auto;
+      position: relative;
+      background: var(--bg);
+    }
+    .tl-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .tl-scroll::-webkit-scrollbar-track { background: transparent; }
+    .tl-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── Inner container — sets total width ────── */
+    .tl-inner {
+      min-width: 11170px;
+    }
+
+    /* ── Axis header ─────────────────────────── */
+    .tl-axis {
+      display: flex;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .axis-jx-col {
+      width: 220px;
+      flex-shrink: 0;
+      padding: 8px 16px;
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      border-right: 1px solid var(--border);
+      position: sticky;
+      left: 0;
+      z-index: 55;
+      background: var(--surface);
+    }
+    .axis-chart-col {
+      width: 10950px;
+      flex-shrink: 0;
+      position: relative;
+      height: 38px;
+    }
+    .q-lbl {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .q-tick {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: var(--border-light);
+      pointer-events: none;
+    }
+
+    /* ── Jurisdiction group ──────────────────── */
+    .jx-group {
+      display: flex;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .jx-group:last-child { border-bottom: none; }
+    .jx-group:hover { background: #FAFBFC; }
+    .jx-group.inactive { opacity: 0.35; }
+
+    .jx-label {
+      width: 220px;
+      flex-shrink: 0;
+      padding: 10px 16px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+      min-height: 52px;
+      position: sticky;
+      left: 0;
+      z-index: 5;
+      background: var(--surface);
+    }
+    .jx-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+    .jx-abbr {
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: 2px;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    .jx-group.inactive .jx-name { color: var(--text-tertiary); }
+
+    .jx-rows {
+      width: 10950px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Deadline row ────────────────────────── */
+    .dl-row {
+      display: flex;
+      align-items: stretch;
+      border-bottom: 1px solid var(--border-light);
+      min-height: 52px;
+    }
+    .dl-row:last-child { border-bottom: none; }
+    .dl-row.empty { min-height: 40px; align-items: center; }
+
+    .dl-chart-area {
+      width: 10950px;
+      flex-shrink: 0;
+      padding: 8px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .dl-bar {
+      position: relative;
+      height: 24px;
+      border: 1px solid;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      padding-left: 10px;
+      padding-right: 4px;
+      overflow: hidden;
+      min-width: 6px;
+      max-width: 100%;
+    }
+    /* urgency bar colors — light-theme versions */
+    .dl-bar.urg-high   { background: var(--red-bg);   border-color: var(--red-border); }
+    .dl-bar.urg-medium { background: var(--amber-bg); border-color: var(--amber-border); }
+    .dl-bar.urg-low    { background: var(--green-bg); border-color: var(--green-border); }
+    .dl-end-pip {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      border-radius: 0 2px 2px 0;
+      flex-shrink: 0;
+    }
+    .pip-high   { background: var(--red); }
+    .pip-medium { background: var(--amber); }
+    .pip-low    { background: var(--green); }
+    .dl-title {
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: 0.2px;
+      padding-right: 8px;
+    }
+    .title-high   { color: var(--red); }
+    .title-medium { color: #92400E; }
+    .title-low    { color: var(--green); }
+
+    .dl-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .dl-date {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--text-secondary);
+      letter-spacing: 0.5px;
+    }
+    .dl-badge {
+      font-family: var(--mono);
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 1px 5px;
+      border: 1px solid;
+      border-radius: 2px;
+    }
+    .dl-urg {
+      font-family: var(--mono);
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .urg-txt-high   { color: var(--red); }
+    .urg-txt-medium { color: var(--amber); }
+    .urg-txt-low    { color: var(--green); }
+    .dl-src {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--blue);
+      text-decoration: none;
+      letter-spacing: 0.5px;
+    }
+    .dl-src:hover { text-decoration: underline; }
+
+    .no-dl {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-tertiary);
+      letter-spacing: 1px;
+      padding-left: 20px;
+    }
+
+    /* ── Legend ──────────────────────────────── */
+    .legend {
+      flex-shrink: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .legend-title {
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-right: 4px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .5px;
+      color: var(--text-secondary);
+    }
+    .legend-swatch {
+      width: 14px;
+      height: 10px;
+      border: 1px solid;
+      border-radius: 2px;
+    }
+    .sw-high   { background: var(--red-bg);   border-color: var(--red-border); }
+    .sw-medium { background: var(--amber-bg); border-color: var(--amber-border); }
+    .sw-low    { background: var(--green-bg); border-color: var(--green-border); }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+<!-- Topbar -->
+<div class="page-hdr">
+  <div class="hdr-left">
+    <div class="hdr-brand"></div>
+    <div>
+      <div class="hdr-eyebrow">Compliance Intelligence</div>
+      <div class="hdr-title">Regulatory Deadline Timeline</div>
+    </div>
+  </div>
+  <div class="hdr-sub">Generated March 24, 2026 &nbsp;&middot;&nbsp; 59 deadlines across 18 jurisdictions</div>
+</div>
+
+<!-- Site nav -->
+<nav class="site-nav">
+  <span class="nav-section">Maps</span>
+  <a href="https://ryan-jenkinson.github.io/compliance-maps/index.html" class="nav-item">PFAS</a><a href="https://ryan-jenkinson.github.io/compliance-maps/epr-map.html" class="nav-item">EPR</a><a href="https://ryan-jenkinson.github.io/compliance-maps/reach-map.html" class="nav-item">REACH</a>
+  <div class="nav-sep"></div>
+  <span class="nav-section">Timelines</span>
+  <a href="https://ryan-jenkinson.github.io/compliance-maps/pfas-timeline.html" class="nav-item">PFAS</a><a href="https://ryan-jenkinson.github.io/compliance-maps/epr-timeline.html" class="nav-item">EPR</a><a href="https://ryan-jenkinson.github.io/compliance-maps/reach-timeline.html" class="nav-item">REACH</a><a href="https://ryan-jenkinson.github.io/compliance-maps/tsca-timeline.html" class="nav-item">TSCA</a><a href="https://ryan-jenkinson.github.io/compliance-maps/deadline-timeline.html" class="nav-item active">All Topics</a>
+</nav>
+
+<!-- Gantt scroll area -->
+<div class="tl-scroll">
+  <div class="tl-inner">
+
+    <!-- Sticky axis header -->
+    <div class="tl-axis">
+      <div class="axis-jx-col">Jurisdiction</div>
+      <div class="axis-chart-col" id="axisChart">
+        <div class="q-lbl" style="left:0.00%">Q1 2026</div><div class="q-lbl" style="left:0.36%">Q2 2026</div><div class="q-lbl" style="left:4.50%">Q3 2026</div><div class="q-lbl" style="left:8.69%">Q4 2026</div><div class="q-lbl" style="left:12.87%">Q1 2027</div><div class="q-lbl" style="left:16.96%">Q2 2027</div><div class="q-lbl" style="left:21.10%">Q3 2027</div><div class="q-lbl" style="left:25.28%">Q4 2027</div><div class="q-lbl" style="left:29.47%">Q1 2028</div><div class="q-lbl" style="left:33.61%">Q2 2028</div><div class="q-lbl" style="left:37.74%">Q3 2028</div><div class="q-lbl" style="left:41.93%">Q4 2028</div><div class="q-lbl" style="left:46.11%">Q1 2029</div><div class="q-lbl" style="left:50.20%">Q2 2029</div><div class="q-lbl" style="left:54.34%">Q3 2029</div><div class="q-lbl" style="left:58.53%">Q4 2029</div><div class="q-lbl" style="left:62.71%">Q1 2030</div><div class="q-lbl" style="left:66.80%">Q2 2030</div><div class="q-lbl" style="left:70.94%">Q3 2030</div><div class="q-lbl" style="left:75.13%">Q4 2030</div><div class="q-lbl" style="left:79.31%">Q1 2031</div><div class="q-lbl" style="left:83.40%">Q2 2031</div><div class="q-lbl" style="left:87.54%">Q3 2031</div><div class="q-lbl" style="left:91.72%">Q4 2031</div><div class="q-lbl" style="left:95.91%">Q1 2032</div>
+      </div>
+    </div>
+
+    <!-- Jurisdiction rows -->
+
+    <div class="jx-group">
+      <div class="jx-label">
+        <span class="jx-name">Federal</span>
+        
+      </div>
+      <div class="jx-rows">
+      <div class="dl-row" title="EPA TSCA CBI Claims Information Collection Renewal&#10;Due: Aug 31, 2026&#10;Current TSCA Confidential Business Information claims reporting approval expires; EPA seeking comment on renewal.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-low" style="width:7.28%;">
+            <span class="dl-end-pip pip-low"></span>
+            <span class="dl-title title-low">EPA TSCA CBI Claims Information Collection Renewal</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Aug 31, 2026</span>
+            <span class="dl-badge" style="color:#7A9EB5;border-color:#7A9EB580;">TSCA</span>
+            <span class="dl-urg urg-txt-low">LOW</span>
+            <a class="dl-src" href="https://www.federalregister.gov/documents/2026/02/25/2026-03763/agency-information-collection-activities-proposed-renewal-collection-and-request-for-comment" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="EPA TSCA CBI Claims Collection Renewal&#10;Due: Aug 31, 2026&#10;Current approval for TSCA confidential business information claims information collection expires; renewal review underway.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-low" style="width:7.28%;">
+            <span class="dl-end-pip pip-low"></span>
+            <span class="dl-title title-low">EPA TSCA CBI Claims Collection Renewal</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Aug 31, 2026</span>
+            <span class="dl-badge" style="color:#7A9EB5;border-color:#7A9EB580;">TSCA</span>
+            <span class="dl-urg urg-txt-low">LOW</span>
+            <a class="dl-src" href="https://www.federalregister.gov/documents/2026/02/25/2026-03763/agency-information-collection-activities-proposed-renewal-collection-and-request-for-comment" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="EPA TSCA CBI Claims ICR Approval Expiry&#10;Due: Aug 31, 2026&#10;Current approval for TSCA Confidential Business Information claims information collection request (ICR No. 2706.04) expires; EPA is seeking renewal.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-low" style="width:7.28%;">
+            <span class="dl-end-pip pip-low"></span>
+            <span class="dl-title title-low">EPA TSCA CBI Claims ICR Approval Expiry</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Aug 31, 2026</span>
+            <span class="dl-badge" style="color:#7A9EB5;border-color:#7A9EB580;">TSCA</span>
+            <span class="dl-urg urg-txt-low">LOW</span>
+            <a class="dl-src" href="https://www.federalregister.gov/documents/2026/02/25/2026-03763/agency-information-collection-activities-proposed-renewal-collection-and-request-for-comment" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="EPA TSCA Chemical Data Reporting Collection Renewal&#10;Due: Oct 31, 2026&#10;Current TSCA Chemical Data Reporting approval expires; EPA seeking comment on renewal of ICR No. 1884.17.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:10.05%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">EPA TSCA Chemical Data Reporting Collection Renewal</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Oct 31, 2026</span>
+            <span class="dl-badge" style="color:#7A9EB5;border-color:#7A9EB580;">TSCA</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            <a class="dl-src" href="https://www.federalregister.gov/documents/2026/02/24/2026-03636/agency-information-collection-activities-proposed-renewal-collection-and-request-for-comment" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="EPA Chemical Data Reporting ICR Approval Expiry&#10;Due: Oct 31, 2026&#10;Current approval for TSCA Chemical Data Reporting information collection request (ICR No. 1884.17) expires; EPA is seeking renewal.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-low" style="width:10.05%;">
+            <span class="dl-end-pip pip-low"></span>
+            <span class="dl-title title-low">EPA Chemical Data Reporting ICR Approval Expiry</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Oct 31, 2026</span>
+            <span class="dl-badge" style="color:#7A9EB5;border-color:#7A9EB580;">TSCA</span>
+            <span class="dl-urg urg-txt-low">LOW</span>
+            <a class="dl-src" href="https://www.federalregister.gov/documents/2026/02/24/2026-03636/agency-information-collection-activities-proposed-renewal-collection-and-request-for-comment" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="EPA TSCA Chemical Data Reporting Collection Renewal&#10;Due: Oct 31, 2026&#10;Current approval for TSCA Chemical Data Reporting information collection expires; renewal review underway.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-low" style="width:10.05%;">
+            <span class="dl-end-pip pip-low"></span>
+            <span class="dl-title title-low">EPA TSCA Chemical Data Reporting Collection Renewal</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Oct 31, 2026</span>
+            <span class="dl-badge" style="color:#7A9EB5;border-color:#7A9EB580;">TSCA</span>
+            <span class="dl-urg urg-txt-low">LOW</span>
+            <a class="dl-src" href="https://www.federalregister.gov/documents/2026/02/24/2026-03636/agency-information-collection-activities-proposed-renewal-collection-and-request-for-comment" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="FTC Green Guides Update: Recyclability &amp; Compostability Claims&#10;Due: Dec 31, 2026&#10;FTC expected to finalize updated Green Guides governing recyclability and compostability claims on packaging labels; affects EPR compliance marketing across all">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:12.82%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">FTC Green Guides Update: Recyclability &amp; Compostabil…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Dec 31, 2026</span>
+            <span class="dl-badge" style="color:#4A9062;border-color:#4A906280;">EPR</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            <a class="dl-src" href="https://www.ftc.gov/legal-library/browse/rules/guides-use-environmental-marketing-claims-green-guides" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="EPA TRI PFAS Reporting Year 2026 Submission&#10;Due: Jul 01, 2027&#10;Submit Toxics Release Inventory reports for PFAS substances covered under Reporting Year 2026 obligations.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:21.10%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">EPA TRI PFAS Reporting Year 2026 Submission</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jul 01, 2027</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            <a class="dl-src" href="https://www.federalregister.gov/documents/2026/02/27/2026-03944/implementing-statutory-addition-of-certain-per--and-polyfluoroalkyl-substances-pfas-to-the-toxics" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="EPA TRI PFAS Reporting Due for 2026&#10;Due: Jul 01, 2027&#10;Submit first Toxics Release Inventory reports for newly added PFAS substances under EPCRA for reporting year 2026.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:21.10%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">EPA TRI PFAS Reporting Due for 2026</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jul 01, 2027</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            <a class="dl-src" href="https://www.federalregister.gov/documents/2026/02/27/2026-03944/implementing-statutory-addition-of-certain-per--and-polyfluoroalkyl-substances-pfas-to-the-toxics" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="EPA TRI Reporting for PFAS (Reporting Year 2026)&#10;Due: Jul 01, 2027&#10;Facilities must submit TRI reports including newly-added PFAS substances for Reporting Year 2026 by the July 1, 2027 deadline.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:21.10%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">EPA TRI Reporting for PFAS (Reporting Year 2026)</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jul 01, 2027</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            <a class="dl-src" href="https://www.federalregister.gov/documents/2026/02/27/2026-03944/implementing-statutory-addition-of-certain-per--and-polyfluoroalkyl-substances-pfas-to-the-toxics" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Alabama</span>
+        <span class="jx-abbr">AL</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Alaska</span>
+        <span class="jx-abbr">AK</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Arizona</span>
+        <span class="jx-abbr">AZ</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Arkansas</span>
+        <span class="jx-abbr">AR</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group">
+      <div class="jx-label">
+        <span class="jx-name">California</span>
+        <span class="jx-abbr">CA</span>
+      </div>
+      <div class="jx-rows">
+      <div class="dl-row" title="SB 54: Producer Registration with PRO Deadline&#10;Due: Dec 31, 2026&#10;California SB 54 covered producers must register with a CalRecycle-approved PRO; CalRecycle regulations finalized and program operational.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:12.82%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">SB 54: Producer Registration with PRO Deadline</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Dec 31, 2026</span>
+            <span class="dl-badge" style="color:#4A9062;border-color:#4A906280;">EPR</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            <a class="dl-src" href="https://calrecycle.ca.gov/packaging/" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="SB 54: 30% Single-Use Plastic Reduction Target&#10;Due: Dec 31, 2028&#10;California SB 54: Covered producers must achieve 30% reduction in single-use plastic packaging sold or distributed in California relative to 2022 baseline.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:46.07%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">SB 54: 30% Single-Use Plastic Reduction Target</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Dec 31, 2028</span>
+            <span class="dl-badge" style="color:#4A9062;border-color:#4A906280;">EPR</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            <a class="dl-src" href="https://calrecycle.ca.gov/packaging/" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="Manufacturer registration required under DTSC (AB 347)&#10;Due: Jul 01, 2029&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-low" style="width:54.34%;">
+            <span class="dl-end-pip pip-low"></span>
+            <span class="dl-title title-low">Manufacturer registration required under DTSC (AB 34…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jul 01, 2029</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-low">LOW</span>
+            
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="DTSC enforcement begins (AB 347)&#10;Due: Jul 01, 2030&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-low" style="width:70.94%;">
+            <span class="dl-end-pip pip-low"></span>
+            <span class="dl-title title-low">DTSC enforcement begins (AB 347)</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jul 01, 2030</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-low">LOW</span>
+            
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="SB 54: 65% Single-Use Plastic Reduction Target&#10;Due: Dec 31, 2030&#10;California SB 54: Covered producers must achieve 65% source reduction in covered single-use plastic packaging sold or distributed in California.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-low" style="width:79.26%;">
+            <span class="dl-end-pip pip-low"></span>
+            <span class="dl-title title-low">SB 54: 65% Single-Use Plastic Reduction Target</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Dec 31, 2030</span>
+            <span class="dl-badge" style="color:#4A9062;border-color:#4A906280;">EPR</span>
+            <span class="dl-urg urg-txt-low">LOW</span>
+            <a class="dl-src" href="https://calrecycle.ca.gov/packaging/" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="SB 54: 100% Recyclable/Compostable Packaging Mandate&#10;Due: Jan 01, 2032&#10;California SB 54: All covered single-use plastic packaging and food service ware must be recyclable or compostable; minimum 25% post-consumer recycled content r">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-low" style="width:95.91%;">
+            <span class="dl-end-pip pip-low"></span>
+            <span class="dl-title title-low">SB 54: 100% Recyclable/Compostable Packaging Mandate</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2032</span>
+            <span class="dl-badge" style="color:#4A9062;border-color:#4A906280;">EPR</span>
+            <span class="dl-urg urg-txt-low">LOW</span>
+            <a class="dl-src" href="https://calrecycle.ca.gov/packaging/" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div class="jx-group">
+      <div class="jx-label">
+        <span class="jx-name">Colorado</span>
+        <span class="jx-abbr">CO</span>
+      </div>
+      <div class="jx-rows">
+      <div class="dl-row" title="HB 22-1355: Producer Registration with PRO&#10;Due: Jan 01, 2027&#10;Colorado producers of covered packaging must register with a CDPHE-approved Producer Responsibility Organization and begin paying stewardship fees.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:12.87%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">HB 22-1355: Producer Registration with PRO</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2027</span>
+            <span class="dl-badge" style="color:#4A9062;border-color:#4A906280;">EPR</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            <a class="dl-src" href="https://cdphe.colorado.gov/epr-packaging" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="HB 22-1355: Phase 1 Recycled Content Targets&#10;Due: Jan 01, 2028&#10;Colorado HB 22-1355 Phase 1 recycled content and recyclability targets for covered packaging categories take effect.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:29.47%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">HB 22-1355: Phase 1 Recycled Content Targets</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2028</span>
+            <span class="dl-badge" style="color:#4A9062;border-color:#4A906280;">EPR</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            <a class="dl-src" href="https://cdphe.colorado.gov/epr-packaging" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="Ban on PFAS in all cleaning products, textiles, food contact equipment, outdoor apparel for severe wet conditions (SB 24-081)&#10;Due: Jan 01, 2028&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-low" style="width:29.47%;">
+            <span class="dl-end-pip pip-low"></span>
+            <span class="dl-title title-low">Ban on PFAS in all cleaning products, textiles, food…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2028</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-low">LOW</span>
+            
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div class="jx-group">
+      <div class="jx-label">
+        <span class="jx-name">Connecticut</span>
+        <span class="jx-abbr">CT</span>
+      </div>
+      <div class="jx-rows">
+      <div class="dl-row" title="PFAS labeling required across covered product categories&#10;Due: Jul 01, 2026&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-high" style="width:4.50%;">
+            <span class="dl-end-pip pip-high"></span>
+            <span class="dl-title title-high">PFAS labeling required across covered product catego…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jul 01, 2026</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-high">HIGH</span>
+            
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="Full ban on PFAS in covered products&#10;Due: Jan 01, 2028&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-low" style="width:29.47%;">
+            <span class="dl-end-pip pip-low"></span>
+            <span class="dl-title title-low">Full ban on PFAS in covered products</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2028</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-low">LOW</span>
+            
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Delaware</span>
+        <span class="jx-abbr">DE</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Florida</span>
+        <span class="jx-abbr">FL</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Georgia</span>
+        <span class="jx-abbr">GA</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group">
+      <div class="jx-label">
+        <span class="jx-name">Hawaii</span>
+        <span class="jx-abbr">HI</span>
+      </div>
+      <div class="jx-rows">
+      <div class="dl-row" title="Broader food packaging and cosmetics/personal care products ban (SB 2427/HB 1896 — confirm enactment)&#10;Due: Dec 31, 2026&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:12.82%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">Broader food packaging and cosmetics/personal care p…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Dec 31, 2026</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Idaho</span>
+        <span class="jx-abbr">ID</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group">
+      <div class="jx-label">
+        <span class="jx-name">Illinois</span>
+        <span class="jx-abbr">IL</span>
+      </div>
+      <div class="jx-rows">
+      <div class="dl-row" title="IEPA fluoropolymer report due (HB 2516)&#10;Due: Aug 01, 2027&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-low" style="width:22.51%;">
+            <span class="dl-end-pip pip-low"></span>
+            <span class="dl-title title-low">IEPA fluoropolymer report due (HB 2516)</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Aug 01, 2027</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-low">LOW</span>
+            
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="Ban on PFAS in cosmetics, dental floss, juvenile products, menstrual products, intimate apparel (HB 2516)&#10;Due: Jan 01, 2032&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-low" style="width:95.91%;">
+            <span class="dl-end-pip pip-low"></span>
+            <span class="dl-title title-low">Ban on PFAS in cosmetics, dental floss, juvenile pro…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2032</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-low">LOW</span>
+            
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Indiana</span>
+        <span class="jx-abbr">IN</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Iowa</span>
+        <span class="jx-abbr">IA</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Kansas</span>
+        <span class="jx-abbr">KS</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Kentucky</span>
+        <span class="jx-abbr">KY</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Louisiana</span>
+        <span class="jx-abbr">LA</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group">
+      <div class="jx-label">
+        <span class="jx-name">Maine</span>
+        <span class="jx-abbr">ME</span>
+      </div>
+      <div class="jx-rows">
+      <div class="dl-row" title="Maine EPR: Phase 2 Stewardship Fee Increases&#10;Due: Jul 01, 2026&#10;Maine packaging stewardship program Phase 2 fee schedule takes effect; producers pay increased per-unit fees to Maine DEP based on packaging weight and material">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-high" style="width:4.50%;">
+            <span class="dl-end-pip pip-high"></span>
+            <span class="dl-title title-high">Maine EPR: Phase 2 Stewardship Fee Increases</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jul 01, 2026</span>
+            <span class="dl-badge" style="color:#4A9062;border-color:#4A906280;">EPR</span>
+            <span class="dl-urg urg-txt-high">HIGH</span>
+            <a class="dl-src" href="https://www.maine.gov/dep/waste/stewardship/" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="Maine EPR: Municipal Cost Reimbursement Program Expansion&#10;Due: Jan 01, 2027&#10;Maine DEP expands reimbursements to municipalities for recycling collection costs under the packaging EPR program; producers fund municipal recycling infrastruc">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:12.87%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">Maine EPR: Municipal Cost Reimbursement Program Expa…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2027</span>
+            <span class="dl-badge" style="color:#4A9062;border-color:#4A906280;">EPR</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            <a class="dl-src" href="https://www.maine.gov/dep/waste/stewardship/" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="Phase 2 ban — artificial turf, outdoor apparel for wet weather&#10;Due: Jan 01, 2029&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-low" style="width:46.11%;">
+            <span class="dl-end-pip pip-low"></span>
+            <span class="dl-title title-low">Phase 2 ban — artificial turf, outdoor apparel for w…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2029</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-low">LOW</span>
+            
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="Phase 3 — all remaining products&#10;Due: Jan 01, 2032&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-low" style="width:95.91%;">
+            <span class="dl-end-pip pip-low"></span>
+            <span class="dl-title title-low">Phase 3 — all remaining products</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2032</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-low">LOW</span>
+            
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div class="jx-group">
+      <div class="jx-label">
+        <span class="jx-name">Maryland</span>
+        <span class="jx-abbr">MD</span>
+      </div>
+      <div class="jx-rows">
+      <div class="dl-row" title="Maryland Packaging EPR: Producer Registration Opens&#10;Due: Jan 01, 2027&#10;Maryland covered producers must register with state-approved PRO under Maryland's packaging EPR law and begin paying stewardship fees.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:12.87%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">Maryland Packaging EPR: Producer Registration Opens</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2027</span>
+            <span class="dl-badge" style="color:#4A9062;border-color:#4A906280;">EPR</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            <a class="dl-src" href="https://mde.maryland.gov/programs/land/recycling/pages/default.aspx" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Massachusetts</span>
+        <span class="jx-abbr">MA</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Michigan</span>
+        <span class="jx-abbr">MI</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group">
+      <div class="jx-label">
+        <span class="jx-name">Minnesota</span>
+        <span class="jx-abbr">MN</span>
+      </div>
+      <div class="jx-rows">
+      <div class="dl-row" title="SF 3: PRO Must Be Operational&#10;Due: Jun 30, 2026&#10;Minnesota SF 3: Producer Responsibility Organization must be established and operational; covered producers required to enroll. Program administered by MPCA.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-high" style="width:4.46%;">
+            <span class="dl-end-pip pip-high"></span>
+            <span class="dl-title title-high">SF 3: PRO Must Be Operational</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jun 30, 2026</span>
+            <span class="dl-badge" style="color:#4A9062;border-color:#4A906280;">EPR</span>
+            <span class="dl-urg urg-txt-high">HIGH</span>
+            <a class="dl-src" href="https://www.pca.state.mn.us/topics/packaging" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="Minnesota PRISM Portal PFAS Registration Deadline&#10;Due: Jul 01, 2026&#10;Register PFAS products in Minnesota's updated PRISM reporting system by this deadline.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-high" style="width:4.50%;">
+            <span class="dl-end-pip pip-high"></span>
+            <span class="dl-title title-high">Minnesota PRISM Portal PFAS Registration Deadline</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jul 01, 2026</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-high">HIGH</span>
+            <a class="dl-src" href="https://www.lawbc.com/minnesota-updates-its-pfas-reporting-system/" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="Minnesota PRISM PFAS Reporting Deadline&#10;Due: Jul 01, 2026&#10;Submit PFAS reporting under Minnesota's PRISM portal ahead of the July 1, 2026 deadline for Amara's Law compliance.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-high" style="width:4.50%;">
+            <span class="dl-end-pip pip-high"></span>
+            <span class="dl-title title-high">Minnesota PRISM PFAS Reporting Deadline</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jul 01, 2026</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-high">HIGH</span>
+            <a class="dl-src" href="https://www.lawbc.com/minnesota-updates-its-pfas-reporting-system/" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="Minnesota PRISM Registration Deadline for PFAS Manufacturers&#10;Due: Jul 01, 2026&#10;Manufacturers selling PFAS-intentionally-added products must complete mandatory PRISM portal registration under Minnesota's Amara's Law requirements.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-high" style="width:4.50%;">
+            <span class="dl-end-pip pip-high"></span>
+            <span class="dl-title title-high">Minnesota PRISM Registration Deadline for PFAS Manuf…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jul 01, 2026</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-high">HIGH</span>
+            <a class="dl-src" href="https://www.pca.state.mn.us/air-water-land-climate/pfas-use-prohibitions-and-reporting" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="PFAS manufacturer registration deadline in PRISM portal&#10;Due: Jul 01, 2026&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-high" style="width:4.50%;">
+            <span class="dl-end-pip pip-high"></span>
+            <span class="dl-title title-high">PFAS manufacturer registration deadline in PRISM por…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jul 01, 2026</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-high">HIGH</span>
+            
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="First annual PRISM update due&#10;Due: Feb 01, 2027&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:14.28%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">First annual PRISM update due</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Feb 01, 2027</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="SF 3: First Producer Responsibility Plans Due to MPCA&#10;Due: Jul 01, 2027&#10;Minnesota producers must submit first EPR responsibility plans to MPCA covering packaging sales volumes, material categories, and fee payments.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:21.10%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">SF 3: First Producer Responsibility Plans Due to MPC…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jul 01, 2027</span>
+            <span class="dl-badge" style="color:#4A9062;border-color:#4A906280;">EPR</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            <a class="dl-src" href="https://www.pca.state.mn.us/topics/packaging" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="SF 3: 75% Packaging Recyclability Rate Target&#10;Due: Dec 31, 2030&#10;Minnesota SF 3: PRO must achieve 75% recyclability rate across covered packaging by end of 2030.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-low" style="width:79.26%;">
+            <span class="dl-end-pip pip-low"></span>
+            <span class="dl-title title-low">SF 3: 75% Packaging Recyclability Rate Target</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Dec 31, 2030</span>
+            <span class="dl-badge" style="color:#4A9062;border-color:#4A906280;">EPR</span>
+            <span class="dl-urg urg-txt-low">LOW</span>
+            <a class="dl-src" href="https://www.pca.state.mn.us/topics/packaging" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="Ban extended to internal/electronic components (SF 3 amendment)&#10;Due: Jan 01, 2032&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-low" style="width:95.91%;">
+            <span class="dl-end-pip pip-low"></span>
+            <span class="dl-title title-low">Ban extended to internal/electronic components (SF 3…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2032</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-low">LOW</span>
+            
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Mississippi</span>
+        <span class="jx-abbr">MS</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group">
+      <div class="jx-label">
+        <span class="jx-name">Missouri</span>
+        <span class="jx-abbr">MO</span>
+      </div>
+      <div class="jx-rows">
+      <div class="dl-row" title="Firefighting foam PFAS ban (HB 1925 — confirm effective date)&#10;Due: Jan 01, 2027&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:12.87%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">Firefighting foam PFAS ban (HB 1925 — confirm effect…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2027</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Montana</span>
+        <span class="jx-abbr">MT</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Nebraska</span>
+        <span class="jx-abbr">NE</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Nevada</span>
+        <span class="jx-abbr">NV</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group">
+      <div class="jx-label">
+        <span class="jx-name">New Hampshire</span>
+        <span class="jx-abbr">NH</span>
+      </div>
+      <div class="jx-rows">
+      <div class="dl-row" title="Ban on PFAS in food packaging, juvenile products, textile furnishings, upholstered furniture, cosmetics, feminine hygiene products (HB 1649)&#10;Due: Jan 01, 2027&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:12.87%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">Ban on PFAS in food packaging, juvenile products, te…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2027</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div class="jx-group">
+      <div class="jx-label">
+        <span class="jx-name">New Jersey</span>
+        <span class="jx-abbr">NJ</span>
+      </div>
+      <div class="jx-rows">
+      <div class="dl-row" title="NJ EPR: DEP Packaging Rules Finalization&#10;Due: Dec 31, 2026&#10;New Jersey DEP must finalize packaging EPR rules establishing PRO requirements, covered materials definitions, and producer registration procedures under A5322.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:12.82%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">NJ EPR: DEP Packaging Rules Finalization</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Dec 31, 2026</span>
+            <span class="dl-badge" style="color:#4A9062;border-color:#4A906280;">EPR</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            <a class="dl-src" href="https://www.nj.gov/dep/dshw/recycling/" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="Full ban effective — fiber-based food packaging, cosmetics, carpets, fabric treatments; cookware labeling required&#10;Due: Jan 12, 2028&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-low" style="width:29.97%;">
+            <span class="dl-end-pip pip-low"></span>
+            <span class="dl-title title-low">Full ban effective — fiber-based food packaging, cos…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 12, 2028</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-low">LOW</span>
+            
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div class="jx-group">
+      <div class="jx-label">
+        <span class="jx-name">New Mexico</span>
+        <span class="jx-abbr">NM</span>
+      </div>
+      <div class="jx-rows">
+      <div class="dl-row" title="NMED implementation rules expected&#10;Due: Jul 01, 2026&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-high" style="width:4.50%;">
+            <span class="dl-end-pip pip-high"></span>
+            <span class="dl-title title-high">NMED implementation rules expected</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jul 01, 2026</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-high">HIGH</span>
+            
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="Phase 1 bans take effect — cookware, food packaging, dental floss, juvenile products, firefighting foam; manufacturer reporting to NMED begins&#10;Due: Jan 01, 2027&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:12.87%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">Phase 1 bans take effect — cookware, food packaging,…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2027</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="Phase 2 bans — carpets, cleaning products, cosmetics, textiles, ski wax, upholstered furniture&#10;Due: Jan 01, 2028&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-low" style="width:29.47%;">
+            <span class="dl-end-pip pip-low"></span>
+            <span class="dl-title title-low">Phase 2 bans — carpets, cleaning products, cosmetics…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2028</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-low">LOW</span>
+            
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="Phase 3 — virtually all non-exempt products banned&#10;Due: Jan 01, 2032&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-low" style="width:95.91%;">
+            <span class="dl-end-pip pip-low"></span>
+            <span class="dl-title title-low">Phase 3 — virtually all non-exempt products banned</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2032</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-low">LOW</span>
+            
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div class="jx-group">
+      <div class="jx-label">
+        <span class="jx-name">New York</span>
+        <span class="jx-abbr">NY</span>
+      </div>
+      <div class="jx-rows">
+      <div class="dl-row" title="Ban on manufacture and sale of firefighting PPE containing intentionally added PFAS (S 3008 / A 3008)&#10;Due: Jan 01, 2028&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-low" style="width:29.47%;">
+            <span class="dl-end-pip pip-low"></span>
+            <span class="dl-title title-low">Ban on manufacture and sale of firefighting PPE cont…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2028</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-low">LOW</span>
+            
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">North Carolina</span>
+        <span class="jx-abbr">NC</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">North Dakota</span>
+        <span class="jx-abbr">ND</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Ohio</span>
+        <span class="jx-abbr">OH</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Oklahoma</span>
+        <span class="jx-abbr">OK</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group">
+      <div class="jx-label">
+        <span class="jx-name">Oregon</span>
+        <span class="jx-abbr">OR</span>
+      </div>
+      <div class="jx-rows">
+      <div class="dl-row" title="SB 543: Producer Registration with PRO Opens&#10;Due: Jul 01, 2026&#10;Covered producers of packaging/paper products must register with Oregon DEQ-approved Producer Responsibility Organization under SB 543.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-high" style="width:4.50%;">
+            <span class="dl-end-pip pip-high"></span>
+            <span class="dl-title title-high">SB 543: Producer Registration with PRO Opens</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jul 01, 2026</span>
+            <span class="dl-badge" style="color:#4A9062;border-color:#4A906280;">EPR</span>
+            <span class="dl-urg urg-txt-high">HIGH</span>
+            <a class="dl-src" href="https://www.oregon.gov/deq/recycling/pages/packaging.aspx" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="Ban on PFAS firefighting foam in Oregon fire departments (SB 91)&#10;Due: Jul 01, 2026&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-high" style="width:4.50%;">
+            <span class="dl-end-pip pip-high"></span>
+            <span class="dl-title title-high">Ban on PFAS firefighting foam in Oregon fire departm…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jul 01, 2026</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-high">HIGH</span>
+            
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="Ban on PFAS in cosmetics (SB 546)&#10;Due: Jan 01, 2027&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:12.87%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">Ban on PFAS in cosmetics (SB 546)</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2027</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="SB 543: First Annual Producer Responsibility Plan Due&#10;Due: Jan 31, 2027&#10;Oregon PRO must submit first annual plan to DEQ covering producer enrollment, collected tonnage, and recycling rate performance.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:14.23%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">SB 543: First Annual Producer Responsibility Plan Du…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 31, 2027</span>
+            <span class="dl-badge" style="color:#4A9062;border-color:#4A906280;">EPR</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            <a class="dl-src" href="https://www.oregon.gov/deq/recycling/pages/packaging.aspx" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="SB 543: Phase 1 Recycling Rate Targets Effective&#10;Due: Jan 01, 2028&#10;Oregon SB 543 Phase 1 recycling rate targets for covered packaging categories take effect; PRO responsible for meeting system-wide benchmarks.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:29.47%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">SB 543: Phase 1 Recycling Rate Targets Effective</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2028</span>
+            <span class="dl-badge" style="color:#4A9062;border-color:#4A906280;">EPR</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            <a class="dl-src" href="https://www.oregon.gov/deq/recycling/pages/packaging.aspx" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Pennsylvania</span>
+        <span class="jx-abbr">PA</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group">
+      <div class="jx-label">
+        <span class="jx-name">Rhode Island</span>
+        <span class="jx-abbr">RI</span>
+      </div>
+      <div class="jx-rows">
+      <div class="dl-row" title="Comprehensive ban — juvenile products, carpets/rugs, cookware, cosmetics, food packaging, textiles (S2152)&#10;Due: Jan 01, 2027&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:12.87%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">Comprehensive ban — juvenile products, carpets/rugs,…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2027</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="Ban on firefighting PPE containing PFAS (HB 5019)&#10;Due: Jan 01, 2027&#10;">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:12.87%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">Ban on firefighting PPE containing PFAS (HB 5019)</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2027</span>
+            <span class="dl-badge" style="color:#D64045;border-color:#D6404580;">PFAS</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">South Carolina</span>
+        <span class="jx-abbr">SC</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">South Dakota</span>
+        <span class="jx-abbr">SD</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Tennessee</span>
+        <span class="jx-abbr">TN</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Texas</span>
+        <span class="jx-abbr">TX</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Utah</span>
+        <span class="jx-abbr">UT</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Vermont</span>
+        <span class="jx-abbr">VT</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Virginia</span>
+        <span class="jx-abbr">VA</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group">
+      <div class="jx-label">
+        <span class="jx-name">Washington</span>
+        <span class="jx-abbr">WA</span>
+      </div>
+      <div class="jx-rows">
+      <div class="dl-row" title="WA Packaging EPR: Producer Registration Deadline&#10;Due: Jul 01, 2027&#10;Washington covered packaging producers must register with a state-approved PRO; program operational after ECOLOGY rulemaking completion.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:21.10%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">WA Packaging EPR: Producer Registration Deadline</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jul 01, 2027</span>
+            <span class="dl-badge" style="color:#4A9062;border-color:#4A906280;">EPR</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            <a class="dl-src" href="https://ecology.wa.gov/waste-toxics/reducing-recycling-waste/extended-producer-responsibility" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">West Virginia</span>
+        <span class="jx-abbr">WV</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Wisconsin</span>
+        <span class="jx-abbr">WI</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group inactive">
+      <div class="jx-label">
+        <span class="jx-name">Wyoming</span>
+        <span class="jx-abbr">WY</span>
+      </div>
+      <div class="jx-rows"><div class="dl-row empty"><span class="no-dl">No tracked deadlines</span></div></div>
+    </div>
+    <div class="jx-group">
+      <div class="jx-label">
+        <span class="jx-name">EU</span>
+        
+      </div>
+      <div class="jx-rows">
+      <div class="dl-row" title="SVHC Bisphenol AF Article 33 Disclosure Active&#10;Due: Mar 21, 2026&#10;45-day SVHC disclosure obligation now active for Fluorinated Bisphenol AF added to ECHA Candidate List on February 4, 2026.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-high" style="width:0.00%;">
+            <span class="dl-end-pip pip-high"></span>
+            <span class="dl-title title-high">SVHC Bisphenol AF Article 33 Disclosure Active</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Mar 21, 2026</span>
+            <span class="dl-badge" style="color:#9E8540;border-color:#9E854080;">REACH</span>
+            <span class="dl-urg urg-txt-high">HIGH</span>
+            <a class="dl-src" href="https://echa.europa.eu/substance-information/-/substanceinfo/100.510.847" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="SVHC n-Hexane Article 33 Disclosure Active&#10;Due: Mar 21, 2026&#10;45-day SVHC disclosure obligation now active for n-hexane added to ECHA Candidate List on February 4, 2026.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-high" style="width:0.00%;">
+            <span class="dl-end-pip pip-high"></span>
+            <span class="dl-title title-high">SVHC n-Hexane Article 33 Disclosure Active</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Mar 21, 2026</span>
+            <span class="dl-badge" style="color:#9E8540;border-color:#9E854080;">REACH</span>
+            <span class="dl-urg urg-txt-high">HIGH</span>
+            <a class="dl-src" href="https://echa.europa.eu/substance-information/-/substanceinfo/100.003.435" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="PPWR: EU Packaging and Packaging Waste Regulation Takes Effect&#10;Due: Jan 01, 2028&#10;EU Packaging and Packaging Waste Regulation (PPWR) full compliance date: all packaging placed on EU market must meet recyclability, recycled content, and waste ">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-medium" style="width:29.47%;">
+            <span class="dl-end-pip pip-medium"></span>
+            <span class="dl-title title-medium">PPWR: EU Packaging and Packaging Waste Regulation Ta…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2028</span>
+            <span class="dl-badge" style="color:#4A9062;border-color:#4A906280;">EPR</span>
+            <span class="dl-urg urg-txt-medium">MEDIUM</span>
+            <a class="dl-src" href="https://environment.ec.europa.eu/topics/waste-and-recycling/packaging-waste_en" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="PPWR: Reusable Packaging Targets for Specific Sectors&#10;Due: Jan 01, 2030&#10;EU PPWR: Mandatory reuse and refill targets for grouped/transport packaging and e-commerce packaging take effect; affects US manufacturers shipping to EU market">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-low" style="width:62.71%;">
+            <span class="dl-end-pip pip-low"></span>
+            <span class="dl-title title-low">PPWR: Reusable Packaging Targets for Specific Sector…</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Jan 01, 2030</span>
+            <span class="dl-badge" style="color:#4A9062;border-color:#4A906280;">EPR</span>
+            <span class="dl-urg urg-txt-low">LOW</span>
+            <a class="dl-src" href="https://environment.ec.europa.eu/topics/waste-and-recycling/packaging-waste_en" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+  </div><!-- /tl-inner -->
+</div><!-- /tl-scroll -->
+
+<!-- Legend -->
+<div class="legend">
+  <span class="legend-title">Urgency:</span>
+  <span class="legend-item"><span class="legend-swatch sw-high"></span>High (&lt;6 mo)</span>
+  <span class="legend-item"><span class="legend-swatch sw-medium"></span>Medium (6&ndash;12 mo)</span>
+  <span class="legend-item"><span class="legend-swatch sw-low"></span>Low (&gt;12 mo)</span>
+  <span class="legend-title" style="margin-left:16px">Bar width = time remaining until deadline</span>
+</div>
+
+</div><!-- /page-wrap -->
+
+<script>
+(function() {
+  var axisChart = document.getElementById('axisChart');
+  if (!axisChart) return;
+  var ticks = [0.0, 0.36380172805820826, 4.502046384720328, 8.685766257389723, 12.86948613005912, 16.96225557071396, 21.100500227376077, 25.284220100045474, 29.46793997271487, 33.60618462937699, 37.74442928603911, 41.92814915870851, 46.1118690313779, 50.20463847203275, 54.342883128694865, 58.52660300136425, 62.71032287403365, 66.8030923146885, 70.94133697135061, 75.12505684402001, 79.3087767166894, 83.40154615734426, 87.53979081400637, 91.72351068667575, 95.90723055934515];
+  ticks.forEach(function(p) {
+    var t = document.createElement('div');
+    t.className = 'q-tick';
+    t.style.left = p + '%';
+    axisChart.appendChild(t);
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>REACH Regulatory Deadline Timeline</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F4F5F7;
+      --surface: #FFFFFF;
+      --surface-sunken: #EBEDF0;
+      --surface-dark: #1A1D23;
+      --surface-dark-2: #22252C;
+      --border: #D8DBE0;
+      --border-light: #E8EAED;
+      --text-primary: #111318;
+      --text-secondary: #4A4F5C;
+      --text-tertiary: #7A8194;
+      --red: #D63031;
+      --red-bg: #FEF0F0;
+      --red-border: #FACACA;
+      --amber: #CB7B0A;
+      --amber-bg: #FEF6E8;
+      --amber-border: #F5DFA6;
+      --green: #0F7B3F;
+      --green-bg: #EEFAF3;
+      --green-border: #B2E0C7;
+      --blue: #1565C0;
+      --teal: #0F766E;
+      --accent: #9E8540;
+      --sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'IBM Plex Mono', 'Consolas', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--sans);
+      font-size: 13px;
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+    }
+
+    /* ── Page layout ─────────────────────────── */
+    .page-wrap {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* ── Topbar ─────────────────────────────── */
+    .page-hdr {
+      background: var(--surface);
+      border-bottom: 3px solid #9E8540;
+      padding: 0 24px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+    .hdr-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .hdr-brand {
+      width: 26px; height: 26px;
+      background: linear-gradient(135deg, #0F766E, #1565C0);
+      border-radius: 5px;
+      flex-shrink: 0;
+    }
+    .hdr-eyebrow {
+      font-family: var(--mono);
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #9E8540;
+    }
+    .hdr-title {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: .5px;
+    }
+    .hdr-sub {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--text-tertiary);
+      letter-spacing: .5px;
+      margin-top: 2px;
+    }
+    /* ── Site nav ─────────────────────────────── */
+    .site-nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .nav-section {
+      font-family: var(--mono);
+      color: var(--text-tertiary);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 0 8px 0 4px;
+    }
+    .nav-sep {
+      width: 1px;
+      height: 14px;
+      background: var(--border);
+      margin: 0 8px;
+    }
+    .nav-item {
+      font-family: var(--mono);
+      color: var(--text-secondary);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: .5px;
+      text-decoration: none;
+      padding: 4px 10px;
+      border-radius: 4px;
+      transition: background 0.12s, color 0.12s;
+    }
+    .nav-item:hover { background: var(--surface-sunken); color: var(--text-primary); }
+    .nav-item.active { background: var(--bg); color: #9E8540; font-weight: 700; border: 1px solid var(--border); }
+
+    /* ── Gantt scroll container ───────────────── */
+    .tl-scroll {
+      flex: 1;
+      overflow: auto;
+      position: relative;
+      background: var(--bg);
+    }
+    .tl-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .tl-scroll::-webkit-scrollbar-track { background: transparent; }
+    .tl-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── Inner container — sets total width ────── */
+    .tl-inner {
+      min-width: 3370px;
+    }
+
+    /* ── Axis header ─────────────────────────── */
+    .tl-axis {
+      display: flex;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .axis-jx-col {
+      width: 220px;
+      flex-shrink: 0;
+      padding: 8px 16px;
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      border-right: 1px solid var(--border);
+      position: sticky;
+      left: 0;
+      z-index: 55;
+      background: var(--surface);
+    }
+    .axis-chart-col {
+      width: 3150px;
+      flex-shrink: 0;
+      position: relative;
+      height: 38px;
+    }
+    .q-lbl {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .q-tick {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: var(--border-light);
+      pointer-events: none;
+    }
+
+    /* ── Jurisdiction group ──────────────────── */
+    .jx-group {
+      display: flex;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .jx-group:last-child { border-bottom: none; }
+    .jx-group:hover { background: #FAFBFC; }
+    .jx-group.inactive { opacity: 0.35; }
+
+    .jx-label {
+      width: 220px;
+      flex-shrink: 0;
+      padding: 10px 16px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+      min-height: 52px;
+      position: sticky;
+      left: 0;
+      z-index: 5;
+      background: var(--surface);
+    }
+    .jx-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+    .jx-abbr {
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: 2px;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    .jx-group.inactive .jx-name { color: var(--text-tertiary); }
+
+    .jx-rows {
+      width: 3150px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Deadline row ────────────────────────── */
+    .dl-row {
+      display: flex;
+      align-items: stretch;
+      border-bottom: 1px solid var(--border-light);
+      min-height: 52px;
+    }
+    .dl-row:last-child { border-bottom: none; }
+    .dl-row.empty { min-height: 40px; align-items: center; }
+
+    .dl-chart-area {
+      width: 3150px;
+      flex-shrink: 0;
+      padding: 8px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .dl-bar {
+      position: relative;
+      height: 24px;
+      border: 1px solid;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      padding-left: 10px;
+      padding-right: 4px;
+      overflow: hidden;
+      min-width: 6px;
+      max-width: 100%;
+    }
+    /* urgency bar colors — light-theme versions */
+    .dl-bar.urg-high   { background: var(--red-bg);   border-color: var(--red-border); }
+    .dl-bar.urg-medium { background: var(--amber-bg); border-color: var(--amber-border); }
+    .dl-bar.urg-low    { background: var(--green-bg); border-color: var(--green-border); }
+    .dl-end-pip {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      border-radius: 0 2px 2px 0;
+      flex-shrink: 0;
+    }
+    .pip-high   { background: var(--red); }
+    .pip-medium { background: var(--amber); }
+    .pip-low    { background: var(--green); }
+    .dl-title {
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: 0.2px;
+      padding-right: 8px;
+    }
+    .title-high   { color: var(--red); }
+    .title-medium { color: #92400E; }
+    .title-low    { color: var(--green); }
+
+    .dl-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .dl-date {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--text-secondary);
+      letter-spacing: 0.5px;
+    }
+    .dl-badge {
+      font-family: var(--mono);
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 1px 5px;
+      border: 1px solid;
+      border-radius: 2px;
+    }
+    .dl-urg {
+      font-family: var(--mono);
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .urg-txt-high   { color: var(--red); }
+    .urg-txt-medium { color: var(--amber); }
+    .urg-txt-low    { color: var(--green); }
+    .dl-src {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--blue);
+      text-decoration: none;
+      letter-spacing: 0.5px;
+    }
+    .dl-src:hover { text-decoration: underline; }
+
+    .no-dl {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-tertiary);
+      letter-spacing: 1px;
+      padding-left: 20px;
+    }
+
+    /* ── Legend ──────────────────────────────── */
+    .legend {
+      flex-shrink: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .legend-title {
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-right: 4px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .5px;
+      color: var(--text-secondary);
+    }
+    .legend-swatch {
+      width: 14px;
+      height: 10px;
+      border: 1px solid;
+      border-radius: 2px;
+    }
+    .sw-high   { background: var(--red-bg);   border-color: var(--red-border); }
+    .sw-medium { background: var(--amber-bg); border-color: var(--amber-border); }
+    .sw-low    { background: var(--green-bg); border-color: var(--green-border); }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+<!-- Topbar -->
+<div class="page-hdr">
+  <div class="hdr-left">
+    <div class="hdr-brand"></div>
+    <div>
+      <div class="hdr-eyebrow">REACH / EU Chemical Compliance</div>
+      <div class="hdr-title">REACH Regulatory Deadline Timeline</div>
+    </div>
+  </div>
+  <div class="hdr-sub">Generated March 24, 2026 &nbsp;&middot;&nbsp; 2 deadlines across 1 jurisdiction</div>
+</div>
+
+<!-- Site nav -->
+<nav class="site-nav">
+  <span class="nav-section">Maps</span>
+  <a href="https://ryan-jenkinson.github.io/compliance-maps/index.html" class="nav-item">PFAS</a><a href="https://ryan-jenkinson.github.io/compliance-maps/epr-map.html" class="nav-item">EPR</a><a href="https://ryan-jenkinson.github.io/compliance-maps/reach-map.html" class="nav-item">REACH</a>
+  <div class="nav-sep"></div>
+  <span class="nav-section">Timelines</span>
+  <a href="https://ryan-jenkinson.github.io/compliance-maps/pfas-timeline.html" class="nav-item">PFAS</a><a href="https://ryan-jenkinson.github.io/compliance-maps/epr-timeline.html" class="nav-item">EPR</a><a href="https://ryan-jenkinson.github.io/compliance-maps/reach-timeline.html" class="nav-item active">REACH</a><a href="https://ryan-jenkinson.github.io/compliance-maps/tsca-timeline.html" class="nav-item">TSCA</a><a href="https://ryan-jenkinson.github.io/compliance-maps/deadline-timeline.html" class="nav-item">All Topics</a>
+</nav>
+
+<!-- Gantt scroll area -->
+<div class="tl-scroll">
+  <div class="tl-inner">
+
+    <!-- Sticky axis header -->
+    <div class="tl-axis">
+      <div class="axis-jx-col">Jurisdiction</div>
+      <div class="axis-chart-col" id="axisChart">
+        <div class="q-lbl" style="left:0.00%">Q1 2026</div><div class="q-lbl" style="left:1.33%">Q2 2026</div><div class="q-lbl" style="left:16.50%">Q3 2026</div><div class="q-lbl" style="left:31.83%">Q4 2026</div><div class="q-lbl" style="left:47.17%">Q1 2027</div><div class="q-lbl" style="left:62.17%">Q2 2027</div><div class="q-lbl" style="left:77.33%">Q3 2027</div><div class="q-lbl" style="left:92.67%">Q4 2027</div>
+      </div>
+    </div>
+
+    <!-- Jurisdiction rows -->
+
+    <div class="jx-group">
+      <div class="jx-label">
+        <span class="jx-name">EU</span>
+        
+      </div>
+      <div class="jx-rows">
+      <div class="dl-row" title="SVHC Bisphenol AF Article 33 Disclosure Active&#10;Due: Mar 21, 2026&#10;45-day SVHC disclosure obligation now active for Fluorinated Bisphenol AF added to ECHA Candidate List on February 4, 2026.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-high" style="width:0.00%;">
+            <span class="dl-end-pip pip-high"></span>
+            <span class="dl-title title-high">SVHC Bisphenol AF Article 33 Disclosure Active</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Mar 21, 2026</span>
+            <span class="dl-badge" style="color:#9E8540;border-color:#9E854080;">REACH</span>
+            <span class="dl-urg urg-txt-high">HIGH</span>
+            <a class="dl-src" href="https://echa.europa.eu/substance-information/-/substanceinfo/100.510.847" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row" title="SVHC n-Hexane Article 33 Disclosure Active&#10;Due: Mar 21, 2026&#10;45-day SVHC disclosure obligation now active for n-hexane added to ECHA Candidate List on February 4, 2026.">
+        <div class="dl-chart-area">
+          <div class="dl-bar urg-high" style="width:0.00%;">
+            <span class="dl-end-pip pip-high"></span>
+            <span class="dl-title title-high">SVHC n-Hexane Article 33 Disclosure Active</span>
+          </div>
+          <div class="dl-meta">
+            <span class="dl-date">Mar 21, 2026</span>
+            <span class="dl-badge" style="color:#9E8540;border-color:#9E854080;">REACH</span>
+            <span class="dl-urg urg-txt-high">HIGH</span>
+            <a class="dl-src" href="https://echa.europa.eu/substance-information/-/substanceinfo/100.003.435" target="_blank">source ↗</a>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+  </div><!-- /tl-inner -->
+</div><!-- /tl-scroll -->
+
+<!-- Legend -->
+<div class="legend">
+  <span class="legend-title">Urgency:</span>
+  <span class="legend-item"><span class="legend-swatch sw-high"></span>High (&lt;6 mo)</span>
+  <span class="legend-item"><span class="legend-swatch sw-medium"></span>Medium (6&ndash;12 mo)</span>
+  <span class="legend-item"><span class="legend-swatch sw-low"></span>Low (&gt;12 mo)</span>
+  <span class="legend-title" style="margin-left:16px">Bar width = time remaining until deadline</span>
+</div>
+
+</div><!-- /page-wrap -->
+
+<script>
+(function() {
+  var axisChart = document.getElementById('axisChart');
+  if (!axisChart) return;
+  var ticks = [0.0, 1.3333333333333335, 16.5, 31.833333333333336, 47.16666666666667, 62.16666666666667, 77.33333333333333, 92.66666666666666];
+  ticks.forEach(function(p) {
+    var t = document.createElement('div');
+    t.className = 'q-tick';
+    t.style.left = p + '%';
+    axisChart.appendChild(t);
+  });
+})();
+</script>
+
+</body>
+</html>

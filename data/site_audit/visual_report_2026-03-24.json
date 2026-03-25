@@ -1,0 +1,1334 @@
+{
+  "summary": {
+    "audit_date": "2026-03-24",
+    "pages_audited": 17,
+    "total_issues": 136,
+    "high_count": 13,
+    "medium_count": 55,
+    "low_count": 68,
+    "overall": "fail",
+    "all_issues": [
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/dashboard.html",
+        "viewport": "desktop",
+        "severity": "medium",
+        "category": "readability",
+        "description": "Small font size in the executive briefing body text (appears to be ~13-14px) reduces readability for extended reading; consider increasing to 15-16px minimum"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/dashboard.html",
+        "viewport": "desktop",
+        "severity": "medium",
+        "category": "layout",
+        "description": "Right sidebar content appears cramped with tight vertical spacing; 'BILLS BY LEGISLATIVE STAGE' section rows could benefit from increased line-height for clarity"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/dashboard.html",
+        "viewport": "desktop",
+        "severity": "low",
+        "category": "consistency",
+        "description": "Color coding in 'REGULATORY STATUS' table uses orange, green, and blue squares without visible legend; users may not immediately understand what each color represents"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/dashboard.html",
+        "viewport": "desktop",
+        "severity": "low",
+        "category": "content",
+        "description": "Italicized 'Fun fact' text in the blue box at bottom of briefing uses light gray on white background, creating lower contrast than body text above it"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/dashboard.html",
+        "viewport": "desktop",
+        "severity": "low",
+        "category": "layout",
+        "description": "State abbreviation buttons at bottom ('CA', 'CT', etc.) have minimal padding and could be difficult to click accurately on touch devices if this dashboard is responsive"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/dashboard.html",
+        "viewport": "mobile",
+        "severity": "high",
+        "category": "readability",
+        "description": "Body text in 'OPENING' and 'KEY DEVELOPMENTS' sections is too small and dense. The paragraph text appears to be around 12-14px on a mobile viewport, making it difficult to read comfortably. Line-height also appears tight, reducing scanability."
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/dashboard.html",
+        "viewport": "mobile",
+        "severity": "high",
+        "category": "layout",
+        "description": "Text overflow/truncation in date header: 'Tuesday, March 24, 2026 / Mar 21 \u2013 27' is cut off with 'Sc' visible on right edge, indicating content extends beyond viewport or improper handling of the date range display."
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/dashboard.html",
+        "viewport": "mobile",
+        "severity": "medium",
+        "category": "layout",
+        "description": "Tab navigation (DIRECTOR REVIEW, TIMELINE, PFAS MAP, ARC...) is cramped and the last tab appears truncated. On 375px width, these tabs should either stack or have better horizontal scrolling indicators."
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/dashboard.html",
+        "viewport": "mobile",
+        "severity": "medium",
+        "category": "readability",
+        "description": "Long continuous paragraphs without visual breaks or bullet points in 'KEY DEVELOPMENTS' reduce readability on mobile. Content needs better segmentation or truncation with 'read more' functionality."
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/dashboard.html",
+        "viewport": "mobile",
+        "severity": "low",
+        "category": "consistency",
+        "description": "Inconsistent heading hierarchy and styling\u2014'OPENING' and 'KEY DEVELOPMENTS' use uppercase labels but lack visual distinction from body content. Section spacing could be more consistent."
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/newsletter/archive.html",
+        "viewport": "desktop",
+        "severity": "high",
+        "category": "content",
+        "description": "Sparse content \u2014 only one briefing entry visible for the entire 2026 section; appears to be incomplete archive listing with significant empty space below"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/newsletter/archive.html",
+        "viewport": "desktop",
+        "severity": "medium",
+        "category": "layout",
+        "description": "Excessive whitespace \u2014 large empty area below the single briefing entry creates poor visual balance and suggests missing content or broken pagination"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/newsletter/archive.html",
+        "viewport": "desktop",
+        "severity": "low",
+        "category": "readability",
+        "description": "Date format inconsistency \u2014 subtitle uses 'WEEKLY BRIEFINGS' (small caps) but intro text uses lowercase 'compliance briefings'; minor inconsistency in styling conventions"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/newsletter/archive.html",
+        "viewport": "mobile",
+        "severity": "medium",
+        "category": "content",
+        "description": "Large empty white space below the footer (approximately 40% of viewport) suggests missing content, broken layout, or incomplete page load"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/newsletter/archive.html",
+        "viewport": "mobile",
+        "severity": "low",
+        "category": "consistency",
+        "description": "Footer text 'COMPLIANCE INTELLIGENCE \u2014 MARCH 22, 2026' uses different styling/weight than header; inconsistent typographic hierarchy"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/newsletter/archive.html",
+        "viewport": "mobile",
+        "severity": "low",
+        "category": "readability",
+        "description": "Date range text '2026-03-14 \u2014 2026-03-20' uses monospace font which is visually inconsistent with body text; minor but noticeable"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/glossary.html",
+        "viewport": "desktop",
+        "severity": "medium",
+        "category": "readability",
+        "description": "Abbreviation acronyms (PFAS, PFOA, PFOS, PTFE, CAA, CERCLA, etc.) use teal/cyan color (#008B8B-like) which has insufficient contrast against white background for extended readability; recommend darker color or bold weight for clarity."
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/glossary.html",
+        "viewport": "desktop",
+        "severity": "low",
+        "category": "layout",
+        "description": "Description text in definition rows (right column) appears to have variable line-height and spacing, creating inconsistent visual rhythm across entries."
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/glossary.html",
+        "viewport": "desktop",
+        "severity": "low",
+        "category": "consistency",
+        "description": "Section headers (CHEMICALS, US FEDERAL) use different font weights and spacing; could be standardized for stronger visual hierarchy."
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/glossary.html",
+        "viewport": "mobile",
+        "severity": "medium",
+        "category": "readability",
+        "description": "Abbreviation tags (PFAS, PFOA, PPOS, PTFE) are small and could benefit from slightly larger font size for better mobile readability"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/glossary.html",
+        "viewport": "mobile",
+        "severity": "low",
+        "category": "layout",
+        "description": "Description text for chemical entries is left-aligned and relatively narrow, creating short line lengths that could be optimized for better scannability"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/glossary.html",
+        "viewport": "mobile",
+        "severity": "low",
+        "category": "consistency",
+        "description": "Tag styling uses inconsistent sizing \u2014 some tags appear more cramped than others due to varying text lengths without apparent padding normalization"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/deadline-timeline.html",
+        "viewport": "desktop",
+        "severity": "medium",
+        "category": "readability",
+        "description": "Text truncation in 'FTC Green Guides Update: Recyclability & Compostabil...' \u2014 title is cut off with ellipsis, reducing clarity of the full deadline item"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/deadline-timeline.html",
+        "viewport": "desktop",
+        "severity": "low",
+        "category": "consistency",
+        "description": "Inconsistent spacing between jurisdiction sections (Federal has dense item list, Alabama/Alaska/Arizona sections below show 'No tracked deadlines' with excessive whitespace)"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/deadline-timeline.html",
+        "viewport": "desktop",
+        "severity": "low",
+        "category": "readability",
+        "description": "Gray placeholder text 'No tracked deadlines' for empty state sections has low contrast and unclear visual hierarchy compared to active deadline items"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/deadline-timeline.html",
+        "viewport": "desktop",
+        "severity": "low",
+        "category": "layout",
+        "description": "Jurisdiction label 'Federal' appears disconnected from its content due to large vertical gap; consider tighter visual grouping"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/deadline-timeline.html",
+        "viewport": "mobile",
+        "severity": "high",
+        "category": "readability",
+        "description": "Multiple deadline entries have truncated text with '...' ellipsis, making titles unreadable (e.g., 'EPA TSCA CBI Claims Ir...', 'EPA TSCA Chemical Da...', 'FTC Green Guides Upda...'). Full titles are essential for compliance information."
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/deadline-timeline.html",
+        "viewport": "mobile",
+        "severity": "high",
+        "category": "layout",
+        "description": "Right column content is cut off/overflowing on mobile (375px width). Tag badges like 'TSCA', 'EPR', 'PFAS' and associated content ('L', 'M', 'H' urgency indicators) are partially hidden or misaligned."
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/deadline-timeline.html",
+        "viewport": "mobile",
+        "severity": "medium",
+        "category": "readability",
+        "description": "Urgency legend at bottom uses very small text ('High (<6 mo)', 'Medium (6-12 mo)', 'Low (>12 mo)') with minimal contrast. Font size appears below recommended 14px minimum for mobile."
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/deadline-timeline.html",
+        "viewport": "mobile",
+        "severity": "medium",
+        "category": "consistency",
+        "description": "Inconsistent text truncation lengths across deadline items creates visual instability and suggests responsive design breakpoints not optimized for 375px width."
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/deadline-timeline.html",
+        "viewport": "mobile",
+        "severity": "low",
+        "category": "layout",
+        "description": "Tab navigation at top ('MAPS', 'PFAS', 'EPR', etc.) may have overflow or text wrapping issues on narrow viewport; readability of full tab names unclear."
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/pfas-timeline.html",
+        "viewport": "desktop",
+        "severity": "medium",
+        "category": "readability",
+        "description": "Text truncation in deadline descriptions: 'Manufacturer registration required under DTSC (AB 34...' and 'Ban on PFAS in all cleaning products, textiles, food...' and 'PFAS labeling required across covered product catego...' are cut off with ellipsis, making full content unreadable without interaction."
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/pfas-timeline.html",
+        "viewport": "desktop",
+        "severity": "medium",
+        "category": "readability",
+        "description": "Low contrast on inactive jurisdiction text (Alabama, Alaska, Arizona, Arkansas, Delaware, Florida): light gray text on white background makes 'No tracked deadlines' very difficult to read."
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/pfas-timeline.html",
+        "viewport": "desktop",
+        "severity": "low",
+        "category": "layout",
+        "description": "Inconsistent spacing/alignment: State abbreviations (CA, CO, CT) are not vertically centered relative to their jurisdiction names, creating visual misalignment."
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/pfas-timeline.html",
+        "viewport": "desktop",
+        "severity": "low",
+        "category": "consistency",
+        "description": "Inconsistent badge styling: 'PFAS' badges appear in different colors (red, blue) without clear visual distinction in legend\u2014severity indicators (MEDIUM, LOW, HIGH) use different styling than the topic badges."
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/pfas-timeline.html",
+        "viewport": "mobile",
+        "severity": "high",
+        "category": "readability",
+        "description": "Text truncation on state abbreviations (AL, AK, AZ, AR, CA, CO, CT) and jurisdiction codes \u2014 text is cut off and unreadable"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/pfas-timeline.html",
+        "viewport": "mobile",
+        "severity": "high",
+        "category": "readability",
+        "description": "Deadline text for Alabama, Alaska, Arizona, and Arkansas states shows 'No tracked deadline' in very low contrast gray text, difficult to read against light background"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/pfas-timeline.html",
+        "viewport": "mobile",
+        "severity": "medium",
+        "category": "layout",
+        "description": "Card titles in right column (EPA TRI PFAS Reporting, Manufacturer registration, DTSC enforcement, Ban on PFAS, PFAS labeling required) are truncated with ellipsis \u2014 full text not visible"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/pfas-timeline.html",
+        "viewport": "mobile",
+        "severity": "medium",
+        "category": "content",
+        "description": "Multiple empty/incomplete card display \u2014 right column shows partial regulatory items that appear cut off or incomplete"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/pfas-timeline.html",
+        "viewport": "mobile",
+        "severity": "medium",
+        "category": "layout",
+        "description": "Inconsistent spacing and alignment between left jurisdiction list and right content column \u2014 visual hierarchy unclear on mobile"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/pfas-timeline.html",
+        "viewport": "mobile",
+        "severity": "low",
+        "category": "consistency",
+        "description": "Mixed visual treatment of deadline urgency legend at bottom (colored boxes with Medium/High/Low labels) appears disconnected from main content flow"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/epr-timeline.html",
+        "viewport": "desktop",
+        "severity": "medium",
+        "category": "readability",
+        "description": "Multiple regulation titles are truncated with ellipsis ('...'), making full content inaccessible without hover or expansion. Examples: 'FTC Green Guides Update: Recyclability & Compostabil...', 'PPWR: EU Packaging and Packaging Waste Regulation Ta...', 'Maine EPR: Municipal Cost Reimbursement Program Expa...'"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/epr-timeline.html",
+        "viewport": "desktop",
+        "severity": "medium",
+        "category": "layout",
+        "description": "Timeline header shows quarter markers (Q3 2026, Q4 2026) but the horizontal timeline grid is not clearly aligned with row content, making it difficult to visually correlate deadlines to quarters at a glance"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/epr-timeline.html",
+        "viewport": "desktop",
+        "severity": "low",
+        "category": "consistency",
+        "description": "The red vertical bar indicator on 'Maine EPR: Phase 2 Stewardship Fee Increases' appears incomplete or cut off on the right edge, inconsistent with other visual treatments in the timeline"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/epr-timeline.html",
+        "viewport": "desktop",
+        "severity": "low",
+        "category": "readability",
+        "description": "Jurisdiction labels (Federal, CA, CO, EU, ME, MD) use small text with minimal visual hierarchy compared to regulation titles, making quick scanning less efficient"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/epr-timeline.html",
+        "viewport": "mobile",
+        "severity": "high",
+        "category": "readability",
+        "description": "Multiple text truncations in the main content area: 'FTC Green Guides Upda', 'SB 54: Producer Registr', 'SB 54: 30% Single-Use', 'SB 54: 65% Single-Use', 'SB 54: 100% Recyclable', 'HB 22-1355: Producer R', 'HB 22-1355: Phase I Rec', 'PPWR: EU Packaging ar', 'PPWR: Reusable Packa', 'Maine EPR: Phase 2 Ste' \u2014 text cuts off mid-word making titles difficult to read"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/epr-timeline.html",
+        "viewport": "mobile",
+        "severity": "medium",
+        "category": "layout",
+        "description": "Right sidebar content appears cramped with small badge labels ('EPR', 'RE', 'LO') that lack clear spacing and visual hierarchy; badges are difficult to scan at this mobile width"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/epr-timeline.html",
+        "viewport": "mobile",
+        "severity": "medium",
+        "category": "readability",
+        "description": "Small font size on jurisdiction labels ('CA', 'CO') and urgency legend at bottom ('High (<6 mo)', 'Medium (6-12 mo)', 'Low (>12 mo)') creates readability strain on mobile screens"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/epr-timeline.html",
+        "viewport": "mobile",
+        "severity": "medium",
+        "category": "layout",
+        "description": "Horizontal scrolling likely needed for the full table header (MAPS, PFAS, EPR, REACH, TIMELINES, PFAS, E...) \u2014 the 'E' column appears cut off, indicating overflow"
+      },
+      {
+        "url": "https://ryan-jenkinson.github.io/compliance-maps/epr-timeline.html",
+        "viewport": "mobile",
+        "severity": "low",
+        "category": "consistency",
+        "description": "Date formatting is inconsistent across entries: some use 'Dec 31, 2026', others 'Jan 01, 2027', 'Jan 01, 2028' \u2014 minor but inconsistent presentation"
+      }
+    ]
+  },
+  "pages": [
+    {
+      "url": "https://ryan-jenkinson.github.io/compliance-maps/dashboard.html",
+      "desktop": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Small font size in the executive briefing body text (appears to be ~13-14px) reduces readability for extended reading; consider increasing to 15-16px minimum"
+          },
+          {
+            "severity": "medium",
+            "category": "layout",
+            "description": "Right sidebar content appears cramped with tight vertical spacing; 'BILLS BY LEGISLATIVE STAGE' section rows could benefit from increased line-height for clarity"
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Color coding in 'REGULATORY STATUS' table uses orange, green, and blue squares without visible legend; users may not immediately understand what each color represents"
+          },
+          {
+            "severity": "low",
+            "category": "content",
+            "description": "Italicized 'Fun fact' text in the blue box at bottom of briefing uses light gray on white background, creating lower contrast than body text above it"
+          },
+          {
+            "severity": "low",
+            "category": "layout",
+            "description": "State abbreviation buttons at bottom ('CA', 'CT', etc.) have minimal padding and could be difficult to click accurately on touch devices if this dashboard is responsive"
+          }
+        ],
+        "overall": "pass",
+        "notes": "Dashboard is professionally designed with good information hierarchy; minor readability and spacing improvements would enhance usability for longer reading sessions.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_dashboard_html_desktop.png"
+      },
+      "mobile": {
+        "issues": [
+          {
+            "severity": "high",
+            "category": "readability",
+            "description": "Body text in 'OPENING' and 'KEY DEVELOPMENTS' sections is too small and dense. The paragraph text appears to be around 12-14px on a mobile viewport, making it difficult to read comfortably. Line-height also appears tight, reducing scanability."
+          },
+          {
+            "severity": "high",
+            "category": "layout",
+            "description": "Text overflow/truncation in date header: 'Tuesday, March 24, 2026 / Mar 21 \u2013 27' is cut off with 'Sc' visible on right edge, indicating content extends beyond viewport or improper handling of the date range display."
+          },
+          {
+            "severity": "medium",
+            "category": "layout",
+            "description": "Tab navigation (DIRECTOR REVIEW, TIMELINE, PFAS MAP, ARC...) is cramped and the last tab appears truncated. On 375px width, these tabs should either stack or have better horizontal scrolling indicators."
+          },
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Long continuous paragraphs without visual breaks or bullet points in 'KEY DEVELOPMENTS' reduce readability on mobile. Content needs better segmentation or truncation with 'read more' functionality."
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Inconsistent heading hierarchy and styling\u2014'OPENING' and 'KEY DEVELOPMENTS' use uppercase labels but lack visual distinction from body content. Section spacing could be more consistent."
+          }
+        ],
+        "overall": "warning",
+        "notes": "Mobile layout has readability issues with small body text, truncated headers, and cramped navigation; content density needs restructuring for 375px screens.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_dashboard_html_mobile.png"
+      }
+    },
+    {
+      "url": "https://ryan-jenkinson.github.io/compliance-maps/newsletter/archive.html",
+      "desktop": {
+        "issues": [
+          {
+            "severity": "high",
+            "category": "content",
+            "description": "Sparse content \u2014 only one briefing entry visible for the entire 2026 section; appears to be incomplete archive listing with significant empty space below"
+          },
+          {
+            "severity": "medium",
+            "category": "layout",
+            "description": "Excessive whitespace \u2014 large empty area below the single briefing entry creates poor visual balance and suggests missing content or broken pagination"
+          },
+          {
+            "severity": "low",
+            "category": "readability",
+            "description": "Date format inconsistency \u2014 subtitle uses 'WEEKLY BRIEFINGS' (small caps) but intro text uses lowercase 'compliance briefings'; minor inconsistency in styling conventions"
+          }
+        ],
+        "overall": "warning",
+        "notes": "Archive page appears under-populated with only one entry visible; verify if additional briefings exist or if pagination/loading is broken.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_newsletter_archive__desktop.png"
+      },
+      "mobile": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "content",
+            "description": "Large empty white space below the footer (approximately 40% of viewport) suggests missing content, broken layout, or incomplete page load"
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Footer text 'COMPLIANCE INTELLIGENCE \u2014 MARCH 22, 2026' uses different styling/weight than header; inconsistent typographic hierarchy"
+          },
+          {
+            "severity": "low",
+            "category": "readability",
+            "description": "Date range text '2026-03-14 \u2014 2026-03-20' uses monospace font which is visually inconsistent with body text; minor but noticeable"
+          }
+        ],
+        "overall": "warning",
+        "notes": "Significant unexplained whitespace below footer is the main concern; otherwise layout and typography are functional for mobile.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_newsletter_archive__mobile.png"
+      }
+    },
+    {
+      "url": "https://ryan-jenkinson.github.io/compliance-maps/glossary.html",
+      "desktop": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Abbreviation acronyms (PFAS, PFOA, PFOS, PTFE, CAA, CERCLA, etc.) use teal/cyan color (#008B8B-like) which has insufficient contrast against white background for extended readability; recommend darker color or bold weight for clarity."
+          },
+          {
+            "severity": "low",
+            "category": "layout",
+            "description": "Description text in definition rows (right column) appears to have variable line-height and spacing, creating inconsistent visual rhythm across entries."
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Section headers (CHEMICALS, US FEDERAL) use different font weights and spacing; could be standardized for stronger visual hierarchy."
+          }
+        ],
+        "overall": "pass",
+        "notes": "Dashboard is well-structured with clear information hierarchy; minor contrast and consistency refinements would improve polish.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_glossary_html_desktop.png"
+      },
+      "mobile": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Abbreviation tags (PFAS, PFOA, PPOS, PTFE) are small and could benefit from slightly larger font size for better mobile readability"
+          },
+          {
+            "severity": "low",
+            "category": "layout",
+            "description": "Description text for chemical entries is left-aligned and relatively narrow, creating short line lengths that could be optimized for better scannability"
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Tag styling uses inconsistent sizing \u2014 some tags appear more cramped than others due to varying text lengths without apparent padding normalization"
+          }
+        ],
+        "overall": "pass",
+        "notes": "Mobile layout is functional and readable with good hierarchy, though abbreviation labels could be slightly larger for improved accessibility on small screens.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_glossary_html_mobile.png"
+      }
+    },
+    {
+      "url": "https://ryan-jenkinson.github.io/compliance-maps/deadline-timeline.html",
+      "desktop": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Text truncation in 'FTC Green Guides Update: Recyclability & Compostabil...' \u2014 title is cut off with ellipsis, reducing clarity of the full deadline item"
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Inconsistent spacing between jurisdiction sections (Federal has dense item list, Alabama/Alaska/Arizona sections below show 'No tracked deadlines' with excessive whitespace)"
+          },
+          {
+            "severity": "low",
+            "category": "readability",
+            "description": "Gray placeholder text 'No tracked deadlines' for empty state sections has low contrast and unclear visual hierarchy compared to active deadline items"
+          },
+          {
+            "severity": "low",
+            "category": "layout",
+            "description": "Jurisdiction label 'Federal' appears disconnected from its content due to large vertical gap; consider tighter visual grouping"
+          }
+        ],
+        "overall": "pass",
+        "notes": "Dashboard is functionally sound with good visual hierarchy; only minor readability and spacing issues that don't impede usability.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_deadline-timeline_h_desktop.png"
+      },
+      "mobile": {
+        "issues": [
+          {
+            "severity": "high",
+            "category": "readability",
+            "description": "Multiple deadline entries have truncated text with '...' ellipsis, making titles unreadable (e.g., 'EPA TSCA CBI Claims Ir...', 'EPA TSCA Chemical Da...', 'FTC Green Guides Upda...'). Full titles are essential for compliance information."
+          },
+          {
+            "severity": "high",
+            "category": "layout",
+            "description": "Right column content is cut off/overflowing on mobile (375px width). Tag badges like 'TSCA', 'EPR', 'PFAS' and associated content ('L', 'M', 'H' urgency indicators) are partially hidden or misaligned."
+          },
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Urgency legend at bottom uses very small text ('High (<6 mo)', 'Medium (6-12 mo)', 'Low (>12 mo)') with minimal contrast. Font size appears below recommended 14px minimum for mobile."
+          },
+          {
+            "severity": "medium",
+            "category": "consistency",
+            "description": "Inconsistent text truncation lengths across deadline items creates visual instability and suggests responsive design breakpoints not optimized for 375px width."
+          },
+          {
+            "severity": "low",
+            "category": "layout",
+            "description": "Tab navigation at top ('MAPS', 'PFAS', 'EPR', etc.) may have overflow or text wrapping issues on narrow viewport; readability of full tab names unclear."
+          }
+        ],
+        "overall": "fail",
+        "notes": "Critical text truncation and right-column overflow severely compromise mobile usability and compliance deadline visibility.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_deadline-timeline_h_mobile.png"
+      }
+    },
+    {
+      "url": "https://ryan-jenkinson.github.io/compliance-maps/pfas-timeline.html",
+      "desktop": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Text truncation in deadline descriptions: 'Manufacturer registration required under DTSC (AB 34...' and 'Ban on PFAS in all cleaning products, textiles, food...' and 'PFAS labeling required across covered product catego...' are cut off with ellipsis, making full content unreadable without interaction."
+          },
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Low contrast on inactive jurisdiction text (Alabama, Alaska, Arizona, Arkansas, Delaware, Florida): light gray text on white background makes 'No tracked deadlines' very difficult to read."
+          },
+          {
+            "severity": "low",
+            "category": "layout",
+            "description": "Inconsistent spacing/alignment: State abbreviations (CA, CO, CT) are not vertically centered relative to their jurisdiction names, creating visual misalignment."
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Inconsistent badge styling: 'PFAS' badges appear in different colors (red, blue) without clear visual distinction in legend\u2014severity indicators (MEDIUM, LOW, HIGH) use different styling than the topic badges."
+          }
+        ],
+        "overall": "warning",
+        "notes": "Dashboard is functional but readability is hampered by text truncation and low contrast on inactive states; content truncation particularly impacts usability for compliance-critical information.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_pfas-timeline_html_desktop.png"
+      },
+      "mobile": {
+        "issues": [
+          {
+            "severity": "high",
+            "category": "readability",
+            "description": "Text truncation on state abbreviations (AL, AK, AZ, AR, CA, CO, CT) and jurisdiction codes \u2014 text is cut off and unreadable"
+          },
+          {
+            "severity": "high",
+            "category": "readability",
+            "description": "Deadline text for Alabama, Alaska, Arizona, and Arkansas states shows 'No tracked deadline' in very low contrast gray text, difficult to read against light background"
+          },
+          {
+            "severity": "medium",
+            "category": "layout",
+            "description": "Card titles in right column (EPA TRI PFAS Reporting, Manufacturer registration, DTSC enforcement, Ban on PFAS, PFAS labeling required) are truncated with ellipsis \u2014 full text not visible"
+          },
+          {
+            "severity": "medium",
+            "category": "content",
+            "description": "Multiple empty/incomplete card display \u2014 right column shows partial regulatory items that appear cut off or incomplete"
+          },
+          {
+            "severity": "medium",
+            "category": "layout",
+            "description": "Inconsistent spacing and alignment between left jurisdiction list and right content column \u2014 visual hierarchy unclear on mobile"
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Mixed visual treatment of deadline urgency legend at bottom (colored boxes with Medium/High/Low labels) appears disconnected from main content flow"
+          }
+        ],
+        "overall": "warning",
+        "notes": "Mobile layout suffers from text truncation and overflow issues; content is partially obscured and readability is compromised on narrow viewports.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_pfas-timeline_html_mobile.png"
+      }
+    },
+    {
+      "url": "https://ryan-jenkinson.github.io/compliance-maps/epr-timeline.html",
+      "desktop": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Multiple regulation titles are truncated with ellipsis ('...'), making full content inaccessible without hover or expansion. Examples: 'FTC Green Guides Update: Recyclability & Compostabil...', 'PPWR: EU Packaging and Packaging Waste Regulation Ta...', 'Maine EPR: Municipal Cost Reimbursement Program Expa...'"
+          },
+          {
+            "severity": "medium",
+            "category": "layout",
+            "description": "Timeline header shows quarter markers (Q3 2026, Q4 2026) but the horizontal timeline grid is not clearly aligned with row content, making it difficult to visually correlate deadlines to quarters at a glance"
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "The red vertical bar indicator on 'Maine EPR: Phase 2 Stewardship Fee Increases' appears incomplete or cut off on the right edge, inconsistent with other visual treatments in the timeline"
+          },
+          {
+            "severity": "low",
+            "category": "readability",
+            "description": "Jurisdiction labels (Federal, CA, CO, EU, ME, MD) use small text with minimal visual hierarchy compared to regulation titles, making quick scanning less efficient"
+          }
+        ],
+        "overall": "warning",
+        "notes": "Dashboard is functional with good structure, but text truncation and timeline alignment issues reduce usability for regulatory compliance monitoring.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_epr-timeline_html_desktop.png"
+      },
+      "mobile": {
+        "issues": [
+          {
+            "severity": "high",
+            "category": "readability",
+            "description": "Multiple text truncations in the main content area: 'FTC Green Guides Upda', 'SB 54: Producer Registr', 'SB 54: 30% Single-Use', 'SB 54: 65% Single-Use', 'SB 54: 100% Recyclable', 'HB 22-1355: Producer R', 'HB 22-1355: Phase I Rec', 'PPWR: EU Packaging ar', 'PPWR: Reusable Packa', 'Maine EPR: Phase 2 Ste' \u2014 text cuts off mid-word making titles difficult to read"
+          },
+          {
+            "severity": "medium",
+            "category": "layout",
+            "description": "Right sidebar content appears cramped with small badge labels ('EPR', 'RE', 'LO') that lack clear spacing and visual hierarchy; badges are difficult to scan at this mobile width"
+          },
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Small font size on jurisdiction labels ('CA', 'CO') and urgency legend at bottom ('High (<6 mo)', 'Medium (6-12 mo)', 'Low (>12 mo)') creates readability strain on mobile screens"
+          },
+          {
+            "severity": "medium",
+            "category": "layout",
+            "description": "Horizontal scrolling likely needed for the full table header (MAPS, PFAS, EPR, REACH, TIMELINES, PFAS, E...) \u2014 the 'E' column appears cut off, indicating overflow"
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Date formatting is inconsistent across entries: some use 'Dec 31, 2026', others 'Jan 01, 2027', 'Jan 01, 2028' \u2014 minor but inconsistent presentation"
+          }
+        ],
+        "overall": "warning",
+        "notes": "Mobile layout suffers from significant text truncation and cramped spacing; consider redesigning for better mobile responsiveness and full text visibility.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_epr-timeline_html_mobile.png"
+      }
+    },
+    {
+      "url": "https://ryan-jenkinson.github.io/compliance-maps/reach-timeline.html",
+      "desktop": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "layout",
+            "description": "Excessive empty space below the two EU timeline entries \u2014 the layout appears sparse and underutilizes the available canvas, making the page feel incomplete"
+          },
+          {
+            "severity": "medium",
+            "category": "content",
+            "description": "Only two EU jurisdiction entries visible with identical dates (Mar 21, 2026); unclear if other jurisdictions exist or if this is the full dataset \u2014 potential missing content or filtering issue"
+          },
+          {
+            "severity": "low",
+            "category": "readability",
+            "description": "Red vertical bars in the timeline lack clear visual labels or legend correlation \u2014 users must infer meaning from context alone"
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Header breadcrumb text (REACH / EU CHEMICAL COMPLIANCE) uses different styling than body content; minor inconsistency in visual hierarchy"
+          }
+        ],
+        "overall": "warning",
+        "notes": "Dashboard loads but appears data-sparse with significant wasted whitespace; timeline visualization is minimal and context for the two entries is unclear.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_reach-timeline_html_desktop.png"
+      },
+      "mobile": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "layout",
+            "description": "Excessive whitespace below EU jurisdiction row \u2014 the page appears mostly empty below the two deadline entries, suggesting missing content or poor use of vertical space on mobile"
+          },
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Tab navigation at top (MAPS, PFAS, EPR, REACH, TIMELINES, PFAS, E) is cramped and difficult to read on 375px width; text may be truncated or difficult to tap accurately"
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "PFAS appears twice in the tab navigation \u2014 likely a display error or duplicate tab that reduces clarity"
+          },
+          {
+            "severity": "low",
+            "category": "readability",
+            "description": "The legend at bottom uses small colored boxes (High, Medium, Low) with abbreviated timeframes \u2014 text is very small and may be hard to read on mobile without zooming"
+          }
+        ],
+        "overall": "warning",
+        "notes": "Functional layout but mobile optimization needs attention: cramped navigation, excessive whitespace, and small legend text reduce usability.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_reach-timeline_html_mobile.png"
+      }
+    },
+    {
+      "url": "https://ryan-jenkinson.github.io/compliance-maps/tsca-timeline.html",
+      "desktop": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "layout",
+            "description": "Excessive whitespace below content. The timeline section ends after 4 items with a large empty area (>60% of viewport height), suggesting incomplete data load or poor content distribution."
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Header metadata text ('Generated March 24, 2026 \u2022 4 deadlines across 1 jurisdiction') uses very small font size and light gray color\u2014difficult to read at normal viewing distance."
+          },
+          {
+            "severity": "low",
+            "category": "readability",
+            "description": "Timeline header row (Q2Q2 2026, Q3 2026, Q4 2026) has weak visual hierarchy and could benefit from stronger contrast or larger font to distinguish from content rows."
+          },
+          {
+            "severity": "low",
+            "category": "content",
+            "description": "Legend at bottom ('URGENCY' color scale) uses small text that may be difficult to read; urgency indicators in legend are visual-only without text labels for clarity."
+          }
+        ],
+        "overall": "pass",
+        "notes": "Clean, functional layout with good information architecture; primary concern is excessive whitespace indicating potential incomplete content or need for better vertical space utilization.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_tsca-timeline_html_desktop.png"
+      },
+      "mobile": {
+        "issues": [
+          {
+            "severity": "high",
+            "category": "readability",
+            "description": "Text truncation in deadline items: 'EPA TSCA CBI Claims C' and 'EPA TSCA CBI Claims K' are cut off and incomplete, making it unclear what the full titles are"
+          },
+          {
+            "severity": "high",
+            "category": "readability",
+            "description": "Text truncation in deadline items: 'EPA Chemical Data Rep' and 'EPA TSCA Chemical Da' are truncated, preventing users from reading complete deadline names"
+          },
+          {
+            "severity": "medium",
+            "category": "layout",
+            "description": "Excessive whitespace below the deadline list (more than 50% of viewport) suggests missing content, incomplete loading, or poor vertical spacing"
+          },
+          {
+            "severity": "medium",
+            "category": "content",
+            "description": "The JURISDICTION column header is visible but the actual jurisdiction values appear to be missing or not displayed in the list items"
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Tab navigation at top (MAPS, PFAS, EPR, REACH, TIMELINES, PFAS, E) is cut off on the right side; the final 'E' tab appears incomplete"
+          }
+        ],
+        "overall": "warning",
+        "notes": "Critical text truncation in deadline titles severely impacts usability; excessive whitespace and missing jurisdiction data also present layout and content issues.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_tsca-timeline_html_mobile.png"
+      }
+    },
+    {
+      "url": "https://ryan-jenkinson.github.io/compliance-maps/director_review.html",
+      "desktop": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Metric cards (5/10, 3/10, 5/10) use large orange and red numbers that create high contrast but may be difficult to scan quickly; consider adding visual hierarchy or icons to differentiate metrics at a glance"
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Section headings use inconsistent styling: 'What's Working' is teal, 'Questions Raised But Not Answered' is red/brown; consider standardizing heading colors across the dashboard"
+          },
+          {
+            "severity": "low",
+            "category": "layout",
+            "description": "The italicized quote/insight block uses a left border but lacks visual distinction from body text; font size and padding could be more prominent for emphasis"
+          },
+          {
+            "severity": "low",
+            "category": "content",
+            "description": "Metadata line 'Generated 2026-03-24...' uses small gray text that is legible but could be visually distinguished better from main content (e.g., placed in a subtle footer or card)"
+          }
+        ],
+        "overall": "pass",
+        "notes": "Dashboard is well-structured with clear hierarchy and readable text; no critical accessibility or layout failures detected, only minor consistency refinements suggested.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_director_review_htm_desktop.png"
+      },
+      "mobile": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Command text 'python run.py --director-review to regenerate' uses monospace font that is quite small and may be difficult to read on mobile; consider larger font size or code block styling"
+          },
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "The quoted section ('Promising skeleton with real data...') uses italic text which reduces readability on small screens; the left border accent is good but text contrast could be improved"
+          },
+          {
+            "severity": "low",
+            "category": "layout",
+            "description": "Three metric cards (5/10, 3/10, 5/10) appear to stack vertically on 375px mobile \u2014 verify they fit within viewport width without horizontal scroll"
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Bullet point list items have varying line lengths; some wrap awkwardly. Consider consistent left padding or line-length optimization for mobile"
+          }
+        ],
+        "overall": "pass",
+        "notes": "Dashboard is functional and mostly readable on mobile; minor readability improvements needed for code snippets and italicized quote text.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_director_review_htm_mobile.png"
+      }
+    },
+    {
+      "url": "https://ryan-jenkinson.github.io/compliance-maps/pfas-legislative-intel.html",
+      "desktop": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Legend text is small and difficult to read, especially the descriptive text in parentheses (e.g., 'green = high, amber = medium, gray = low'). Consider larger font size or improved contrast."
+          },
+          {
+            "severity": "medium",
+            "category": "layout",
+            "description": "The right panel shows placeholder text 'Select a state to see details' with excessive empty space. This creates visual imbalance and wastes screen real estate on a 1440px desktop."
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Legend is duplicated at top (inline with counts) and bottom (below map). Consider consolidating to avoid redundancy and improve clarity."
+          },
+          {
+            "severity": "low",
+            "category": "readability",
+            "description": "Corner dots on state tiles indicating 'evidence confidence' are very small and could be missed by users. Consider tooltip or larger indicator."
+          },
+          {
+            "severity": "low",
+            "category": "layout",
+            "description": "State tiles have inconsistent spacing and alignment, creating a grid-like pattern that feels slightly scattered rather than precisely organized."
+          }
+        ],
+        "overall": "warning",
+        "notes": "Dashboard is functional but has minor readability and layout inefficiencies; placeholder UI and small legend text should be addressed.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_pfas-legislative-in_desktop.png"
+      },
+      "mobile": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Brown banner text is white on dark brown background with adequate contrast, but the disclaimer is dense and small\u2014consider breaking into bullet points or increasing line-height for mobile readability."
+          },
+          {
+            "severity": "low",
+            "category": "layout",
+            "description": "Legend items (Early Signals, Rulemaking, Bill Introduced, etc.) are presented in a multi-column grid that may wrap awkwardly on very small phones\u2014consider single-column stacking for consistency."
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Color-coded legend uses varied color blocks (gray, red, blue, purple, orange) but no actual map/visualization is visible in this screenshot\u2014verify the map component renders correctly below the legend on mobile."
+          }
+        ],
+        "overall": "pass",
+        "notes": "Dashboard is functionally sound with good contrast and hierarchy; minor layout optimization recommended for mobile legend wrapping and disclaimer readability.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_pfas-legislative-in_mobile.png"
+      }
+    },
+    {
+      "url": "https://ryan-jenkinson.github.io/compliance-maps/epr-map.html",
+      "desktop": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "State abbreviations on the map are very small (2-letter codes like 'WA', 'MT', 'ND') and may be difficult to read at normal viewing distance, especially for users with vision impairments."
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Tab navigation uses inconsistent styling \u2014 'EPR' tab is highlighted in orange/gold while other inactive tabs use gray text, creating visual confusion about active state clarity."
+          },
+          {
+            "severity": "low",
+            "category": "layout",
+            "description": "Right-side panel (CA details) has dense text blocks under 'ACTIVE & PROPOSED PROGRAMS' and 'KEY DATES' with minimal spacing between items, reducing scannability."
+          }
+        ],
+        "overall": "pass",
+        "notes": "Dashboard is functional with good information hierarchy; minor readability concerns with small map labels and dense text blocks in side panel do not significantly impair usability.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_epr-map_html_desktop.png"
+      },
+      "mobile": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Text contrast issue in header section \u2014 'COMPLIANCE INTELLIGENCE' and 'MAPS PFAS EPR REACH TIMELINES' tabs use light gray text on dark background that may fail WCAG AA standards"
+          },
+          {
+            "severity": "medium",
+            "category": "layout",
+            "description": "Modal/card overflow \u2014 'ACTIVE & PROPOSED PROGRAMS' section content is cut off at bottom; list items appear truncated without clear scroll indication or full visibility"
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Button styling inconsistency \u2014 'DOWNLOAD EXCEL' button uses different styling than 'DEADLINE TIME' button; inconsistent icon/text alignment"
+          },
+          {
+            "severity": "low",
+            "category": "readability",
+            "description": "Section headers ('OVERVIEW', 'ACTIVE & PROPOSED PROGRAMS', 'KEY DATES') use small caps in light gray; reduced legibility for mobile users"
+          }
+        ],
+        "overall": "warning",
+        "notes": "Modal content is cut off requiring scroll, and header text contrast needs verification against WCAG standards.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_epr-map_html_mobile.png"
+      }
+    },
+    {
+      "url": "https://ryan-jenkinson.github.io/compliance-maps/reach-map.html",
+      "desktop": {
+        "issues": [
+          {
+            "severity": "low",
+            "category": "readability",
+            "description": "Footer text is very small (appears <12px) and uses light gray color on light background, reducing contrast and readability for compliance-critical information about data currency and legal disclaimers."
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Tab navigation uses inconsistent styling \u2014 'REACH' tab has a warm gold/orange highlight while other tabs use neutral colors, creating visual hierarchy that may not match design intent."
+          },
+          {
+            "severity": "low",
+            "category": "layout",
+            "description": "Legend at bottom left uses italicized fine print text that is difficult to scan quickly; considers using non-italic or bold for category labels."
+          }
+        ],
+        "overall": "pass",
+        "notes": "Dashboard is well-organized with good contrast and clear hierarchy; minor readability issue in footer text that should be addressed for compliance documentation purposes.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_reach-map_html_desktop.png"
+      },
+      "mobile": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Body text in the notes section is small and dense, with limited line-height, making it difficult to read on mobile. Consider increased spacing and larger font size."
+          },
+          {
+            "severity": "low",
+            "category": "layout",
+            "description": "The modal dialog appears to extend close to the edges with minimal padding on mobile, reducing whitespace and readability comfort."
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Badge labels ('PRIORITY', 'Primary') use different styling and capitalization conventions, reducing visual consistency."
+          }
+        ],
+        "overall": "pass",
+        "notes": "Dashboard layout is functional on mobile with no critical issues; minor readability improvements needed for body text density.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_reach-map_html_mobile.png"
+      }
+    },
+    {
+      "url": "https://ryan-jenkinson.github.io/compliance-maps/newsletter/2026-03-22.html",
+      "desktop": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Red text on dark gray background in left sidebar ('IN THIS ISSUE', 'ALL WEEKS \u2192') has insufficient contrast ratio and is difficult to read"
+          },
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Small gray text in left sidebar ('MARCH 22, 2026', 'WEEK OF MAR 21 - 27') is too small and low-contrast for comfortable reading"
+          },
+          {
+            "severity": "low",
+            "category": "layout",
+            "description": "Left sidebar 'ARCHIVE' section appears cut off or incomplete at the bottom, with minimal vertical space before content ends"
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Update count badges ('11 updates', '1 update', etc.) use inconsistent styling \u2014 some have background color, some appear as plain text"
+          }
+        ],
+        "overall": "pass",
+        "notes": "Dashboard is generally well-designed with good hierarchy and organization, but sidebar readability issues should be addressed for accessibility compliance.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_newsletter_2026-03-_desktop.png"
+      },
+      "mobile": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Greeting text 'Good morning, Ryan.' uses italic serif font that may have reduced legibility on mobile at this size; consider testing readability metrics"
+          },
+          {
+            "severity": "medium",
+            "category": "content",
+            "description": "Compliance briefing date appears truncated: 'Your compliance briefing for March 22, 20' \u2014 missing closing year; verify full text displays"
+          },
+          {
+            "severity": "low",
+            "category": "layout",
+            "description": "Left navigation sidebar (IN THIS ISSUE section) uses narrow column width on 375px mobile; may reduce tap target usability for small screens"
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Badge/tag styling varies slightly between sections (PFAS, EPR, REACH, TSCA) \u2014 some have borders, different spacing; minor inconsistency in visual treatment"
+          },
+          {
+            "severity": "low",
+            "category": "content",
+            "description": "Archive section shows 'Mar 14 - 20' and 'ALL WEEKS \u2192' link but no date range context; unclear what this navigation represents"
+          }
+        ],
+        "overall": "warning",
+        "notes": "Primary concern is truncated briefing date text; layout functions but badge styling could be more consistent across mobile view.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_newsletter_2026-03-_mobile.png"
+      }
+    },
+    {
+      "url": "https://ryan-jenkinson.github.io/compliance-maps/newsletter/week-2026-03-20.html",
+      "desktop": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Italicized body text in the summary paragraph is difficult to read at length; the italic style reduces scannability and may strain readers. Consider using regular font weight for better readability."
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Line length appears excessive (likely 80+ characters), reducing reading comfort. Standard best practice is 50-75 characters per line for body text."
+          },
+          {
+            "severity": "low",
+            "category": "layout",
+            "description": "Bullet point text is not constrained to a narrower measure and runs full-width, creating long lines that reduce readability compared to the narrower summary section above."
+          }
+        ],
+        "overall": "pass",
+        "notes": "Dashboard is clean and well-organized with good visual hierarchy and spacing; minor readability improvements recommended for italicized text and line length.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_newsletter_week-202_desktop.png"
+      },
+      "mobile": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Body text in the summary section uses italic styling, which reduces readability on mobile screens. The contrast and font weight combination makes sustained reading more difficult."
+          },
+          {
+            "severity": "low",
+            "category": "layout",
+            "description": "The bullet point text under 'KEY DEVELOPMENTS' appears to be cut off at the bottom of the viewport. Content may be truncated or require scrolling to view completely."
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Inconsistent spacing between section headers (all-caps labels like 'END OF WEEK SUMMARY' vs 'KEY DEVELOPMENTS') and their content could be more uniform for visual hierarchy."
+          }
+        ],
+        "overall": "pass",
+        "notes": "Dashboard is functional and readable overall; minor readability concerns with italicized body text and potential content cutoff at bottom are the only notable issues.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_newsletter_week-202_mobile.png"
+      }
+    },
+    {
+      "url": "https://ryan-jenkinson.github.io/compliance-maps/cross_state_report.html",
+      "desktop": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Italic text in watch list items (action items and analysis) has reduced contrast against white background and is harder to scan quickly. Consider using regular weight with different visual treatment (e.g., background highlight, left border)."
+          },
+          {
+            "severity": "medium",
+            "category": "layout",
+            "description": "Watch list items use a thin left red border that may not be sufficiently visible as a visual divider. The border-to-text spacing could be increased for better visual hierarchy."
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "State abbreviations (VA, MD, NY, MN, NJ, WA) are inconsistently styled \u2014 some are bold, some are not. Standardize formatting for visual consistency."
+          },
+          {
+            "severity": "low",
+            "category": "readability",
+            "description": "Line length of body text appears to approach or exceed 90 characters per line in some sections, which can reduce readability. Consider narrower max-width for paragraph text."
+          }
+        ],
+        "overall": "pass",
+        "notes": "Dashboard is well-structured with clear hierarchy; minor readability improvements needed for italic text and line length consistency.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_cross_state_report__desktop.png"
+      },
+      "mobile": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Body text line length exceeds optimal mobile readability. Long paragraphs under 'PFAS' section create dense text blocks that are difficult to scan on 375px viewport."
+          },
+          {
+            "severity": "medium",
+            "category": "layout",
+            "description": "Watch List items have inconsistent visual hierarchy. Mixed use of italics, regular text, and parenthetical information makes it unclear what is action-required vs. supporting detail."
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Metadata text ('Generated 2026-03-23...') uses lighter gray that may have insufficient contrast against white background for WCAG AA compliance."
+          },
+          {
+            "severity": "low",
+            "category": "layout",
+            "description": "Left border accent on Watch List items creates visual emphasis, but truncated text below ('MD \u2014 4 bills passed...') suggests content may be cut off at viewport edge."
+          }
+        ],
+        "overall": "warning",
+        "notes": "Dashboard is functionally readable but has moderate text density and contrast concerns for mobile accessibility; content structure could be more scannable.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_cross_state_report__mobile.png"
+      }
+    },
+    {
+      "url": "https://ryan-jenkinson.github.io/compliance-maps/index.html",
+      "desktop": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "The search field placeholder text 'Search articl' appears truncated or cut off in the top navigation, reducing clarity of its purpose."
+          },
+          {
+            "severity": "low",
+            "category": "layout",
+            "description": "The 'hide sidebar' link in the Executive Briefing section uses a right arrow symbol (\u25ba) that may not be immediately clear to all users as an interactive element."
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "The metric cards in the Regulatory Status section use inconsistent icon sizes and alignments across different regulatory frameworks (PFAS, EPR, REACH, TSCA, PROP65)."
+          },
+          {
+            "severity": "low",
+            "category": "layout",
+            "description": "The 'Bills by Legislative Stage' section has narrow column widths for stage names (e.g., 'ENACTED', 'ADVANCED'), which could cause wrapping on smaller viewport adjustments."
+          }
+        ],
+        "overall": "pass",
+        "notes": "Dashboard is professionally designed with good information hierarchy; minor truncation and spacing inconsistencies don't significantly impact usability on desktop.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_index_html_desktop.png"
+      },
+      "mobile": {
+        "issues": [
+          {
+            "severity": "high",
+            "category": "readability",
+            "description": "Body text in 'OPENING' and 'KEY DEVELOPMENTS' sections is small and dense with poor line spacing, making it difficult to read on mobile. Text appears to be around 14px or smaller with minimal leading."
+          },
+          {
+            "severity": "medium",
+            "category": "layout",
+            "description": "Text truncation visible in date range ('Tuesday, March 24, 2026 / Mar 21 \u2013 27' appears cut off with 'Sc' visible on right edge), indicating horizontal overflow or improper text wrapping on mobile viewport."
+          },
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Multiple paragraph blocks lack proper visual hierarchy and spacing. The wall of text under 'KEY DEVELOPMENTS' contains multiple topics (PRISM, MPCA, RAC opinion, New Mexico) without clear section breaks or bullet point formatting."
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Tab navigation ('DIRECTOR REVIEW', 'TIMELINE', 'PFAS MAP', 'ARC...') appears cut off on the right ('ARC' truncated), suggesting horizontal overflow or insufficient space allocation for tab labels."
+          }
+        ],
+        "overall": "warning",
+        "notes": "Mobile layout has readability issues due to dense text blocks, truncation, and inadequate spacing; requires content restructuring and better responsive typography.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps_index_html_mobile.png"
+      }
+    },
+    {
+      "url": "https://ryan-jenkinson.github.io/compliance-maps/",
+      "desktop": {
+        "issues": [
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Body text in 'KEY DEVELOPMENTS' and 'OUTLOOK' sections is small (appears ~13-14px) with moderate contrast against white background. While readable, could strain users during extended reading sessions."
+          },
+          {
+            "severity": "medium",
+            "category": "layout",
+            "description": "Right sidebar content ('REGULATORY STATUS', 'PFAS LEGISLATIVE INTEL', 'BILLS BY LEGISLATIVE STAGE') has inconsistent spacing and padding; colored status indicators (squares) in the table lack clear labels or legend in immediate context."
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Metric cards at top use different styling for urgency labels (e.g., '2 HIGH', '1 MED', '3 HIGH') with inconsistent capitalization and spacing; color coding is present but not uniformly applied."
+          },
+          {
+            "severity": "low",
+            "category": "content",
+            "description": "The 'hide sidebar >' link in top right is subtle and low contrast; could be missed as an affordance for collapsing the navigation."
+          }
+        ],
+        "overall": "pass",
+        "notes": "Dashboard is functionally sound with good information hierarchy; minor readability and consistency refinements would improve polish.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps__desktop.png"
+      },
+      "mobile": {
+        "issues": [
+          {
+            "severity": "high",
+            "category": "readability",
+            "description": "Body text in 'OPENING' and 'KEY DEVELOPMENTS' sections uses small font size with poor contrast against white background. Text appears to be 12-14px, making it difficult to read on mobile."
+          },
+          {
+            "severity": "high",
+            "category": "layout",
+            "description": "Text content in 'KEY DEVELOPMENTS' section is severely truncated and cut off at the bottom of the visible area without indication of continuation. Multiple sentences end abruptly (e.g., 'under p', 'me', 'for f')."
+          },
+          {
+            "severity": "medium",
+            "category": "readability",
+            "description": "Long paragraph text blocks lack line-height spacing, creating dense walls of text that reduce readability on mobile. Paragraphs need better vertical breathing room."
+          },
+          {
+            "severity": "medium",
+            "category": "layout",
+            "description": "Tab navigation ('DIRECTOR REVIEW', 'TIMELINE', 'PFAS MAP', 'ARCH...') appears to overflow or truncate on 375px viewport. The rightmost tab is cut off completely."
+          },
+          {
+            "severity": "low",
+            "category": "consistency",
+            "description": "Section headers ('OPENING', 'KEY DEVELOPMENTS') use teal color while other UI elements use different accent colors, creating minor visual inconsistency."
+          }
+        ],
+        "overall": "fail",
+        "notes": "Critical text truncation and readability issues make this mobile dashboard unusable; content is cut off and difficult to parse.",
+        "screenshot": "/Users/ryanjenkinson/Desktop/compliance-monitor/data/site_audit/screenshots/2026-03-24_ryan-jenkinson_github_io_compliance-maps__mobile.png"
+      }
+    }
+  ]
+}

@@ -1,0 +1,220 @@
+{
+  "audit_date": "2026-03-24",
+  "generated_at": "2026-03-24 14:40:06",
+  "total_claims": 44,
+  "verified_count": 15,
+  "flagged_count": 10,
+  "unverifiable_count": 19,
+  "confidence_score": 31,
+  "summary": "The compliance intelligence dashboard exhibits significant accuracy deficiencies, with 10 of 44 claims (23%) flagged as incorrect and an additional 19 (43%) unverifiable \u2014 leaving only 34% of total claims confirmed accurate. Flagged errors are concentrated in PFAS legislative statistics, where nearly every quantitative claim materially misstates the underlying data, and in REACH/TSCA deadline counts, which reflect record-level miscounting rather than substantive deadline errors. Immediate correction of PFAS-related figures and deadline aggregation logic is required before this dashboard can be relied upon for compliance decision-making.",
+  "key_findings": [
+    "CRITICAL \u2014 PFAS legislative statistics are systemically unreliable: 7 of 10 flagged claims are PFAS-related, and every quantitative PFAS figure audited is materially wrong. Errors include: '51 states with PFAS activity' (actual: 13 jurisdictions), '16 states at Early Signals stage' (actual: 0 \u2014 stage label does not exist in dataset), '19 states In Committee' (actual: ~8 bills in committee stage), '3 states Near Passage' (actual: 5\u20136 states), '3 states with Bills Introduced' (actual: 10\u201313 states), '3 states with Rulemaking In Progress' (actual: 1), and '2 states with Enacted legislation' (actual: significantly more). This pattern indicates either a broken data pipeline, a stale or mismatched data source, or flawed aggregation logic applied to the legislative database.",
+    "REACH deadline count is undercounted: The dashboard reports '2 deadlines across 1 jurisdiction' for REACH, but the database contains 4 deadline records (Article 33 disclosure deadlines for n-hexane and Bisphenol AF each appearing twice). The underlying deadlines themselves are verified correct (March 21, 2026); the error is in the count aggregation, suggesting duplicate records are not being de-duplicated consistently or the count reflects a different grouping logic than expected.",
+    "TSCA deadline count misrepresents record vs. distinct deadline distinction: The dashboard reports '4 deadlines across 1 jurisdiction' for TSCA; the database contains 8 records collapsing into 2 distinct deadlines (August 31, 2026 and October 31, 2026). This is a record-count vs. unique-deadline-count inconsistency \u2014 the reported figure of 4 matches neither the raw record count (8) nor the distinct deadline count (2), suggesting an intermediate aggregation error.",
+    "EPR last-updated timestamp is misleading: The dashboard states the EPR State Tracker was last updated 2026-03-23, but the database contains records with activity through 2026-04-14 (HB5771, Michigan). The displayed timestamp understates data recency by at least 22 days, which could cause users to discount the currency of the tracker.",
+    "19 of 44 claims (43%) are unverifiable due to insufficient data coverage, representing a substantial blind spot in dashboard auditability and an unacceptable baseline for a compliance intelligence tool.",
+    "Only 15 of 44 claims (34%) are positively verified, with the strongest accuracy in specific deadline dates (REACH and TSCA deadlines verified via database) and narrow SME-confirmed facts. Verified claims are reliable but insufficient in volume to establish overall dashboard trustworthiness."
+  ],
+  "recommendations": [
+    "IMMEDIATE: Suspend or clearly disclaim all PFAS legislative statistics on the dashboard pending a full data pipeline audit. Recount all PFAS figures directly against the live legislative database, resolving stage label mismatches (e.g., 'Early Signals / Pre-Discussion' does not exist in current data schema) and correcting jurisdiction counts against actual records.",
+    "IMMEDIATE: Audit the aggregation logic for deadline counts across all regulatory frameworks (REACH, TSCA, and others). Implement a clear distinction between 'raw database records,' 'de-duplicated records,' and 'distinct deadlines' \u2014 and standardize which count the dashboard displays, with labeling to match.",
+    "HIGH PRIORITY: Update the EPR State Tracker timestamp to reflect the most recent record in the database (2026-04-14). Implement automated last-updated timestamps derived directly from the maximum last_action_date in the source data rather than from manual or pipeline-triggered refresh dates.",
+    "HIGH PRIORITY: Establish a data freshness and coverage audit process. The 43% unverifiability rate indicates the dashboard is surfacing claims from sources with insufficient grounding data. Introduce confidence or coverage indicators at the claim level so users can distinguish verified from unverified statistics in the UI.",
+    "STRUCTURAL: Implement a pre-publication validation layer that cross-checks all statistics displayed on the dashboard against live query results at render time, flagging any claim where the displayed value deviates from the live count by more than a defined threshold (e.g., \u00b110% or \u00b11 unit for small counts).",
+    "PROCESS: Require SME sign-off on all quantitative legislative statistics prior to dashboard publication cycles, particularly for rapidly evolving topic areas such as PFAS state legislation. The current SME verification process (2 of 44 claims) is materially under-resourced relative to the error rate observed."
+  ],
+  "flagged_claims": [
+    {
+      "claim": "2 deadlines tracked across 1 jurisdiction for REACH",
+      "type": "statistic",
+      "topic": "REACH",
+      "specificity": "high",
+      "page_url": "https://ryan-jenkinson.github.io/compliance-maps/reach-timeline.html",
+      "verification_method": "sme",
+      "verification_detail": "The database shows 4 deadline records tracked across 1 jurisdiction (EU) for REACH-related SVHC obligations \u2014 specifically, the Article 33 disclosure deadlines for n-hexane and Bisphenol AF (Fluorinated), each appearing twice in the dataset with a deadline date of 2026-03-21. The claim of '2 deadlin",
+      "severity": "medium"
+    },
+    {
+      "claim": "4 deadlines tracked across 1 jurisdiction for TSCA",
+      "type": "statistic",
+      "topic": "TSCA",
+      "specificity": "high",
+      "page_url": "https://ryan-jenkinson.github.io/compliance-maps/tsca-timeline.html",
+      "verification_method": "sme",
+      "verification_detail": "The deadline records show 8 entries tracked, all under Federal jurisdiction \u2014 not 4 across 1 jurisdiction. However, those 8 records collapse into essentially 2 distinct deadlines: (1) TSCA CBI Claims ICR approval expiry / renewal comment period, deadline 2026-08-31, and (2) TSCA Chemical Data Report",
+      "severity": "medium"
+    },
+    {
+      "claim": "51 states with detected PFAS activity tracked in legislative intelligence database",
+      "type": "statistic",
+      "topic": "PFAS",
+      "specificity": "high",
+      "page_url": "https://ryan-jenkinson.github.io/compliance-maps/pfas-legislative-intel.html",
+      "verification_method": "sme",
+      "verification_detail": "The live database context shows 30 active legislative bill records spanning DC, NJ, CA, MD, MN, IL, HI, VT, NY, MA, WI, NH, and CT \u2014 that's 13 jurisdictions (12 states + DC), not 51. The US has 50 states plus DC (51 jurisdictions total), but the database clearly does not contain records for all of t",
+      "severity": "medium"
+    },
+    {
+      "claim": "16 states at Early Signals / Pre-Discussion stage for PFAS legislation",
+      "type": "statistic",
+      "topic": "PFAS",
+      "specificity": "high",
+      "page_url": "https://ryan-jenkinson.github.io/compliance-maps/pfas-legislative-intel.html",
+      "verification_method": "sme",
+      "verification_detail": "The live database context contains 30 active legislative bill records, but none are categorized as 'Early Signals / Pre-Discussion' stage \u2014 that stage label doesn't appear in the dataset at all. The bill stages present in the data are: 'introduced', 'committee', and 'passed_one'. Counting distinct s",
+      "severity": "medium"
+    },
+    {
+      "claim": "3 states with Rulemaking In Progress for PFAS",
+      "type": "statistic",
+      "topic": "PFAS",
+      "specificity": "high",
+      "page_url": "https://ryan-jenkinson.github.io/compliance-maps/pfas-legislative-intel.html",
+      "verification_method": "sme",
+      "verification_detail": "The regulation registry shows only 1 entry with current_status 'rulemaking' \u2014 the New Mexico fluoropolymer exemption under legislative review. No other state entries carry that status. The remaining records are classified as 'enacted', 'active', or 'proposed'. The claim of 3 states with rulemaking i",
+      "severity": "medium"
+    },
+    {
+      "claim": "3 states with PFAS Bills Introduced",
+      "type": "statistic",
+      "topic": "PFAS",
+      "specificity": "high",
+      "page_url": "https://ryan-jenkinson.github.io/compliance-maps/pfas-legislative-intel.html",
+      "verification_method": "sme",
+      "verification_detail": "The database contains PFAS-related legislative activity in at least 10\u201313 states/jurisdictions, not 3. States with explicitly PFAS-titled bills include NJ, MD, MN, IL, NY, MA, WI, HI, CT, NH, and CA. The claim of '3 states' significantly understates the current legislative landscape and likely refle",
+      "severity": "medium"
+    },
+    {
+      "claim": "19 states with PFAS legislation In Committee",
+      "type": "statistic",
+      "topic": "PFAS",
+      "specificity": "high",
+      "page_url": "https://ryan-jenkinson.github.io/compliance-maps/pfas-legislative-intel.html",
+      "verification_method": "sme",
+      "verification_detail": "The live database context contains 30 active legislative bill records, but nowhere near 19 of them are state bills in a 'committee' stage. Counting the bills explicitly marked stage: 'committee' in the dataset: AB1603 (CA), HF3693 (MN), SF4758 (MN), HR190 (HI), HCR200 (HI), A10696 (NY), S1504 (MA), ",
+      "severity": "medium"
+    },
+    {
+      "claim": "3 states with PFAS legislation Near Passage",
+      "type": "statistic",
+      "topic": "PFAS",
+      "specificity": "high",
+      "page_url": "https://ryan-jenkinson.github.io/compliance-maps/pfas-legislative-intel.html",
+      "verification_method": "sme",
+      "verification_detail": "The live legislative database shows PFAS-relevant bills at 'passed_one' stage (i.e., passed at least one chamber and near passage) in at least 5-6 states: NJ (S1281), MD (HB925, SB719), HI (SB2095, SB2096), WI (AB130, AB131), and NY (S03207). The claim of '3 states' is an undercount. Worth flagging:",
+      "severity": "medium"
+    },
+    {
+      "claim": "2 states have Enacted PFAS legislation and are watching implementation",
+      "type": "statistic",
+      "topic": "PFAS",
+      "specificity": "high",
+      "page_url": "https://ryan-jenkinson.github.io/compliance-maps/pfas-legislative-intel.html",
+      "verification_method": "sme",
+      "verification_detail": "The regulation registry shows significantly more than 2 enacted PFAS regulations across multiple jurisdictions. Counting only records with current_status of 'enacted' or 'active': New Mexico has at least 3 enacted/active entries (PFAS Labeling Rule, Prohibition Rule, and the fluoropolymer exemption ",
+      "severity": "medium"
+    },
+    {
+      "claim": "EPR State Tracker last updated 2026-03-23",
+      "type": "other",
+      "topic": "EPR",
+      "specificity": "high",
+      "page_url": "https://ryan-jenkinson.github.io/compliance-maps/epr-map.html",
+      "verification_method": "sme",
+      "verification_detail": "The most recent article intelligence entries are dated 2026-03-23, and several legislative records show last_action_dates of 2026-03-23 (e.g., HF1426 in MN, AB2245 in CA). However, additional records in the database show activity through 2026-04-14 (HB5771 in MI). So while 2026-03-23 appears to be a",
+      "severity": "medium"
+    }
+  ],
+  "verified_sample": [
+    {
+      "claim": "SVHC Bisphenol AF Article 33 Disclosure deadline is March 21, 2026",
+      "type": "deadline",
+      "topic": "REACH",
+      "specificity": "high",
+      "page_url": "https://ryan-jenkinson.github.io/compliance-maps/reach-timeline.html",
+      "verification_method": "db",
+      "verification_detail": "DB: deadline 'SVHC Bisphenol AF Article 33 Disclosure Active' found in registry"
+    },
+    {
+      "claim": "SVHC n-Hexane Article 33 Disclosure deadline is March 21, 2026",
+      "type": "deadline",
+      "topic": "REACH",
+      "specificity": "high",
+      "page_url": "https://ryan-jenkinson.github.io/compliance-maps/reach-timeline.html",
+      "verification_method": "db",
+      "verification_detail": "DB: deadline 'SVHC n-Hexane Article 33 Disclosure Active' found in registry"
+    },
+    {
+      "claim": "EPA TSCA CBI Claims Collection Renewal deadline is August 31, 2026",
+      "type": "deadline",
+      "topic": "TSCA",
+      "specificity": "high",
+      "page_url": "https://ryan-jenkinson.github.io/compliance-maps/tsca-timeline.html",
+      "verification_method": "db",
+      "verification_detail": "DB: deadline 'EPA TSCA CBI Claims ICR Approval Expiry' found in registry"
+    },
+    {
+      "claim": "EPA TSCA CBI Claims ICR Approval Expiry deadline is August 31, 2026",
+      "type": "deadline",
+      "topic": "TSCA",
+      "specificity": "high",
+      "page_url": "https://ryan-jenkinson.github.io/compliance-maps/tsca-timeline.html",
+      "verification_method": "db",
+      "verification_detail": "DB: deadline 'EPA TSCA CBI Claims ICR Approval Expiry' found in registry"
+    },
+    {
+      "claim": "EPA Chemical Data Reporting ICR Approval Expiry deadline is October 31, 2026",
+      "type": "deadline",
+      "topic": "TSCA",
+      "specificity": "high",
+      "page_url": "https://ryan-jenkinson.github.io/compliance-maps/tsca-timeline.html",
+      "verification_method": "db",
+      "verification_detail": "DB: deadline 'EPA Chemical Data Reporting ICR Approval Expiry' found in registry"
+    },
+    {
+      "claim": "EPA TSCA Chemical Data Reporting Collection Renewal deadline is October 31, 2026",
+      "type": "deadline",
+      "topic": "TSCA",
+      "specificity": "high",
+      "page_url": "https://ryan-jenkinson.github.io/compliance-maps/tsca-timeline.html",
+      "verification_method": "db",
+      "verification_detail": "DB: deadline 'EPA TSCA Chemical Data Reporting Collection Renewal' found in registry"
+    },
+    {
+      "claim": "5 states with PFAS legislation Passed One Chamber",
+      "type": "statistic",
+      "topic": "PFAS",
+      "specificity": "high",
+      "page_url": "https://ryan-jenkinson.github.io/compliance-maps/pfas-legislative-intel.html",
+      "verification_method": "sme",
+      "verification_detail": "Exactly 5 states have PFAS-related legislation that has passed one chamber in the current database: New Jersey (S1281), Maryland (HB925, SB719, HB1533, SB656), Hawaii (SB2095, SB2096, HB644), New York (S03207), and Wisconsin (AB130, AB131). Vermont H0927 is a technical corrections bill with only tan"
+    },
+    {
+      "claim": "EU REACH Tracker generated 2026-03-23",
+      "type": "other",
+      "topic": "REACH",
+      "specificity": "high",
+      "page_url": "https://ryan-jenkinson.github.io/compliance-maps/reach-map.html",
+      "verification_method": "sme",
+      "verification_detail": "The live database context includes a REACH-topic intelligence item dated 2026-03-24 (the March 24 digest/briefing cycle), and the March 23 weekly briefing entry is also present in the Recent Article Intelligence. The March 23 briefing explicitly references REACH-relevant content including the ECHA P"
+    },
+    {
+      "claim": "TRI reporting expansion pursuant to FY 2020 National Defense Authorization Act",
+      "type": "regulation_status",
+      "topic": "PFAS",
+      "specificity": "medium",
+      "page_url": "https://ryan-jenkinson.github.io/compliance-maps/newsletter/2026-03-22.html",
+      "verification_method": "article_cache",
+      "verification_detail": "Article cache: found matching phrase 'national defense authorization act'"
+    },
+    {
+      "claim": "Facilities must begin tracking and reporting PFAS releases for reporting year 2026",
+      "type": "regulation_status",
+      "topic": "PFAS",
+      "specificity": "high",
+      "page_url": "https://ryan-jenkinson.github.io/compliance-maps/newsletter/2026-03-22.html",
+      "verification_method": "article_cache",
+      "verification_detail": "Article cache: found matching phrase 'for reporting year 2026'"
+    }
+  ]
+}

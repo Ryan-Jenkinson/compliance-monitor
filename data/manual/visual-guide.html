@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Compliance Intelligence Dashboard — Visual Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:   #0a0e1a;
+  --accent: #2563eb;
+  --text:   #0f172a;
+  --text2:  #334155;
+  --muted:  #64748b;
+  --border: #e2e8f0;
+  --bg:     #f8f9fc;
+  --card:   #ffffff;
+  --chrome: #f1f5f9;
+  --chr-b:  #cbd5e1;
+  --pair-a: #eff6ff;
+  --pair-b: #f0fdf4;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
+body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.55; font-size: 15px; }
+a { color: inherit; text-decoration: none; }
+
+/* ── Cover ── */
+.cover {
+  background: var(--navy); color: #fff;
+  min-height: 100vh; padding: 80px 96px 72px;
+  display: flex; flex-direction: column;
+  position: relative; overflow: hidden;
+}
+.cover::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
+  background-size: 52px 52px; pointer-events: none;
+}
+.cover::after {
+  content: ''; position: absolute; top: 0; right: 0;
+  width: 50%; height: 100%;
+  background: linear-gradient(145deg, transparent 35%, rgba(37,99,235,.09) 100%);
+  pointer-events: none;
+}
+.cover-inner { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; }
+.cover-rule { width: 52px; height: 3px; background: var(--accent); border-radius: 2px; margin-bottom: 44px; }
+.cover-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.35); margin-bottom: 20px; }
+.cover-title { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(38px, 5vw, 60px); font-weight: 900; line-height: 1.04; letter-spacing: -.5px; max-width: 640px; }
+.cover-title em { font-style: italic; color: rgba(255,255,255,.6); font-weight: 400; }
+.cover-subtitle { font-size: 16px; color: rgba(255,255,255,.42); max-width: 400px; line-height: 1.65; margin-top: 28px; font-weight: 300; }
+.cover-spacer { flex: 1; min-height: 60px; }
+.cover-footer { display: flex; align-items: flex-end; justify-content: space-between; padding-top: 36px; border-top: 1px solid rgba(255,255,255,.07); }
+.cover-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,255,255,.28); letter-spacing: .06em; line-height: 1.7; }
+.cover-badge { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.1); padding: 5px 12px; border-radius: 20px; }
+
+/* ── TOC ── */
+.toc { background: var(--card); padding: 80px 96px 64px; min-height: 100vh; }
+.toc-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+.toc-heading { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; color: var(--text); margin-bottom: 44px; line-height: 1.15; }
+.toc-list { list-style: none; border-top: 2px solid var(--border); }
+.toc-item { display: flex; align-items: center; gap: 16px; padding: 15px 0; border-bottom: 1px solid var(--border); }
+.toc-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); width: 26px; flex-shrink: 0; }
+.toc-name { font-size: 15px; font-weight: 500; color: var(--text2); flex: 1; transition: color .12s; }
+.toc-name:hover { color: var(--accent); }
+
+/* ── Chapter ── */
+.chapter { padding: 80px 96px 48px; }
+.chapter-hdr { display: flex; align-items: flex-start; gap: 28px; padding-bottom: 32px; margin-bottom: 40px; border-bottom: 2px solid var(--border); }
+.chapter-num { font-family: 'Playfair Display', serif; font-size: 72px; font-weight: 900; color: var(--border); line-height: 1; flex-shrink: 0; letter-spacing: -4px; margin-top: -8px; user-select: none; }
+.chapter-name { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--text); line-height: 1.2; margin-bottom: 10px; }
+.chapter-intro { font-size: 14px; color: var(--muted); line-height: 1.7; max-width: 540px; font-weight: 300; }
+
+/* ── Browser chrome ── */
+.chrome-bar { background: var(--chrome); border-bottom: 1px solid var(--chr-b); padding: 8px 12px; display: flex; align-items: center; gap: 6px; border-radius: 8px 8px 0 0; }
+.chrome-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.chrome-url { flex: 1; background: #fff; border: 1px solid var(--chr-b); border-radius: 4px; padding: 3px 10px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-left: 8px; }
+
+/* ── Cards ── */
+.card-full, .card-half { background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.05), 0 6px 24px rgba(0,0,0,.06); margin-bottom: 32px; }
+.card-img-wrap { position: relative; background: #f1f5f9; }
+.card-img-wrap img { width: 100%; height: auto; display: block; }
+.pair-badge { position: absolute; top: 10px; left: 10px; font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 3px 8px; border-radius: 3px; backdrop-filter: blur(4px); }
+.card-half:first-child .pair-badge { background: var(--pair-a); color: #1d4ed8; }
+.card-half:last-child .pair-badge { background: var(--pair-b); color: #15803d; }
+.card-body { padding: 18px 22px 20px; }
+.card-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+.card-caption { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 10px; font-weight: 300; }
+.card-bullets { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.card-bullets li { font-size: 12px; color: var(--muted); display: flex; gap: 8px; align-items: flex-start; line-height: 1.4; }
+.card-bullets li::before { content: '4'; color: var(--accent); font-weight: 700; flex-shrink: 0; font-size: 10px; margin-top: 2px; }
+
+/* ── Body text (instructional paragraph) ── */
+.card-body-text { font-size: 13px; color: var(--text2); line-height: 1.7; margin-bottom: 12px; font-weight: 300; border-left: 2px solid var(--border); padding-left: 14px; }
+
+/* ── Inline card (image left, text right) ── */
+.card-inline {
+  display: grid; grid-template-columns: 42% 58%;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,.05), 0 6px 24px rgba(0,0,0,.06);
+  margin-bottom: 32px; align-items: stretch;
+}
+.card-inline .card-inline-img { border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+.card-inline .card-inline-img .chrome-bar { border-radius: 0; flex-shrink: 0; }
+.card-inline .card-inline-img .card-img-wrap { flex: 1; overflow: hidden; }
+.card-inline .card-inline-img img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+.card-inline .card-body { padding: 24px 26px; display: flex; flex-direction: column; justify-content: center; }
+
+/* ── Pair row ── */
+.pair-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 32px; align-items: start; }
+.pair-row .card-half { margin-bottom: 0; }
+
+/* ── Floating nav (screen only) ── */
+.fnav { position: fixed; right: 20px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 7px; z-index: 200; }
+.fn-dot { width: 26px; height: 26px; border-radius: 50%; background: var(--navy); color: rgba(255,255,255,.45); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 9px; transition: all .15s; border: 1px solid rgba(255,255,255,.07); box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+.fn-dot:hover { background: var(--accent); color: #fff; transform: scale(1.18); }
+
+/* ═══════════════════════════════════════════════════
+   PRINT / PDF — Comprehensive layout rules
+   ═══════════════════════════════════════════════════ */
+@media print {
+
+  @page { size: A4; margin: 25mm 22mm 22mm 22mm; }
+  @page :first { margin: 0; }
+
+  html, body { background: #fff !important; font-size: 10.5pt; }
+  .fnav { display: none !important; }
+
+  /* Cover — exactly one A4 page, full bleed */
+  .cover {
+    height: 297mm;
+    min-height: 0 !important;
+    padding: 50mm 28mm 36mm !important;
+    overflow: hidden !important;
+    page-break-after: always;
+    break-after: page;
+  }
+  .cover-title { font-size: 34pt !important; }
+  .cover-subtitle { font-size: 11pt !important; }
+  .cover-eyebrow { font-size: 8pt !important; letter-spacing: .18em !important; }
+  .cover-date { font-size: 9pt !important; }
+  .cover-rule { margin-bottom: 36mm; }
+
+  /* TOC — own page */
+  .toc {
+    min-height: 0 !important;
+    padding: 26mm 22mm !important;
+    page-break-after: always;
+    break-after: page;
+  }
+  .toc-heading { font-size: 20pt !important; margin-bottom: 22pt !important; }
+  .toc-item { padding: 9pt 0 !important; }
+  .toc-name { font-size: 10.5pt !important; }
+  .toc-num { font-size: 9pt !important; }
+
+  /* Chapters — each starts on a new page */
+  .chapter {
+    padding: 0 0 16mm !important;
+    page-break-before: always;
+    break-before: page;
+  }
+  .chapter-hdr { padding-bottom: 13pt !important; margin-bottom: 20pt !important; }
+  .chapter-num { font-size: 42pt !important; }
+  .chapter-name { font-size: 19pt !important; }
+  .chapter-intro { font-size: 9.5pt !important; }
+
+  /* Cards — never split across pages */
+  .card-full, .card-half {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    box-shadow: none !important;
+    border: 1px solid #dde3ec !important;
+    margin-bottom: 13pt !important;
+  }
+  .pair-row {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    gap: 9pt !important;
+    margin-bottom: 13pt !important;
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .card-img-wrap img { max-width: 100% !important; width: 100% !important; height: auto !important; }
+  .card-inline { grid-template-columns: 40% 60% !important; }
+  .card-inline .card-inline-img img { height: auto !important; object-fit: contain !important; }
+  .card-body { padding: 9pt 11pt 11pt !important; }
+  .card-title { font-size: 9pt !important; font-weight: 600 !important; }
+  .card-caption { font-size: 8.5pt !important; line-height: 1.5 !important; }
+  .card-body-text { font-size: 8pt !important; line-height: 1.55 !important; padding-left: 8pt !important; margin-bottom: 7pt !important; }
+  .card-bullets li { font-size: 8pt !important; }
+  .chrome-bar { padding: 5px 9px !important; }
+  .chrome-url { font-size: 7.5pt !important; }
+  .chrome-dot { width: 7px !important; height: 7px !important; }
+  a { color: inherit !important; text-decoration: none !important; }
+}
+</style>
+</head>
+<body>
+
+<nav class="fnav" aria-hidden="true">
+  <a class="fn-dot" href="#ch-1" title="1. The Dashboard at a Glance">1</a>
+  <a class="fn-dot" href="#ch-2" title="2. Navigation & Customization">2</a>
+  <a class="fn-dot" href="#ch-3" title="3. Executive Briefing">3</a>
+  <a class="fn-dot" href="#ch-4" title="4. Topic Intelligence Sections">4</a>
+  <a class="fn-dot" href="#ch-5" title="5. Upcoming Compliance Dates & Deadlines">5</a>
+  <a class="fn-dot" href="#ch-6" title="6. Legislative Activity">6</a>
+  <a class="fn-dot" href="#ch-7" title="7. Intelligence Maps">7</a>
+  <a class="fn-dot" href="#ch-8" title="8. Full Timeline Views">8</a>
+  <a class="fn-dot" href="#ch-9" title="9. Director's AI Review">9</a>
+  <a class="fn-dot" href="#ch-10" title="10. Analytics & Resources">10</a>
+</nav>
+
+<div class="cover">
+  <div class="cover-inner">
+    <div class="cover-rule"></div>
+    <div class="cover-eyebrow">Internal Reference &nbsp;&bull;&nbsp; Compliance Team</div>
+    <div class="cover-title">Compliance<br><em>Intelligence</em><br>Dashboard</div>
+    <div class="cover-subtitle">A visual walkthrough of every panel, map, and interactive feature of the regulatory monitoring platform.</div>
+    <div class="cover-spacer"></div>
+    <div class="cover-footer">
+      <div class="cover-date">Generated March 24, 2026<br>Andersen Corporation &mdash; Confidential</div>
+      <div class="cover-badge">Visual Guide</div>
+    </div>
+  </div>
+</div>
+
+<div class="toc">
+  <div class="toc-label">Contents</div>
+  <div class="toc-heading">What&rsquo;s Inside</div>
+  <ul class="toc-list">
+      <li class="toc-item"><span class="toc-num">1</span><a class="toc-name" href="#ch-1">The Dashboard at a Glance</a></li>
+      <li class="toc-item"><span class="toc-num">2</span><a class="toc-name" href="#ch-2">Navigation & Customization</a></li>
+      <li class="toc-item"><span class="toc-num">3</span><a class="toc-name" href="#ch-3">Executive Briefing</a></li>
+      <li class="toc-item"><span class="toc-num">4</span><a class="toc-name" href="#ch-4">Topic Intelligence Sections</a></li>
+      <li class="toc-item"><span class="toc-num">5</span><a class="toc-name" href="#ch-5">Upcoming Compliance Dates & Deadlines</a></li>
+      <li class="toc-item"><span class="toc-num">6</span><a class="toc-name" href="#ch-6">Legislative Activity</a></li>
+      <li class="toc-item"><span class="toc-num">7</span><a class="toc-name" href="#ch-7">Intelligence Maps</a></li>
+      <li class="toc-item"><span class="toc-num">8</span><a class="toc-name" href="#ch-8">Full Timeline Views</a></li>
+      <li class="toc-item"><span class="toc-num">9</span><a class="toc-name" href="#ch-9">Director's AI Review</a></li>
+      <li class="toc-item"><span class="toc-num">10</span><a class="toc-name" href="#ch-10">Analytics & Resources</a></li>
+  </ul>
+</div>
+
+
+<div class="chapter" id="ch-1">
+  <div class="chapter-hdr">
+    <span class="chapter-num">1</span>
+    <div>
+      <div class="chapter-name">The Dashboard at a Glance</div>
+      <p class="chapter-intro">A single-page intelligence hub that automatically aggregates, filters, and summarizes regulatory activity across seven compliance frameworks — refreshed every day.</p>
+    </div>
+  </div>
+<div class="pair-row">
+<div class="card-half" id="s-c1-hero">
+  <div class="chrome-bar"><span class="chrome-dot" style="background:#ff5f57"></span><span class="chrome-dot" style="background:#febc2e"></span><span class="chrome-dot" style="background:#28c840"></span><span class="chrome-url">Compliance Intelligence Dashboard</span></div>
+  <div class="card-img-wrap"><span class="pair-badge">Before</span><img src="screenshots/c1-hero.png" alt="Compliance Intelligence Dashboard" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-title">Compliance Intelligence Dashboard</div>
+    <p class="card-caption">Your full regulatory picture, prioritized and ready to act on.</p>
+    <p class="card-body-text">Start each session by scanning the eight topic cards at the top — red HIGH badges signal where to focus first, and NEW badges on TSCA and Prop65 mean unreviewed updates are waiting. In the center, expand the Executive Briefing's Key Developments section by clicking its toggle to surface this week's most consequential shifts across all seven regulatory domains. On the right sidebar, check the Bills by Legislative Stage counts and the High Relevance States map to gauge whether momentum is building in jurisdictions that affect your supply chain. Use the left navigation to jump directly to any topic section, or hit the top tabs to shift into Timeline, PFAS Map, or Archive mode.</p>
+    <ul class="card-bullets"><li>Click any HIGH-badged topic card to jump to that section immediately</li><li>Expand 'Key Developments' for the week's most actionable regulatory shifts</li><li>Check the High Relevance States map before any jurisdiction-specific decision</li></ul>
+  </div>
+</div>
+<div class="card-half" id="s-c1-mobile">
+  <div class="chrome-bar"><span class="chrome-dot" style="background:#ff5f57"></span><span class="chrome-dot" style="background:#febc2e"></span><span class="chrome-dot" style="background:#28c840"></span><span class="chrome-url">Compliance Intelligence Dashboard</span></div>
+  <div class="card-img-wrap"><span class="pair-badge">After</span><img src="screenshots/c1-mobile.png" alt="Mobile Layout" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-title">Mobile Layout</div>
+    <p class="card-caption">Full compliance intelligence accessible on any device, no compromise.</p>
+    <p class="card-body-text">On mobile, tap the menu toggle (M) in the top right to access navigation links — the left-rail menu is hidden by default to preserve screen space. Swipe the tab row horizontally to reach DIRECTOR REVIEW, TIMELINE, PFAS MAP, and ARCHIVE without losing your place in the briefing below. The green 28/28 badge confirms all panels are active; tap the gear icon next to it to open the Customize drawer and hide any sections irrelevant to your current review session. Scroll vertically through OPENING, KEY DEVELOPMENTS, and OUTLOOK in sequence — all content reflows cleanly without horizontal scrolling.</p>
+    <ul class="card-bullets"><li>Swipe tab row to switch between TIMELINE, PFAS MAP, and DIRECTOR REVIEW</li><li>Tap the gear icon to customize visible panels on small screens</li><li>Scroll vertically — all briefing content flows in full-width reading order</li></ul>
+  </div>
+</div></div></div>
+<div class="chapter" id="ch-2">
+  <div class="chapter-hdr">
+    <span class="chapter-num">2</span>
+    <div>
+      <div class="chapter-name">Navigation & Customization</div>
+      <p class="chapter-intro">Jump instantly to any of the seven regulatory topic areas, or customize which panels are visible using the dashboard drawer.</p>
+    </div>
+  </div>
+
+<div class="card-inline" id="s-c2-nav-cards">
+  <div class="card-inline-img">
+    <div class="chrome-bar"><span class="chrome-dot" style="background:#ff5f57"></span><span class="chrome-dot" style="background:#febc2e"></span><span class="chrome-dot" style="background:#28c840"></span><span class="chrome-url">Compliance Intelligence Dashboard</span></div>
+    <div class="card-img-wrap"><img src="screenshots/c2-nav-cards.png" alt="Topic Navigation Cards" loading="lazy"></div>
+  </div>
+  <div class="card-body">
+    <div class="card-title">Topic Navigation Cards</div>
+    <p class="card-caption">Spot the highest-urgency regulatory areas in under five seconds.</p>
+    <p class="card-body-text">Scan the card strip left to right — red HIGH labels and red NEW badges are your first signal; anything flagged both HIGH and NEW (like TSCA this week) should be your opening click. Click any card to jump directly to that topic's full section on the dashboard, bypassing the need to scroll through intervening content. The article count on each card tells you whether the week was light or heavy for that domain — a count spike without a HIGH flag still warrants a quick look at what's driving volume. Return to this strip after finishing each section to track which topics you've reviewed.</p>
+    <ul class="card-bullets"><li>Click cards showing both HIGH and NEW badges first</li><li>Use article counts to detect volume spikes worth investigating</li><li>Return to the strip to track your review progress across all topics</li></ul>
+  </div>
+</div>
+<div class="card-inline" id="s-c2-drawer">
+  <div class="card-inline-img">
+    <div class="chrome-bar"><span class="chrome-dot" style="background:#ff5f57"></span><span class="chrome-dot" style="background:#febc2e"></span><span class="chrome-dot" style="background:#28c840"></span><span class="chrome-url">Compliance Intelligence Dashboard</span></div>
+    <div class="card-img-wrap"><img src="screenshots/c2-drawer.png" alt="Customize Dashboard Drawer" loading="lazy"></div>
+  </div>
+  <div class="card-body">
+    <div class="card-title">Customize Dashboard Drawer</div>
+    <p class="card-caption">Tailor your dashboard layout to match how your team actually works.</p>
+    <p class="card-body-text">Open the Customize drawer by clicking the gear icon near the top of the dashboard. Toggle any panel off using its teal switch — switches turn gray when a panel is hidden, and your layout saves automatically on close, so it will persist at your next login. Organize your review by role: a supply chain lead might hide the Legislative Activity panel while keeping PFAS Map and Deadlines front and center. If your layout starts to feel cluttered after several sessions of tweaking, click Reset to defaults at the drawer's base to restore all eight panels at once.</p>
+    <ul class="card-bullets"><li>Click the gear icon to open the Customize drawer from any dashboard view</li><li>Toggle panels off by role or review focus — changes save automatically</li><li>Click 'Reset to defaults' to restore all panels in a single action</li></ul>
+  </div>
+</div></div>
+<div class="chapter" id="ch-3">
+  <div class="chapter-hdr">
+    <span class="chapter-num">3</span>
+    <div>
+      <div class="chapter-name">Executive Briefing</div>
+      <p class="chapter-intro">Every pipeline run generates a fresh AI-authored summary of the week's most significant regulatory developments — ready to share in a leadership meeting.</p>
+    </div>
+  </div>
+
+<div class="card-full" id="s-c3-exec">
+  <div class="chrome-bar"><span class="chrome-dot" style="background:#ff5f57"></span><span class="chrome-dot" style="background:#febc2e"></span><span class="chrome-dot" style="background:#28c840"></span><span class="chrome-url">Compliance Intelligence Dashboard</span></div>
+  <div class="card-img-wrap"><img src="screenshots/c3-exec.png" alt="AI Executive Briefing" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-title">AI Executive Briefing</div>
+    <p class="card-caption">AI-synthesized briefing across all seven regulations, collapsed into what matters.</p>
+    <p class="card-body-text">Open the Key Developments section first — it's where the AI surfaces concrete regulatory shifts with inline tags marking company-specific implications, so you can scan for product-line relevance without reading the full briefing. Use the Outlook section to identify forward-looking watchpoints that don't yet appear in the deadline tracker but will require early preparation. Collapse the entire panel using the triangle icon in the top right once you've completed your review, freeing vertical space for the data panels below. Because the briefing regenerates with each run, compare this week's Outlook language to last week's to detect shifts in regulatory posture that individual articles might not surface.</p>
+    <ul class="card-bullets"><li>Open 'Key Developments' first to find company-specific impact tags</li><li>Compare consecutive Outlook sections to detect posture shifts week over week</li><li>Collapse the panel via the triangle icon after review to reclaim screen space</li></ul>
+  </div>
+</div></div>
+<div class="chapter" id="ch-4">
+  <div class="chapter-hdr">
+    <span class="chapter-num">4</span>
+    <div>
+      <div class="chapter-name">Topic Intelligence Sections</div>
+      <p class="chapter-intro">Each topic section surfaces curated regulatory articles with per-article AI company-impact analysis — filtered from hundreds of sources down to what matters for this company.</p>
+    </div>
+  </div>
+
+<div class="card-full" id="s-c4-pfas">
+  <div class="chrome-bar"><span class="chrome-dot" style="background:#ff5f57"></span><span class="chrome-dot" style="background:#febc2e"></span><span class="chrome-dot" style="background:#28c840"></span><span class="chrome-url">Compliance Intelligence Dashboard</span></div>
+  <div class="card-img-wrap"><img src="screenshots/c4-pfas.png" alt="PFAS — Regulatory Updates" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-title">PFAS — Regulatory Updates</div>
+    <p class="card-caption">Fifteen PFAS updates visualized by urgency — know exactly where to read first.</p>
+    <p class="card-body-text">Read the timeline bar strip left to right — red bars represent the highest-urgency developments and should be your first clicks. Click any colored bar to jump to that article and its source link in the panel below; the article title and a brief description will load automatically. Click the triangle dropdown beneath the headline to expand the full impact classification and supply chain or direct operations relevance for that item. Use the density and color distribution of the bars as a weekly signal: a cluster of red bars in a short span means multiple high-priority developments landed simultaneously and likely warrant cross-referencing against your deadline tracker.</p>
+    <ul class="card-bullets"><li>Click red bars first — they signal the highest-urgency PFAS developments</li><li>Click the triangle dropdown to reveal supply chain and impact classification</li><li>Use bar density as a signal for weeks requiring accelerated response</li></ul>
+  </div>
+</div></div>
+<div class="chapter" id="ch-5">
+  <div class="chapter-hdr">
+    <span class="chapter-num">5</span>
+    <div>
+      <div class="chapter-name">Upcoming Compliance Dates & Deadlines</div>
+      <p class="chapter-intro">A merged list of regulatory deadlines and key milestones, sorted by urgency and date — with AI-generated briefings for each deadline available on click.</p>
+    </div>
+  </div>
+<div class="pair-row">
+<div class="card-half" id="s-c5-collapsed">
+  <div class="chrome-bar"><span class="chrome-dot" style="background:#ff5f57"></span><span class="chrome-dot" style="background:#febc2e"></span><span class="chrome-dot" style="background:#28c840"></span><span class="chrome-url">Compliance Intelligence Dashboard</span></div>
+  <div class="card-img-wrap"><span class="pair-badge">Before</span><img src="screenshots/c5-collapsed.png" alt="Compliance Dates — Collapsed" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-title">Compliance Dates — Collapsed</div>
+    <p class="card-caption">Thirty-seven compliance deadlines, triaged by urgency and flagged for change.</p>
+    <p class="card-body-text">The collapsed view surfaces the ten most urgent deadlines by default — review any item marked both HIGH and New or Updated first, since these represent obligations that have either recently entered your window or been materially modified. Color priority runs red to amber to green; if you see red items without a response plan attached, that's the gap to close before leaving this panel. Click the expand button in the top right corner to load all 37 items and access filtering options — you'll need the full view to confirm nothing is buried below the default ten. Check this panel at the start of every review session, not just weekly, because Updated badges can appear between runs.</p>
+    <ul class="card-bullets"><li>Prioritize items showing both HIGH and 'Updated' badges simultaneously</li><li>Click the expand button to access all 37 deadlines and filter controls</li><li>Review this panel at session start — Updated badges can appear mid-week</li></ul>
+  </div>
+</div>
+<div class="card-half" id="s-c5-expanded">
+  <div class="chrome-bar"><span class="chrome-dot" style="background:#ff5f57"></span><span class="chrome-dot" style="background:#febc2e"></span><span class="chrome-dot" style="background:#28c840"></span><span class="chrome-url">Compliance Intelligence Dashboard</span></div>
+  <div class="card-img-wrap"><span class="pair-badge">After</span><img src="screenshots/c5-expanded.png" alt="Compliance Dates — Expanded" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-title">Compliance Dates — Expanded</div>
+    <p class="card-caption">Full deadline inventory with jurisdiction, category, and urgency in one view.</p>
+    <p class="card-body-text">In the expanded list, scan the left-side dates first to identify anything due within 90 days — those entries are your immediate action set regardless of color coding. Use the compliance category badges (EPR, PFAS, REACH) to filter mentally by your team's current workload, then click any entry to open its AI analysis modal for the full impact breakdown. Red HIGH tags combined with green New badges are the most urgent combination: a newly tracked deadline with high impact means your response window may already be shorter than it appears. Click the expand icon in the top right to enter full-screen modal view if the list feels cramped at standard dashboard width.</p>
+    <ul class="card-bullets"><li>Scan left-side dates first — anything within 90 days is your immediate action set</li><li>Click any entry to open the AI analysis modal for full impact detail</li><li>Filter mentally by category badge color to match your team's current workload</li></ul>
+  </div>
+</div></div>
+<div class="card-full" id="s-c5-modal">
+  <div class="chrome-bar"><span class="chrome-dot" style="background:#ff5f57"></span><span class="chrome-dot" style="background:#febc2e"></span><span class="chrome-dot" style="background:#28c840"></span><span class="chrome-url">Compliance Intelligence Dashboard</span></div>
+  <div class="card-img-wrap"><img src="screenshots/c5-modal.png" alt="Deadline AI Analysis Modal" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-title">Deadline AI Analysis Modal</div>
+    <p class="card-caption">One deadline, fully decomposed — obligations, penalties, and a 90-day action clock.</p>
+    <p class="card-body-text">Start with the Company Impact section: HIGH and SUPPLY CHAIN badges tell you whether this deadline hits your direct operations, your suppliers, or both — that distinction drives who owns the response internally. Read 'What We Must Do' next for your specific enrollment and reporting obligations, then cross-reference the Preparation Timeline's color-coded milestones to confirm your current position against the 90/60/30-day countdown. If a linked upstream deadline appears (such as PRISM PFAS registration), click it to open that deadline's modal and confirm it's already tracked. Use the calendar export button at the modal's base to push this deadline into your team's calendar, and click '+ 27 more' to surface any connected obligations that share this regulatory trigger.</p>
+    <ul class="card-bullets"><li>Check 'Company Impact' badges first to assign internal ownership immediately</li><li>Click linked upstream deadlines to confirm they're already in your tracker</li><li>Use the calendar export button to push milestones directly to your team</li></ul>
+  </div>
+</div>
+<div class="card-inline" id="s-c5-timeline">
+  <div class="card-inline-img">
+    <div class="chrome-bar"><span class="chrome-dot" style="background:#ff5f57"></span><span class="chrome-dot" style="background:#febc2e"></span><span class="chrome-dot" style="background:#28c840"></span><span class="chrome-url">Compliance Intelligence Dashboard</span></div>
+    <div class="card-img-wrap"><img src="screenshots/c5-timeline.png" alt="Deadline Timeline — Swimlane View" loading="lazy"></div>
+  </div>
+  <div class="card-body">
+    <div class="card-title">Deadline Timeline — Swimlane View</div>
+    <p class="card-caption">All your deadlines across every topic, laid out in a single swimlane view.</p>
+    <p class="card-body-text">Look for pulsing rings first — they mark newly tracked deadlines that haven't been reviewed yet and should be your opening clicks. Hover over any dot to see the deadline name, date, and urgency level without leaving the swimlane view; click to open the full AI analysis modal. Numbered badges (like '3' on PFAS or '8' on EPR) signal deadline clusters — multiple obligations landing on the same date that likely require coordinated cross-functional response. Click 'Full →' at the end of any swimlane to load that topic's complete deadline schedule, particularly useful when a cluster badge suggests more is happening than the swimlane can display at this zoom level.</p>
+    <ul class="card-bullets"><li>Click pulsing-ring dots first — they flag deadlines not yet reviewed</li><li>Hover any dot to preview deadline details before opening the full modal</li><li>Click numbered cluster badges to identify dates requiring coordinated action</li></ul>
+  </div>
+</div></div>
+<div class="chapter" id="ch-6">
+  <div class="chapter-hdr">
+    <span class="chapter-num">6</span>
+    <div>
+      <div class="chapter-name">Legislative Activity</div>
+      <p class="chapter-intro">729 tracked bills across 51 jurisdictions, filtered to what matters. Click any bill row for an AI analysis covering company impact, passage probability, and recommended next steps.</p>
+    </div>
+  </div>
+
+<div class="card-full" id="s-c6-bill-modal">
+  <div class="chrome-bar"><span class="chrome-dot" style="background:#ff5f57"></span><span class="chrome-dot" style="background:#febc2e"></span><span class="chrome-dot" style="background:#28c840"></span><span class="chrome-url">Compliance Intelligence Dashboard</span></div>
+  <div class="card-img-wrap"><img src="screenshots/c6-bill-modal.png" alt="Bill AI Analysis Modal" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-title">Bill AI Analysis Modal</div>
+    <p class="card-caption">Every bill your team needs to track, scored and decomposed into required actions.</p>
+    <p class="card-body-text">Check the MONITORING tag in the upper right first — if it's present, your team is already tracking this bill and you should focus on the Recent Action Timeline to see what's moved since last review rather than re-assessing from scratch. Read the Company Impact section to confirm whether exposure is direct products, supply chain, or both, then use the passage probability rating to decide whether this warrants escalation to external counsel or trade association engagement. Click 'View on LegiScan / State Legislature' to access the full bill text when the modal's synopsis raises questions about scope or definitions. If MONITORING is absent, use the recommended actions section to determine whether this bill should be added to your tracking queue.</p>
+    <ul class="card-bullets"><li>Check the MONITORING tag first to avoid duplicating bills already tracked</li><li>Click 'View on LegiScan' when bill scope or definitions need verification</li><li>Use passage probability to calibrate escalation urgency and resource allocation</li></ul>
+  </div>
+</div>
+<div class="card-full" id="s-c6-expand">
+  <div class="chrome-bar"><span class="chrome-dot" style="background:#ff5f57"></span><span class="chrome-dot" style="background:#febc2e"></span><span class="chrome-dot" style="background:#28c840"></span><span class="chrome-url">Compliance Intelligence Dashboard</span></div>
+  <div class="card-img-wrap"><img src="screenshots/c6-expand.png" alt="Full-Screen Expand Mode" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-title">Full-Screen Expand Mode</div>
+    <p class="card-caption">Complete legislative history for every tracked bill, sortable and scannable.</p>
+    <p class="card-body-text">Use the color-coded status badges as your primary scan layer: PASSED (green) and ADVANCED (teal) items require immediate attention, while REFERRED (gray) items can typically wait for the next review cycle. Read the notes below each entry for vote counts, sponsorship changes, or committee referral details — these often signal whether a bill is gaining or losing momentum faster than the status badge alone. If you're reviewing a jurisdiction where several bills are active, sort chronologically and look for entries where the same bill appears multiple times in quick succession, which indicates rapid advancement. Press Escape or click Close to return to the dashboard when done.</p>
+    <ul class="card-bullets"><li>Filter for PASSED and ADVANCED badges first — those require immediate response</li><li>Read notes below each entry for vote counts and momentum signals</li><li>Press Escape to return to the dashboard without losing your scroll position</li></ul>
+  </div>
+</div></div>
+<div class="chapter" id="ch-7">
+  <div class="chapter-hdr">
+    <span class="chapter-num">7</span>
+    <div>
+      <div class="chapter-name">Intelligence Maps</div>
+      <p class="chapter-intro">Interactive state-by-state maps show the geographic spread of regulatory activity — built automatically from the same legislative data that feeds the dashboard.</p>
+    </div>
+  </div>
+<div class="pair-row">
+<div class="card-half" id="s-c7-pfas-map">
+  <div class="chrome-bar"><span class="chrome-dot" style="background:#ff5f57"></span><span class="chrome-dot" style="background:#febc2e"></span><span class="chrome-dot" style="background:#28c840"></span><span class="chrome-url">pfas-legislative-intel</span></div>
+  <div class="card-img-wrap"><span class="pair-badge">Before</span><img src="screenshots/c7-pfas-map.png" alt="PFAS Legislative Watch — State Map" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-title">PFAS Legislative Watch — State Map</div>
+    <p class="card-caption">PFAS legislative maturity across all 51 jurisdictions, mapped and exportable.</p>
+    <p class="card-body-text">Start by identifying dark-colored states — these have enacted or near-enacted legislation and represent your most immediate compliance exposure. Click any state tile to load its active bills, most recent legislative actions, and jurisdiction-specific engagement guidance in a detail panel; this is where you'll find the information needed to brief external counsel or trade association contacts. Check the corner dot indicator on each state before acting on the data — amber or gray confidence indicators mean the underlying bill data may be incomplete, and you should verify against LegiScan or the state legislature's site before making portfolio decisions. Use Export to Excel to pull the full dataset for integration with your internal risk register or board reporting templates.</p>
+    <ul class="card-bullets"><li>Click any state tile to load bills, recent actions, and engagement guidance</li><li>Check corner confidence dots before acting on data from any single jurisdiction</li><li>Use 'Export to Excel' to feed the full dataset into your risk register</li></ul>
+  </div>
+</div>
+<div class="card-half" id="s-c7-epr-map">
+  <div class="chrome-bar"><span class="chrome-dot" style="background:#ff5f57"></span><span class="chrome-dot" style="background:#febc2e"></span><span class="chrome-dot" style="background:#28c840"></span><span class="chrome-url">epr-map</span></div>
+  <div class="card-img-wrap"><span class="pair-badge">After</span><img src="screenshots/c7-epr-map.png" alt="EPR Packaging Law — State Coverage" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-title">EPR Packaging Law — State Coverage</div>
+    <p class="card-caption">EPR compliance status across all fifty states, from enacted law to no activity.</p>
+    <p class="card-body-text">Use the four-tier color classification as your triage layer: dark blue Comprehensive Program states (like California) require active compliance management now, while light blue Proposed Legislation states require monitoring and early stakeholder engagement. Click any state to open its detail panel — California, for example, will show packaging reduction mandates, electronics recycling requirements, and tire stewardship programs with associated dates. Watch for amber indicators on state tiles, which signal recent activity updates and mean requirements may have changed since your last review. Toggle between Map and Deadline Timeline views using the control at the top to shift from a geographic overview into a chronological action view when you're preparing quarterly compliance calendars.</p>
+    <ul class="card-bullets"><li>Click dark-blue states first — Comprehensive Programs require active compliance now</li><li>Watch for amber indicators signaling recent requirement changes in any state</li><li>Toggle to Deadline Timeline view when building your quarterly compliance calendar</li></ul>
+  </div>
+</div></div>
+<div class="card-full" id="s-c7-reach-map">
+  <div class="chrome-bar"><span class="chrome-dot" style="background:#ff5f57"></span><span class="chrome-dot" style="background:#febc2e"></span><span class="chrome-dot" style="background:#28c840"></span><span class="chrome-url">reach-map</span></div>
+  <div class="card-img-wrap"><img src="screenshots/c7-reach-map.png" alt="REACH SVHC — EU Coverage" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-title">REACH SVHC — EU Coverage</div>
+    <p class="card-caption">REACH enforcement intensity mapped across EU27 plus EEA, ready for supplier prioritization.</p>
+    <p class="card-body-text">Click the darkest green countries first — Priority-tier jurisdictions have the highest enforcement intensity and greatest supplier exposure, meaning SVHC monitoring and supplier communication strategies should be calibrated to those markets before lighter-shaded ones. When you select a country, read the detail panel's critical notes carefully; jurisdiction-specific guidance often includes enforcement body contacts and supplier relevance classifications that aren't available in your standard SVHC candidate list tools. Use the color gradient as a tiering framework when briefing your supply chain team: suppliers concentrated in dark-green countries should be on an accelerated SVHC disclosure cadence compared to those in pale-green Standard-tier markets. Confirm the generation date shown in the legend before using this map in any board or regulatory submission.</p>
+    <ul class="card-bullets"><li>Click dark-green Priority countries first to set your SVHC monitoring cadence</li><li>Read the detail panel's critical notes for enforcement body and supplier guidance</li><li>Confirm the generation date before using map data in any formal submission</li></ul>
+  </div>
+</div></div>
+<div class="chapter" id="ch-8">
+  <div class="chapter-hdr">
+    <span class="chapter-num">8</span>
+    <div>
+      <div class="chapter-name">Full Timeline Views</div>
+      <p class="chapter-intro">Each topic has a dedicated full-page timeline showing every tracked deadline plotted chronologically — shareable standalone pages linked from the dashboard.</p>
+    </div>
+  </div>
+
+<div class="card-full" id="s-c8-pfas-timeline">
+  <div class="chrome-bar"><span class="chrome-dot" style="background:#ff5f57"></span><span class="chrome-dot" style="background:#febc2e"></span><span class="chrome-dot" style="background:#28c840"></span><span class="chrome-url">pfas-timeline</span></div>
+  <div class="card-img-wrap"><img src="screenshots/c8-pfas-timeline.png" alt="PFAS Deadlines — Full Timeline" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-title">PFAS Deadlines — Full Timeline</div>
+    <p class="card-caption">Every PFAS deadline across fifteen jurisdictions, sequenced and urgency-coded.</p>
+    <p class="card-body-text">Scan for red HIGH badges immediately — anything under six months out with a red flag requires an active response plan, not just monitoring. Read the jurisdiction label on the left and the requirement description in the center together; the same deadline type (e.g., reporting enrollment) often carries materially different scope depending on whether you're looking at a state versus federal entry. Click the PFAS tag on any entry to link through to source documentation when the requirement description raises scope questions. Use the filter tabs at the top to narrow by jurisdiction, urgency level, or deadline type — when preparing for a board update, filtering to HIGH only gives you the shortest, most defensible priority list.</p>
+    <ul class="card-bullets"><li>Filter to HIGH urgency first when preparing board or leadership briefings</li><li>Click PFAS tags on any entry to access source documentation for scope questions</li><li>Read jurisdiction and requirement description together — scope varies significantly</li></ul>
+  </div>
+</div>
+<div class="card-full" id="s-c8-all-deadlines">
+  <div class="chrome-bar"><span class="chrome-dot" style="background:#ff5f57"></span><span class="chrome-dot" style="background:#febc2e"></span><span class="chrome-dot" style="background:#28c840"></span><span class="chrome-url">deadline-timeline</span></div>
+  <div class="card-img-wrap"><img src="screenshots/c8-all-deadlines.png" alt="All Deadlines — Master Timeline" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-title">All Deadlines — Master Timeline</div>
+    <p class="card-caption">Fifty-nine deadlines across eighteen jurisdictions on one master timeline.</p>
+    <p class="card-body-text">Use the topic filter tabs at the top to reduce the view to only your active compliance domains — with 59 deadlines across 18 jurisdictions, reviewing everything unfiltered is inefficient. Look for clusters of light-pink HIGH bars landing within the same quarter across multiple jurisdictions; those clusters signal periods of peak compliance demand that require advance resource planning. Click any deadline bar to open its full detail: name, due date, regulatory category badge, priority level, and source link. Pay attention to bar width as a runway signal — a HIGH-priority bar that's visually thin means you have very little time remaining even if the calendar date looks deceptively far away.</p>
+    <ul class="card-bullets"><li>Use topic filter tabs before scrolling — 59 deadlines require focus, not browsing</li><li>Click any bar to open full detail including source link and priority level</li><li>Treat narrow HIGH bars as immediate escalations regardless of calendar date</li></ul>
+  </div>
+</div></div>
+<div class="chapter" id="ch-9">
+  <div class="chapter-hdr">
+    <span class="chapter-num">9</span>
+    <div>
+      <div class="chapter-name">Director's AI Review</div>
+      <p class="chapter-intro">A separate AI-generated strategic assessment page — scored on usefulness, actionability, and signal-to-noise — with specific improvement recommendations for the compliance team.</p>
+    </div>
+  </div>
+
+<div class="card-full" id="s-c9-director">
+  <div class="chrome-bar"><span class="chrome-dot" style="background:#ff5f57"></span><span class="chrome-dot" style="background:#febc2e"></span><span class="chrome-dot" style="background:#28c840"></span><span class="chrome-url">director_review</span></div>
+  <div class="card-img-wrap"><img src="screenshots/c9-director.png" alt="Director's AI Analysis" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-title">Director's AI Analysis</div>
+    <p class="card-caption">AI self-assessment of your dashboard's usefulness — with specific gaps named.</p>
+    <p class="card-body-text">Read the narrative explanation below the three score cards before reacting to the numbers; a 3/10 Actionability score is only useful if you understand exactly what's driving it — in this case, the system flags that urgency is detected but prioritized actions aren't specified. The 'Questions Raised But Not Answered' section is your most direct guide to what data integrations or customizations would move scores higher — treat each listed gap as a backlog item for your next configuration session. Use the 'What's Working' section to brief stakeholders on current dashboard strengths, particularly if you're in a procurement or renewal conversation about the platform. Items in 'Questions Raised' are ranked by strategic importance, so address them from the top down rather than starting with the easiest.</p>
+    <ul class="card-bullets"><li>Read narrative below score cards before acting — numbers without context mislead</li><li>Treat 'Questions Raised' items as a prioritized configuration backlog</li><li>Use 'What's Working' section to brief stakeholders on validated dashboard strengths</li></ul>
+  </div>
+</div>
+<div class="card-full" id="s-c9-cross-state">
+  <div class="chrome-bar"><span class="chrome-dot" style="background:#ff5f57"></span><span class="chrome-dot" style="background:#febc2e"></span><span class="chrome-dot" style="background:#28c840"></span><span class="chrome-url">cross_state_report</span></div>
+  <div class="card-img-wrap"><img src="screenshots/c9-cross-state.png" alt="Cross-State Pattern Analysis" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-title">Cross-State Pattern Analysis</div>
+    <p class="card-caption">Coordinated PFAS legislative momentum across thirty-six states, with tactical next steps.</p>
+    <p class="card-body-text">Go to the red-highlighted watch list first — Virginia, Maryland, New York, Minnesota, and New Jersey represent the states with the most aggressive near-term timelines, and the product category restrictions listed for each are specific enough to map directly to your portfolio. For each watch-list state, read the italicized action item below its entry; these are tactical steps (audit specific product lines, engage trade associations, track regulatory guidance) that should be assigned to named owners before bills reach final passage. Cross-reference the passage status column (passed_one, advanced) against your current compliance calendar to identify any jurisdiction where you're tracking a bill at a less advanced stage than this report shows. Check the generated timestamp (2026-03-23) and confirm the data is current before using this report in any external filing or board memo.</p>
+    <ul class="card-bullets"><li>Start with the red watch-list states — they carry the shortest action windows</li><li>Assign italicized action items to named owners before bills reach final passage</li><li>Verify the generated timestamp before including this data in any external filing</li></ul>
+  </div>
+</div></div>
+<div class="chapter" id="ch-10">
+  <div class="chapter-hdr">
+    <span class="chapter-num">10</span>
+    <div>
+      <div class="chapter-name">Analytics & Resources</div>
+      <p class="chapter-intro">Built-in analytics panels track coverage trends over time and show how the legislative pipeline is progressing across topics.</p>
+    </div>
+  </div>
+<div class="pair-row">
+<div class="card-half" id="s-c10-trends">
+  <div class="chrome-bar"><span class="chrome-dot" style="background:#ff5f57"></span><span class="chrome-dot" style="background:#febc2e"></span><span class="chrome-dot" style="background:#28c840"></span><span class="chrome-url">Compliance Intelligence Dashboard</span></div>
+  <div class="card-img-wrap"><span class="pair-badge">Before</span><img src="screenshots/c10-trends.png" alt="28-Day Article Trend Chart" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-title">28-Day Article Trend Chart</div>
+    <p class="card-caption">Twenty-eight days of article volume by topic — spot regulatory spikes before they peak.</p>
+    <p class="card-body-text">Look at the slope of each line, not just the endpoint count — a topic with 8 articles but a sharply rising trendline warrants more attention than one with 15 articles on a flat or declining trajectory. The right-side counts give you the current snapshot; use them to benchmark against prior weeks by comparing to your saved briefing archive. If HIGH Urgency and a specific topic (e.g., PFAS) are both trending upward simultaneously, that convergence signals a period of elevated regulatory activity likely to generate new deadlines — open the Deadlines panel and check for recently added items. Use this chart to decide which topics to deep-dive in a given week rather than rotating through all seven by default.</p>
+    <ul class="card-bullets"><li>Watch line slopes, not just endpoint counts — rising trajectories outrank high totals</li><li>Flag weeks where HIGH Urgency and a single topic trend upward together</li><li>Use this chart to prioritize which topics get deep-dive attention each week</li></ul>
+  </div>
+</div>
+<div class="card-half" id="s-c10-funnel">
+  <div class="chrome-bar"><span class="chrome-dot" style="background:#ff5f57"></span><span class="chrome-dot" style="background:#febc2e"></span><span class="chrome-dot" style="background:#28c840"></span><span class="chrome-url">Compliance Intelligence Dashboard</span></div>
+  <div class="card-img-wrap"><span class="pair-badge">After</span><img src="screenshots/c10-funnel.png" alt="Bill Pipeline Funnel" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-title">Bill Pipeline Funnel</div>
+    <p class="card-caption">Seven hundred twenty-nine active bills staged across six regulatory topics.</p>
+    <p class="card-body-text">Read each topic row by looking at the red Advanced segment first — bills in that stage are the closest to enactment and have the least time for intervention through trade association engagement or public comment. The stacked bar length shows total bill volume per topic; PFAS at 375 total bills means that domain has significantly more legislative surface area to monitor than others, which should inform how you staff or assign monitoring responsibilities. Compare the Committee-to-Passed ratio across topics: a topic with many Committee-stage bills and few in Passed suggests legislative attrition — watch for sudden movement. Click the expand icon on any topic row to drill into individual bills and filter by stage for focused review.</p>
+    <ul class="card-bullets"><li>Read the red Advanced segment first — those bills are nearest to enactment</li><li>Compare Committee-to-Passed ratios to detect where legislation stalls or accelerates</li><li>Click the expand icon on any row to drill into individual bills by stage</li></ul>
+  </div>
+</div></div>
+<div class="card-full" id="s-c10-glossary">
+  <div class="chrome-bar"><span class="chrome-dot" style="background:#ff5f57"></span><span class="chrome-dot" style="background:#febc2e"></span><span class="chrome-dot" style="background:#28c840"></span><span class="chrome-url">glossary</span></div>
+  <div class="card-img-wrap"><img src="screenshots/c10-glossary.png" alt="Regulatory Glossary" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-title">Regulatory Glossary</div>
+    <p class="card-caption">Eighty-six regulatory terms defined in context, searchable by category.</p>
+    <p class="card-body-text">Use the search bar for point lookups when a briefing or bill text references an unfamiliar abbreviation — it's faster than filtering by category and returns results instantly. When onboarding a new team member or briefing a cross-functional colleague, click a category tag (US Federal, EU Regulation, State Agency) to generate a focused subset of terms relevant to their domain — this avoids overwhelming them with the full 86-term list. Each entry includes practical context about how the regulation or chemical applies to your industry, not just the formal definition, so read the explanatory text rather than stopping at the acronym expansion. Check the last update date on any entry before using a definition in a regulatory submission or board document.</p>
+    <ul class="card-bullets"><li>Use the search bar for point lookups — it's faster than browsing by category</li><li>Click category tags when onboarding colleagues to generate a focused term subset</li><li>Check the last update date before using any definition in a formal submission</li></ul>
+  </div>
+</div></div>
+</body>
+</html>

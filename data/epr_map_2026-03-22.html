@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EPR State Tracker</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #F0F4F8;
+      color: #2D3748;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ---- Header ---- */
+    .page-header {
+      background: linear-gradient(135deg, #0A2540 0%, #1B4B82 100%);
+      padding: 20px 32px 16px;
+    }
+    .page-header .brand {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #7EC8E3;
+      margin: 0 0 4px;
+    }
+    .page-header h1 {
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      margin: 0 0 4px;
+    }
+    .page-header .sub {
+      font-size: 12px;
+      color: #A8CBE8;
+      margin: 0;
+    }
+
+    /* ---- Layout ---- */
+    .page-body {
+      display: flex;
+      gap: 24px;
+      padding: 24px 32px;
+      align-items: flex-start;
+    }
+
+    /* ---- Map panel ---- */
+    .map-panel {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .map-title {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #718096;
+      margin: 0 0 12px;
+    }
+
+    /* CSS Grid cartogram — 9 rows x 12 cols, identical to PFAS map */
+    .state-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 50px);
+      grid-template-rows: repeat(9, 50px);
+      gap: 4px;
+      width: fit-content;
+    }
+
+    .state-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #fff;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+      user-select: none;
+      letter-spacing: 0.5px;
+    }
+    .state-cell:hover {
+      transform: scale(1.12);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.20);
+      z-index: 10;
+      filter: brightness(1.08);
+    }
+    .state-cell.active {
+      transform: scale(1.15);
+      box-shadow: 0 0 0 3px #fff, 0 0 0 5px #1B4B82;
+      z-index: 20;
+    }
+    .status-none {
+      color: #4A6079;
+    }
+    .status-proposed {
+      color: #1B4B82;
+    }
+
+    /* ---- Legend ---- */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 20px;
+      margin-top: 16px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .legend-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+    .legend-label {
+      font-size: 12px;
+      color: #4A5568;
+    }
+
+    /* ---- Detail panel ---- */
+    .detail-panel {
+      flex: 0 0 310px;
+      background: #fff;
+      border: 1px solid #C9DCF0;
+      border-radius: 8px;
+      padding: 20px;
+      min-height: 200px;
+      transition: opacity 0.2s ease;
+      position: sticky;
+      top: 24px;
+    }
+
+    .detail-empty {
+      color: #A0AEC0;
+      font-style: italic;
+      font-size: 13px;
+      text-align: center;
+      padding: 40px 0;
+    }
+
+    .detail-abbr {
+      font-size: 28px;
+      font-weight: 900;
+      color: #0A2540;
+      line-height: 1;
+      margin: 0 0 2px;
+    }
+    .detail-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #2D3748;
+      margin: 0 0 8px;
+    }
+    .detail-status-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #fff;
+      margin-bottom: 14px;
+    }
+    .detail-status-badge.badge-none {
+      color: #4A5568;
+    }
+    .detail-status-badge.badge-proposed {
+      color: #1B4B82;
+    }
+
+    .detail-section-label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #A0AEC0;
+      margin: 14px 0 4px;
+    }
+    .detail-summary {
+      font-size: 13px;
+      color: #4A5568;
+      line-height: 1.6;
+      margin: 0;
+    }
+    .detail-programs {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .detail-programs li {
+      font-size: 12px;
+      color: #4A5568;
+      padding: 4px 0;
+      border-bottom: 1px solid #EDF2F7;
+      line-height: 1.5;
+    }
+    .detail-programs li:last-child {
+      border-bottom: none;
+    }
+    .detail-programs li::before {
+      content: "▸ ";
+      color: #4A9EC4;
+      font-size: 10px;
+    }
+    .detail-dates {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .detail-dates li {
+      font-size: 12px;
+      color: #4A5568;
+      padding: 3px 0;
+      border-bottom: 1px solid #F7FAFC;
+      line-height: 1.5;
+    }
+    .detail-dates li:last-child {
+      border-bottom: none;
+    }
+
+    /* ---- Footer ---- */
+    .page-footer {
+      padding: 12px 32px;
+      border-top: 1px solid #C9DCF0;
+      font-size: 11px;
+      color: #A0AEC0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <p class="brand">Compliance Intelligence</p>
+  <h1>EPR State Tracker</h1>
+  <p class="sub">Extended Producer Responsibility laws covering packaging, electronics, paint &amp; tires &nbsp;&middot;&nbsp; Last updated: 2026-03-22</p>
+</div>
+
+<div class="page-body">
+
+  <!-- Map -->
+  <div class="map-panel">
+    <p class="map-title">Click any state for details</p>
+    <div class="state-grid" id="stateGrid">
+<div class="state-cell status-comprehensive" style="grid-row:1;grid-column:12;background-color:#1B6CA8;" data-abbr="ME" onclick="showDetail('ME')" title="Maine">ME</div>
+<div class="state-cell status-limited" style="grid-row:2;grid-column:10;background-color:#4A9EC4;" data-abbr="VT" onclick="showDetail('VT')" title="Vermont">VT</div>
+<div class="state-cell status-none" style="grid-row:2;grid-column:11;background-color:#E8EDF0;" data-abbr="NH" onclick="showDetail('NH')" title="New Hampshire">NH</div>
+<div class="state-cell status-comprehensive" style="grid-row:3;grid-column:1;background-color:#1B6CA8;" data-abbr="WA" onclick="showDetail('WA')" title="Washington">WA</div>
+<div class="state-cell status-none" style="grid-row:3;grid-column:2;background-color:#E8EDF0;" data-abbr="MT" onclick="showDetail('MT')" title="Montana">MT</div>
+<div class="state-cell status-none" style="grid-row:3;grid-column:3;background-color:#E8EDF0;" data-abbr="ND" onclick="showDetail('ND')" title="North Dakota">ND</div>
+<div class="state-cell status-limited" style="grid-row:3;grid-column:4;background-color:#4A9EC4;" data-abbr="MN" onclick="showDetail('MN')" title="Minnesota">MN</div>
+<div class="state-cell status-none" style="grid-row:3;grid-column:6;background-color:#E8EDF0;" data-abbr="WI" onclick="showDetail('WI')" title="Wisconsin">WI</div>
+<div class="state-cell status-none" style="grid-row:3;grid-column:7;background-color:#E8EDF0;" data-abbr="MI" onclick="showDetail('MI')" title="Michigan">MI</div>
+<div class="state-cell status-comprehensive" style="grid-row:3;grid-column:9;background-color:#1B6CA8;" data-abbr="NY" onclick="showDetail('NY')" title="New York">NY</div>
+<div class="state-cell status-proposed" style="grid-row:3;grid-column:10;background-color:#A8D4E8;" data-abbr="MA" onclick="showDetail('MA')" title="Massachusetts">MA</div>
+<div class="state-cell status-limited" style="grid-row:3;grid-column:11;background-color:#4A9EC4;" data-abbr="RI" onclick="showDetail('RI')" title="Rhode Island">RI</div>
+<div class="state-cell status-limited" style="grid-row:3;grid-column:12;background-color:#4A9EC4;" data-abbr="CT" onclick="showDetail('CT')" title="Connecticut">CT</div>
+<div class="state-cell status-comprehensive" style="grid-row:4;grid-column:1;background-color:#1B6CA8;" data-abbr="OR" onclick="showDetail('OR')" title="Oregon">OR</div>
+<div class="state-cell status-none" style="grid-row:4;grid-column:2;background-color:#E8EDF0;" data-abbr="ID" onclick="showDetail('ID')" title="Idaho">ID</div>
+<div class="state-cell status-none" style="grid-row:4;grid-column:3;background-color:#E8EDF0;" data-abbr="WY" onclick="showDetail('WY')" title="Wyoming">WY</div>
+<div class="state-cell status-none" style="grid-row:4;grid-column:4;background-color:#E8EDF0;" data-abbr="SD" onclick="showDetail('SD')" title="South Dakota">SD</div>
+<div class="state-cell status-none" style="grid-row:4;grid-column:5;background-color:#E8EDF0;" data-abbr="IA" onclick="showDetail('IA')" title="Iowa">IA</div>
+<div class="state-cell status-proposed" style="grid-row:4;grid-column:6;background-color:#A8D4E8;" data-abbr="IL" onclick="showDetail('IL')" title="Illinois">IL</div>
+<div class="state-cell status-none" style="grid-row:4;grid-column:7;background-color:#E8EDF0;" data-abbr="IN" onclick="showDetail('IN')" title="Indiana">IN</div>
+<div class="state-cell status-none" style="grid-row:4;grid-column:8;background-color:#E8EDF0;" data-abbr="OH" onclick="showDetail('OH')" title="Ohio">OH</div>
+<div class="state-cell status-none" style="grid-row:4;grid-column:9;background-color:#E8EDF0;" data-abbr="PA" onclick="showDetail('PA')" title="Pennsylvania">PA</div>
+<div class="state-cell status-proposed" style="grid-row:4;grid-column:10;background-color:#A8D4E8;" data-abbr="NJ" onclick="showDetail('NJ')" title="New Jersey">NJ</div>
+<div class="state-cell status-comprehensive" style="grid-row:5;grid-column:1;background-color:#1B6CA8;" data-abbr="CA" onclick="showDetail('CA')" title="California">CA</div>
+<div class="state-cell status-none" style="grid-row:5;grid-column:2;background-color:#E8EDF0;" data-abbr="NV" onclick="showDetail('NV')" title="Nevada">NV</div>
+<div class="state-cell status-none" style="grid-row:5;grid-column:3;background-color:#E8EDF0;" data-abbr="UT" onclick="showDetail('UT')" title="Utah">UT</div>
+<div class="state-cell status-comprehensive" style="grid-row:5;grid-column:4;background-color:#1B6CA8;" data-abbr="CO" onclick="showDetail('CO')" title="Colorado">CO</div>
+<div class="state-cell status-none" style="grid-row:5;grid-column:5;background-color:#E8EDF0;" data-abbr="NE" onclick="showDetail('NE')" title="Nebraska">NE</div>
+<div class="state-cell status-none" style="grid-row:5;grid-column:6;background-color:#E8EDF0;" data-abbr="MO" onclick="showDetail('MO')" title="Missouri">MO</div>
+<div class="state-cell status-none" style="grid-row:5;grid-column:7;background-color:#E8EDF0;" data-abbr="KY" onclick="showDetail('KY')" title="Kentucky">KY</div>
+<div class="state-cell status-none" style="grid-row:5;grid-column:8;background-color:#E8EDF0;" data-abbr="WV" onclick="showDetail('WV')" title="West Virginia">WV</div>
+<div class="state-cell status-none" style="grid-row:5;grid-column:9;background-color:#E8EDF0;" data-abbr="VA" onclick="showDetail('VA')" title="Virginia">VA</div>
+<div class="state-cell status-proposed" style="grid-row:5;grid-column:10;background-color:#A8D4E8;" data-abbr="MD" onclick="showDetail('MD')" title="Maryland">MD</div>
+<div class="state-cell status-none" style="grid-row:5;grid-column:11;background-color:#E8EDF0;" data-abbr="DE" onclick="showDetail('DE')" title="Delaware">DE</div>
+<div class="state-cell status-none" style="grid-row:6;grid-column:2;background-color:#E8EDF0;" data-abbr="AZ" onclick="showDetail('AZ')" title="Arizona">AZ</div>
+<div class="state-cell status-none" style="grid-row:6;grid-column:3;background-color:#E8EDF0;" data-abbr="NM" onclick="showDetail('NM')" title="New Mexico">NM</div>
+<div class="state-cell status-none" style="grid-row:6;grid-column:5;background-color:#E8EDF0;" data-abbr="KS" onclick="showDetail('KS')" title="Kansas">KS</div>
+<div class="state-cell status-none" style="grid-row:6;grid-column:6;background-color:#E8EDF0;" data-abbr="TN" onclick="showDetail('TN')" title="Tennessee">TN</div>
+<div class="state-cell status-none" style="grid-row:6;grid-column:7;background-color:#E8EDF0;" data-abbr="NC" onclick="showDetail('NC')" title="North Carolina">NC</div>
+<div class="state-cell status-none" style="grid-row:6;grid-column:8;background-color:#E8EDF0;" data-abbr="SC" onclick="showDetail('SC')" title="South Carolina">SC</div>
+<div class="state-cell status-none" style="grid-row:7;grid-column:4;background-color:#E8EDF0;" data-abbr="OK" onclick="showDetail('OK')" title="Oklahoma">OK</div>
+<div class="state-cell status-none" style="grid-row:7;grid-column:5;background-color:#E8EDF0;" data-abbr="AR" onclick="showDetail('AR')" title="Arkansas">AR</div>
+<div class="state-cell status-none" style="grid-row:7;grid-column:6;background-color:#E8EDF0;" data-abbr="MS" onclick="showDetail('MS')" title="Mississippi">MS</div>
+<div class="state-cell status-none" style="grid-row:7;grid-column:7;background-color:#E8EDF0;" data-abbr="GA" onclick="showDetail('GA')" title="Georgia">GA</div>
+<div class="state-cell status-none" style="grid-row:7;grid-column:8;background-color:#E8EDF0;" data-abbr="AL" onclick="showDetail('AL')" title="Alabama">AL</div>
+<div class="state-cell status-none" style="grid-row:8;grid-column:4;background-color:#E8EDF0;" data-abbr="TX" onclick="showDetail('TX')" title="Texas">TX</div>
+<div class="state-cell status-none" style="grid-row:8;grid-column:5;background-color:#E8EDF0;" data-abbr="LA" onclick="showDetail('LA')" title="Louisiana">LA</div>
+<div class="state-cell status-none" style="grid-row:8;grid-column:9;background-color:#E8EDF0;" data-abbr="FL" onclick="showDetail('FL')" title="Florida">FL</div>
+<div class="state-cell status-none" style="grid-row:9;grid-column:1;background-color:#E8EDF0;" data-abbr="AK" onclick="showDetail('AK')" title="Alaska">AK</div>
+<div class="state-cell status-limited" style="grid-row:9;grid-column:2;background-color:#4A9EC4;" data-abbr="HI" onclick="showDetail('HI')" title="Hawaii">HI</div>
+    </div>
+
+    <div class="legend">
+<div class="legend-item"><span class="legend-swatch" style="background:#1B6CA8;"></span><span class="legend-label">Comprehensive Programs</span></div>
+<div class="legend-item"><span class="legend-swatch" style="background:#4A9EC4;"></span><span class="legend-label">Limited Programs (1-2)</span></div>
+<div class="legend-item"><span class="legend-swatch" style="background:#A8D4E8;"></span><span class="legend-label">Proposed Legislation</span></div>
+<div class="legend-item"><span class="legend-swatch" style="background:#E8EDF0;"></span><span class="legend-label">No EPR Programs</span></div>
+    </div>
+  </div>
+
+  <!-- Detail panel -->
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-empty" id="detailEmpty">Select a state to see its EPR programs</div>
+    <div id="detailContent" style="display:none;"></div>
+  </div>
+
+</div>
+
+<div class="page-footer">
+  Data current as of 2026-03-22. This tracker covers enacted and proposed state EPR laws for packaging/plastics,
+  electronics/e-waste, paint, and tires. Program scope and deadlines vary by state. Verify compliance obligations
+  with legal counsel before making business decisions.
+</div>
+
+<script>
+var STATE_DATA = {
+  "AL": {"name": "Alabama", "status": "none", "programs": [], "summary": "Alabama has no statewide EPR programs for packaging, electronics, paint, or tires.", "key_dates": []},
+  "AK": {"name": "Alaska", "status": "none", "programs": [], "summary": "Alaska has no statewide EPR programs.", "key_dates": []},
+  "AZ": {"name": "Arizona", "status": "none", "programs": [], "summary": "Arizona has no statewide EPR programs.", "key_dates": []},
+  "AR": {"name": "Arkansas", "status": "none", "programs": [], "summary": "Arkansas has no statewide EPR programs.", "key_dates": []},
+  "CA": {"name": "California", "status": "comprehensive", "programs": ["Packaging EPR \u2014 SB 54 (2022): Plastic Pollution Prevention and Packaging Producer Responsibility Act", "Electronics/E-Waste \u2014 Electronic Waste Recycling Act (2003)", "Paint \u2014 PaintCare program (2014, ARB-approved stewardship plan)", "Tires \u2014 California Tire Recycling Act", "Mattresses \u2014 Mattress Recycling Act (2013)", "Carpet \u2014 Carpet Stewardship Program (2011)"], "summary": "California is the national leader in EPR policy. SB 54 (2022) mandates 25% reduction in single-use plastic packaging by 2032 and full producer responsibility. Active programs span electronics, paint, tires, mattresses, and carpet.", "key_dates": ["2003 \u2014 Electronic Waste Recycling Act enacted", "2011 \u2014 Carpet stewardship program launched", "2013 \u2014 Mattress Recycling Act signed", "2014 \u2014 PaintCare program launched statewide", "Jul 2022 \u2014 SB 54 (packaging EPR) signed by Governor Newsom", "2032 \u2014 Target: 25% reduction in single-use plastic packaging"]},
+  "CO": {"name": "Colorado", "status": "comprehensive", "programs": ["Packaging EPR \u2014 HB 22-1355 (2022): Producer Responsibility for Statewide Recycling Act", "Electronics \u2014 E-Cycles Colorado (voluntary program with mandatory manufacturer registration)", "Paint \u2014 PaintCare program (2014)"], "summary": "Colorado enacted landmark packaging EPR legislation in 2022 (HB 22-1355), requiring producers to fund and manage a statewide recycling program. Electronics collection is managed through E-Cycles. PaintCare operates statewide for leftover paint.", "key_dates": ["2014 \u2014 PaintCare program launched", "Jun 2022 \u2014 HB 22-1355 (packaging EPR) signed into law", "2026 \u2014 Producer Responsibility Organization must be operational", "2028 \u2014 Minimum recycling rate requirements take effect"]},
+  "CT": {"name": "Connecticut", "status": "limited", "programs": ["Electronics \u2014 Connecticut E-Cycles program (manufacturer take-back mandate)", "Paint \u2014 PaintCare program", "Tires \u2014 Scrap tire management program (generator fees)"], "summary": "Connecticut has active EPR programs for electronics, paint, and tires. A packaging EPR bill has been introduced but not yet enacted. The state has one of the oldest electronics take-back mandates in the Northeast.", "key_dates": ["2007 \u2014 Electronics take-back law enacted", "2013 \u2014 PaintCare program launched", "2024 \u2014 Packaging EPR bill introduced (pending)"]},
+  "DE": {"name": "Delaware", "status": "none", "programs": [], "summary": "Delaware has no statewide EPR programs, though it participates in regional electronics collection efforts.", "key_dates": []},
+  "FL": {"name": "Florida", "status": "none", "programs": [], "summary": "Florida has no statewide EPR programs for packaging, electronics, paint, or tires.", "key_dates": []},
+  "GA": {"name": "Georgia", "status": "none", "programs": [], "summary": "Georgia has no statewide EPR programs.", "key_dates": []},
+  "HI": {"name": "Hawaii", "status": "limited", "programs": ["Electronics \u2014 Hawaii E-Cycles program (manufacturer registration and take-back)", "Paint \u2014 PaintCare program"], "summary": "Hawaii operates electronics and paint EPR programs. The state has considered packaging EPR legislation but has not enacted it.", "key_dates": ["2008 \u2014 Electronics take-back law enacted", "2015 \u2014 PaintCare program launched"]},
+  "ID": {"name": "Idaho", "status": "none", "programs": [], "summary": "Idaho has no statewide EPR programs.", "key_dates": []},
+  "IL": {"name": "Illinois", "status": "proposed", "programs": ["Packaging EPR \u2014 bills introduced in multiple sessions (not yet enacted)", "Electronics \u2014 Illinois E-Waste Take-Back law (2008, limited scope)"], "summary": "Illinois enacted a limited electronics take-back law in 2008. Comprehensive packaging EPR bills have been introduced in recent legislative sessions but have not advanced to passage.", "key_dates": ["2008 \u2014 Electronics take-back law enacted (limited manufacturer scope)", "2023 \u2014 Packaging EPR bill introduced (SB 1555)", "2024 \u2014 Packaging EPR bill reintroduced (pending)"]},
+  "IN": {"name": "Indiana", "status": "none", "programs": [], "summary": "Indiana has no statewide EPR programs.", "key_dates": []},
+  "IA": {"name": "Iowa", "status": "none", "programs": [], "summary": "Iowa has no statewide EPR programs.", "key_dates": []},
+  "KS": {"name": "Kansas", "status": "none", "programs": [], "summary": "Kansas has no statewide EPR programs.", "key_dates": []},
+  "KY": {"name": "Kentucky", "status": "none", "programs": [], "summary": "Kentucky has no statewide EPR programs.", "key_dates": []},
+  "LA": {"name": "Louisiana", "status": "none", "programs": [], "summary": "Louisiana has no statewide EPR programs.", "key_dates": []},
+  "ME": {"name": "Maine", "status": "comprehensive", "programs": ["Packaging EPR \u2014 LD 1541 (2021): An Act to Support and Improve Municipal Recycling Programs (first in US)", "Electronics \u2014 Maine E-Cycles program (manufacturer take-back mandate, 2006)", "Paint \u2014 PaintCare program", "Mercury-containing products \u2014 product stewardship law"], "summary": "Maine made history in 2021 by becoming the first US state to enact packaging EPR legislation (LD 1541). The law requires producers to fund municipal recycling programs. Maine also has one of the oldest electronics take-back mandates in the country and active paint stewardship.", "key_dates": ["2006 \u2014 Electronics take-back law enacted (one of first in US)", "Jul 2021 \u2014 LD 1541 signed \u2014 first US packaging EPR law", "2024 \u2014 Producer Responsibility Organization established", "2025 \u2014 Producer fees to municipalities begin phasing in"]},
+  "MD": {"name": "Maryland", "status": "proposed", "programs": ["Packaging EPR \u2014 bills introduced in recent sessions (not yet enacted)", "Paint \u2014 PaintCare program (limited county participation)"], "summary": "Maryland has active packaging EPR legislation moving through the General Assembly. PaintCare operates in several counties. No comprehensive statewide EPR law has been enacted yet.", "key_dates": ["2022 \u2014 Packaging EPR bill introduced", "2024 \u2014 Revised packaging EPR bill reintroduced (HB 1124)", "2025 \u2014 Further legislative activity expected"]},
+  "MA": {"name": "Massachusetts", "status": "proposed", "programs": ["Electronics \u2014 MassDEP manufacturer registration program (limited scope)", "Packaging EPR \u2014 bills introduced, not yet enacted"], "summary": "Massachusetts has a limited electronics manufacturer registration requirement. Comprehensive packaging EPR bills have been filed in multiple sessions. The state has not yet enacted broad EPR legislation.", "key_dates": ["2010 \u2014 Electronics manufacturer registration enacted", "2023 \u2014 Packaging EPR bill introduced (SD 1955)", "2025 \u2014 Legislative activity ongoing"]},
+  "MI": {"name": "Michigan", "status": "none", "programs": [], "summary": "Michigan has no statewide EPR programs, though proposals have been discussed.", "key_dates": []},
+  "MN": {"name": "Minnesota", "status": "limited", "programs": ["Electronics \u2014 Minnesota E-Cycles program (manufacturer take-back, 2007)", "Paint \u2014 PaintCare program"], "summary": "Minnesota has established EPR programs for electronics and paint. A packaging EPR bill passed the House in 2023 but stalled in the Senate. The legislature continues to consider broader EPR expansion.", "key_dates": ["2007 \u2014 Electronics take-back law enacted", "2014 \u2014 PaintCare program launched", "2023 \u2014 Packaging EPR bill passed MN House (stalled in Senate)", "2025 \u2014 Packaging EPR legislation reintroduced"]},
+  "MS": {"name": "Mississippi", "status": "none", "programs": [], "summary": "Mississippi has no statewide EPR programs.", "key_dates": []},
+  "MO": {"name": "Missouri", "status": "none", "programs": [], "summary": "Missouri has no statewide EPR programs.", "key_dates": []},
+  "MT": {"name": "Montana", "status": "none", "programs": [], "summary": "Montana has no statewide EPR programs.", "key_dates": []},
+  "NE": {"name": "Nebraska", "status": "none", "programs": [], "summary": "Nebraska has no statewide EPR programs.", "key_dates": []},
+  "NV": {"name": "Nevada", "status": "none", "programs": [], "summary": "Nevada has no statewide EPR programs.", "key_dates": []},
+  "NH": {"name": "New Hampshire", "status": "none", "programs": [], "summary": "New Hampshire has no statewide EPR programs, though regional initiatives have been explored.", "key_dates": []},
+  "NJ": {"name": "New Jersey", "status": "proposed", "programs": ["Packaging EPR \u2014 bills introduced in multiple sessions (A4978/S3233 and similar)", "Electronics \u2014 limited manufacturer registration requirements"], "summary": "New Jersey has active packaging EPR bills progressing through the legislature. The state enacted a plastic bag ban in 2022 and has strong political momentum for broader EPR, but packaging EPR has not yet been signed into law.", "key_dates": ["2022 \u2014 Plastic bag ban enacted", "2022 \u2014 Packaging EPR bill introduced (A4978)", "2024 \u2014 Packaging EPR bill advanced in committee", "2025 \u2014 Legislative activity ongoing"]},
+  "NM": {"name": "New Mexico", "status": "none", "programs": [], "summary": "New Mexico has no statewide EPR programs.", "key_dates": []},
+  "NY": {"name": "New York", "status": "comprehensive", "programs": ["Packaging EPR \u2014 NY Packaging Reduction and Recycling Infrastructure Act (signed Dec 2022 \u2014 first comprehensive packaging EPR in a major US state)", "Electronics \u2014 Electronic Equipment Recycling and Reuse Act (2010)", "Paint \u2014 PaintCare program"], "summary": "New York enacted the Packaging Reduction and Recycling Infrastructure Act in December 2022, one of the most significant packaging EPR laws in US history. The law requires producers to reduce packaging and fund municipal recycling. New York also has long-standing electronics and paint take-back programs.", "key_dates": ["2010 \u2014 Electronic Equipment Recycling and Reuse Act enacted", "2013 \u2014 PaintCare program launched", "Dec 2022 \u2014 Packaging Reduction and Recycling Infrastructure Act signed", "2025 \u2014 Producer Responsibility Organization formation deadline", "2027 \u2014 Packaging reduction targets begin"]},
+  "NC": {"name": "North Carolina", "status": "none", "programs": [], "summary": "North Carolina has no statewide EPR programs.", "key_dates": []},
+  "ND": {"name": "North Dakota", "status": "none", "programs": [], "summary": "North Dakota has no statewide EPR programs.", "key_dates": []},
+  "OH": {"name": "Ohio", "status": "none", "programs": [], "summary": "Ohio has no statewide EPR programs.", "key_dates": []},
+  "OK": {"name": "Oklahoma", "status": "none", "programs": [], "summary": "Oklahoma has no statewide EPR programs.", "key_dates": []},
+  "OR": {"name": "Oregon", "status": "comprehensive", "programs": ["Packaging EPR \u2014 HB 3065 (2021): Plastic Pollution and Recycling Modernization Act", "Electronics \u2014 Oregon E-Cycles program (manufacturer take-back, 2007)", "Paint \u2014 PaintCare program"], "summary": "Oregon enacted its Plastic Pollution and Recycling Modernization Act in 2021, requiring producers to fund a statewide recycling system. Oregon was among the earliest adopters of electronics EPR and has run PaintCare for years.", "key_dates": ["2007 \u2014 Oregon E-Cycles electronics take-back program launched", "2011 \u2014 PaintCare program launched", "Jun 2021 \u2014 HB 3065 (packaging EPR) signed into law", "2025 \u2014 Producer Responsibility Organization operational", "2028 \u2014 Minimum recycling rates required"]},
+  "PA": {"name": "Pennsylvania", "status": "none", "programs": [], "summary": "Pennsylvania has no statewide EPR programs, though pilot programs and discussions are ongoing.", "key_dates": []},
+  "RI": {"name": "Rhode Island", "status": "limited", "programs": ["Electronics \u2014 Rhode Island E-Cycles program (manufacturer take-back)", "Paint \u2014 PaintCare program"], "summary": "Rhode Island has EPR programs for electronics and paint. Packaging EPR has been discussed but no bill has been enacted.", "key_dates": ["2008 \u2014 Electronics take-back law enacted", "2015 \u2014 PaintCare program launched"]},
+  "SC": {"name": "South Carolina", "status": "none", "programs": [], "summary": "South Carolina has no statewide EPR programs.", "key_dates": []},
+  "SD": {"name": "South Dakota", "status": "none", "programs": [], "summary": "South Dakota has no statewide EPR programs.", "key_dates": []},
+  "TN": {"name": "Tennessee", "status": "none", "programs": [], "summary": "Tennessee has no statewide EPR programs.", "key_dates": []},
+  "TX": {"name": "Texas", "status": "none", "programs": [], "summary": "Texas has no statewide EPR programs for packaging, electronics, paint, or tires.", "key_dates": []},
+  "UT": {"name": "Utah", "status": "none", "programs": [], "summary": "Utah has no statewide EPR programs.", "key_dates": []},
+  "VT": {"name": "Vermont", "status": "limited", "programs": ["Electronics \u2014 Vermont E-Cycles program (manufacturer take-back, 2010)", "Paint \u2014 PaintCare program"], "summary": "Vermont has long-standing EPR programs for electronics and paint. The state has explored packaging EPR but has not yet enacted legislation. Vermont\'s small size and progressive policy environment make it an active participant in EPR policy discussions.", "key_dates": ["2010 \u2014 Electronics take-back law enacted", "2014 \u2014 PaintCare program launched", "2024 \u2014 Packaging EPR feasibility study underway"]},
+  "VA": {"name": "Virginia", "status": "none", "programs": [], "summary": "Virginia has no statewide EPR programs, though paint stewardship discussions are ongoing.", "key_dates": []},
+  "WA": {"name": "Washington", "status": "comprehensive", "programs": ["Packaging EPR \u2014 HB 1131 (2024): Recycling Modernization Act (packaging producer responsibility)", "Electronics \u2014 Washington E-Cycles program (manufacturer take-back, 2006)", "Paint \u2014 PaintCare program", "Tires \u2014 Washington Tire Recycling Program (retailer collection mandate)"], "summary": "Washington enacted landmark packaging EPR legislation in 2024 (HB 1131), joining the growing list of states with comprehensive producer responsibility laws. Washington has had electronics and paint take-back programs for nearly two decades and operates one of the country\'s most effective tire recycling programs.", "key_dates": ["2006 \u2014 Washington E-Cycles electronics program launched (one of first in US)", "2010 \u2014 PaintCare program launched", "2013 \u2014 Tire Recycling Program strengthened", "Mar 2024 \u2014 HB 1131 (packaging EPR) signed into law", "2026 \u2014 Producer Responsibility Organization operational"]},
+  "WV": {"name": "West Virginia", "status": "none", "programs": [], "summary": "West Virginia has no statewide EPR programs.", "key_dates": []},
+  "WI": {"name": "Wisconsin", "status": "none", "programs": [], "summary": "Wisconsin has no statewide EPR programs.", "key_dates": []},
+  "WY": {"name": "Wyoming", "status": "none", "programs": [], "summary": "Wyoming has no statewide EPR programs.", "key_dates": []}
+};
+
+var STATUS_COLORS = {
+  "comprehensive": "#1B6CA8",
+  "limited":       "#4A9EC4",
+  "proposed":      "#A8D4E8",
+  "none":          "#E8EDF0"
+};
+
+var STATUS_LABELS = {
+  "comprehensive": "Comprehensive Programs",
+  "limited":       "Limited Programs (1-2)",
+  "proposed":      "Proposed Legislation",
+  "none":          "No EPR Programs"
+};
+
+var activeAbbr = null;
+
+function showDetail(abbr) {
+  var state = STATE_DATA[abbr];
+  if (!state) return;
+
+  // Toggle active cell highlight
+  if (activeAbbr) {
+    var prev = document.querySelector('[data-abbr="' + activeAbbr + '"]');
+    if (prev) prev.classList.remove('active');
+  }
+  activeAbbr = abbr;
+  var cell = document.querySelector('[data-abbr="' + abbr + '"]');
+  if (cell) cell.classList.add('active');
+
+  var color = STATUS_COLORS[state.status] || '#E8EDF0';
+  var statusLabel = STATUS_LABELS[state.status] || state.status;
+
+  // Badge text colour: dark for light-background statuses
+  var badgeExtraClass = (state.status === 'none' || state.status === 'proposed') ? ' badge-' + state.status : '';
+
+  // Build programs list
+  var programsHtml = '';
+  if (state.programs && state.programs.length > 0) {
+    programsHtml = '<p class="detail-section-label">Active &amp; Proposed Programs</p><ul class="detail-programs">';
+    state.programs.forEach(function(p) {
+      programsHtml += '<li>' + escapeHtml(p) + '</li>';
+    });
+    programsHtml += '</ul>';
+  }
+
+  // Build dates list
+  var datesHtml = '';
+  if (state.key_dates && state.key_dates.length > 0) {
+    datesHtml = '<p class="detail-section-label">Key Dates</p><ul class="detail-dates">';
+    state.key_dates.forEach(function(d) {
+      datesHtml += '<li>' + escapeHtml(d) + '</li>';
+    });
+    datesHtml += '</ul>';
+  }
+
+  var html = '<div class="detail-abbr">' + abbr + '</div>'
+    + '<div class="detail-name">' + escapeHtml(state.name) + '</div>'
+    + '<span class="detail-status-badge' + badgeExtraClass + '" style="background:' + color + ';">'
+    + escapeHtml(statusLabel)
+    + '</span>'
+    + '<p class="detail-section-label">Overview</p>'
+    + '<p class="detail-summary">' + escapeHtml(state.summary) + '</p>'
+    + programsHtml
+    + datesHtml;
+
+  document.getElementById('detailEmpty').style.display = 'none';
+  var content = document.getElementById('detailContent');
+  content.style.display = 'block';
+  content.innerHTML = html;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// Auto-select CA on load as a high-interest state
+window.addEventListener('DOMContentLoaded', function() {
+  showDetail('CA');
+});
+</script>
+
+</body>
+</html>

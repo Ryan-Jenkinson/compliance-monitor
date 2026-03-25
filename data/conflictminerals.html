@@ -1,0 +1,2055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conflict Minerals (SEC/Dodd-Frank) — Compliance Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --topic-color: #1A7A87;
+      --bg: #F4F5F7;
+      --surface: #FFFFFF;
+      --surface-dark: #1A1D23;
+      --border: #D8DBE0;
+      --border-light: #E8EAED;
+      --text-primary: #111318;
+      --text-secondary: #4A4F5C;
+      --text-muted: #7A8194;
+      --red: #D63031;
+      --red-bg: #FEF0F0;
+      --red-border: #FACACA;
+      --amber: #CB7B0A;
+      --amber-bg: #FEF6E8;
+      --green: #0F7B3F;
+      --green-bg: #EEFAF3;
+      --green-border: #B2E0C7;
+      --blue: #1565C0;
+      --blue-bg: #EBF3FD;
+      --sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'IBM Plex Mono', 'Consolas', 'Monaco', monospace;
+      --surface-sunken: #EBEDF0;
+      --text-tertiary: #7A8194;
+      --accent: var(--topic-color);
+      --article-sidebar-w: 616px;
+      --topbar-h: 52px;
+      --radius: 6px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { font-size: clamp(14px, 1.1vw, 16px); }
+    body {
+      background: var(--bg);
+      font-family: var(--sans);
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── TOPBAR ─────────────────────────────────────────────────── */
+    .topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--topbar-h);
+      background: var(--surface-dark);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 20px;
+      z-index: 200;
+      border-bottom: 3px solid var(--topic-color);
+    }
+    .topbar-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: rgba(255,255,255,0.55);
+      font-size: 12px;
+      font-family: var(--mono);
+      text-decoration: none;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 4px;
+      padding: 4px 10px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .topbar-back:hover { color: #fff; border-color: rgba(255,255,255,0.3); text-decoration: none; }
+    .topbar-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.12); }
+    .topbar-topic {
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: -0.01em;
+      color: var(--topic-color);
+    }
+    .topbar-label { color: rgba(255,255,255,0.45); font-size: 12px; font-family: var(--mono); }
+    .topbar-date { margin-left: auto; color: rgba(255,255,255,0.35); font-size: 11px; font-family: var(--mono); }
+
+    /* ── LAYOUT: main content + fixed right article sidebar ─────── */
+    .layout {
+      display: flex;
+      margin-top: var(--topbar-h);
+      min-height: calc(100vh - var(--topbar-h));
+    }
+
+    /* ── MAIN CONTENT (center, scrollable) ──────────────────────── */
+    .main {
+      flex: 1;
+      min-width: 0;
+      margin-right: var(--article-sidebar-w);
+      padding: 24px 28px 60px;
+      overflow-y: auto;
+    }
+
+    /* ── ARTICLE SIDEBAR (fixed right) ──────────────────────────── */
+    .article-sidebar {
+      position: fixed;
+      top: var(--topbar-h);
+      right: 0;
+      width: var(--article-sidebar-w);
+      height: calc(100vh - var(--topbar-h));
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      min-width: 280px;
+      max-width: 80vw;
+    }
+
+    /* Drag handle — sits on the left border of the sidebar */
+    .sidebar-resize-handle {
+      position: absolute;
+      top: 0;
+      left: -4px;
+      width: 8px;
+      height: 100%;
+      cursor: col-resize;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .sidebar-resize-handle::before {
+      content: '';
+      display: block;
+      width: 3px;
+      height: 40px;
+      border-radius: 2px;
+      background: var(--border);
+      transition: background 0.15s, height 0.15s;
+    }
+    .sidebar-resize-handle:hover::before,
+    .sidebar-resize-handle.dragging::before {
+      background: var(--topic-color);
+      height: 60px;
+    }
+    body.resizing { cursor: col-resize !important; user-select: none; }
+    .article-sidebar-head {
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--border-light);
+      flex-shrink: 0;
+    }
+    .article-sidebar-title {
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .article-sidebar-title::before {
+      content: '';
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--topic-color);
+    }
+    .filter-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .filter-search {
+      flex: 1;
+      min-width: 120px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 12px;
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text-primary);
+      outline: none;
+    }
+    .filter-search:focus { border-color: var(--topic-color); background: var(--surface); }
+    .filter-select {
+      padding: 5px 8px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 11px;
+      font-family: var(--mono);
+      background: var(--bg);
+      color: var(--text-primary);
+      cursor: pointer;
+      outline: none;
+    }
+    .filter-select:focus { border-color: var(--topic-color); }
+    .filter-count {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .article-list-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+    .article-list-scroll::-webkit-scrollbar { width: 4px; }
+    .article-list-scroll::-webkit-scrollbar-track { background: transparent; }
+    .article-list-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .month-divider {
+      font-size: 10px;
+      font-family: var(--mono);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-muted);
+      padding: 10px 16px 3px;
+    }
+
+    .article-item {
+      padding: 9px 16px;
+      border-left: 2px solid transparent;
+      transition: border-color 0.1s, background 0.1s;
+    }
+    .article-item:hover { background: var(--bg); }
+    .article-item.is-new { border-left-color: var(--topic-color); }
+    .article-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 5px;
+      margin-bottom: 3px;
+      flex-wrap: wrap;
+    }
+    .article-headline {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.35;
+      flex: 1;
+      min-width: 0;
+    }
+    .article-headline a { color: var(--text-primary); }
+    .article-headline a:hover { color: var(--topic-color); text-decoration: none; }
+    .article-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .article-snippet {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 3px;
+      line-height: 1.55;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .no-results {
+      display: none;
+      padding: 24px 16px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+    .no-results.visible { display: block; }
+
+    /* ── BADGES ─────────────────────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      font-size: 9px;
+      font-family: var(--mono);
+      font-weight: 700;
+      letter-spacing: .05em;
+      border-radius: 2px;
+      padding: 1px 4px;
+      flex-shrink: 0;
+    }
+    .badge-new { background: var(--topic-color); color: #fff; }
+    .badge-high { background: var(--red-bg); color: var(--red); }
+    .badge-medium { background: var(--amber-bg); color: var(--amber); }
+    .badge-low { background: var(--green-bg); color: var(--green); }
+
+    /* ── MAIN CONTENT WIDGETS ───────────────────────────────────── */
+
+    /* Section header row */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .section-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--topic-color);
+      flex-shrink: 0;
+    }
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-muted);
+    }
+    .section-title-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border-light);
+    }
+
+    /* Panel card */
+    .panel {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+    .panel-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-title-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--topic-color);
+    }
+
+    /* KPI row */
+    .kpi-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .kpi-card {
+      flex: 1;
+      min-width: 100px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      box-shadow: var(--shadow-sm);
+      border-top: 3px solid var(--topic-color);
+    }
+    .kpi-value {
+      font-size: 26px;
+      font-weight: 700;
+      font-family: var(--mono);
+      color: var(--topic-color);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .kpi-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    /* Insight blocks */
+    .insight-block {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .insight-block + .insight-block { margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 12px; }
+    .insight-label {
+      font-size: 10px;
+      font-family: var(--mono);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--topic-color);
+      margin-bottom: 4px;
+    }
+    .insight-bullets {
+      list-style: none;
+      margin-top: 6px;
+    }
+    .insight-bullets li {
+      font-size: 13px;
+      color: var(--text-secondary);
+      padding: 3px 0 3px 14px;
+      position: relative;
+      line-height: 1.5;
+    }
+    .insight-bullets li::before {
+      content: '›';
+      position: absolute;
+      left: 2px;
+      color: var(--topic-color);
+      font-weight: 700;
+    }
+    .insight-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-family: var(--mono);
+      font-weight: 700;
+      letter-spacing: .04em;
+      border-radius: 3px;
+      padding: 2px 6px;
+      margin: 4px 3px 0 0;
+    }
+    .insight-badge.hi { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+    .insight-badge.med { background: var(--amber-bg); color: var(--amber); border: 1px solid #F5DFA6; }
+    .insight-badge.lo { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+    .insight-badge-neutral { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+
+    /* Breaking news alert */
+    .breaking-alert {
+      background: var(--red-bg);
+      border: 1px solid var(--red-border);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      font-size: 13.5px;
+      color: #8B1A1A;
+    }
+    .breaking-alert-label {
+      font-size: 10px;
+      font-family: var(--mono);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--red);
+      margin-bottom: 3px;
+    }
+
+    /* Trend chart */
+    .trend-chart-wrap { margin: 4px 0 6px; }
+    .trend-chart-axis {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Summary text */
+    .summary-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* Impact rows */
+    .impact-grid {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 8px 12px;
+    }
+    .impact-label {
+      font-size: 10px;
+      font-family: var(--mono);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--text-muted);
+      padding-top: 2px;
+      line-height: 1.4;
+    }
+    .impact-text { font-size: 13.5px; color: var(--text-secondary); line-height: 1.55; }
+    .impact-list {
+      list-style: none;
+      margin: 0;
+    }
+    .impact-list li {
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      padding: 2px 0 2px 12px;
+      position: relative;
+    }
+    .impact-list li::before {
+      content: '›';
+      position: absolute; left: 1px;
+      color: var(--topic-color); font-weight: 700;
+    }
+
+    /* Strategy block */
+    .strategy-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      border-left: 3px solid var(--topic-color);
+      padding-left: 12px;
+    }
+
+    /* Deadline list */
+    .dl-list { display: flex; flex-direction: column; gap: 0; }
+    .dl-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .dl-item:last-child { border-bottom: none; }
+    .dl-days {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      min-width: 52px;
+      text-align: right;
+      flex-shrink: 0;
+      padding-top: 1px;
+    }
+    .dl-days.urgent { color: var(--red); }
+    .dl-days.soon { color: var(--amber); }
+    .dl-days.normal { color: var(--text-muted); }
+    .dl-pipe {
+      width: 2px;
+      min-height: 38px;
+      border-radius: 1px;
+      flex-shrink: 0;
+      background: var(--border);
+      align-self: stretch;
+    }
+    .dl-body { flex: 1; min-width: 0; }
+    .dl-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; line-height: 1.35; }
+    .dl-meta { font-size: 12px; color: var(--text-muted); font-family: var(--mono); }
+
+    /* Bills table */
+    .bill-grid { display: flex; flex-direction: column; gap: 0; }
+    .bill-row {
+      display: flex;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-light);
+      align-items: flex-start;
+    }
+    .bill-row:last-child { border-bottom: none; }
+    .bill-id {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--topic-color);
+      min-width: 68px;
+      flex-shrink: 0;
+      padding-top: 1px;
+    }
+    .bill-body { flex: 1; min-width: 0; }
+    .bill-title-text { font-size: 13px; font-weight: 500; color: var(--text-primary); line-height: 1.35; margin-bottom: 2px; }
+    .bill-action-text { font-size: 12px; color: var(--text-muted); }
+    .bill-stage-tag {
+      display: inline-block;
+      font-size: 9px;
+      font-family: var(--mono);
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      border-radius: 2px;
+      padding: 1px 4px;
+      flex-shrink: 0;
+      background: var(--bg);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      margin-top: 1px;
+    }
+    .bill-stage-tag.enacted_watching { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
+    .bill-stage-tag.passed_one, .bill-stage-tag.advanced { background: var(--amber-bg); color: var(--amber); border-color: #F5DFA6; }
+
+    /* ── RESOURCE STRIP (top of page, quick-access links) ───────── */
+    .resource-strip {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .resource-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px 8px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--border);
+      border-radius: var(--radius);
+      text-decoration: none;
+      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+      cursor: pointer;
+    }
+    .resource-chip:hover {
+      border-left-color: var(--topic-color);
+      border-color: var(--topic-color);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      text-decoration: none;
+      background: var(--bg);
+    }
+    .resource-chip-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      color: var(--text-muted);
+      transition: color 0.15s;
+    }
+    .resource-chip:hover .resource-chip-icon { color: var(--topic-color); }
+    .resource-chip-label {
+      font-size: 12px;
+      font-weight: 600;
+      font-family: var(--sans);
+      color: var(--text-secondary);
+      white-space: nowrap;
+      transition: color 0.15s;
+    }
+    .resource-chip:hover .resource-chip-label { color: var(--text-primary); }
+    .resource-chip-ext {
+      width: 11px;
+      height: 11px;
+      flex-shrink: 0;
+      color: var(--border);
+      margin-left: 2px;
+      transition: color 0.15s, transform 0.15s;
+    }
+    .resource-chip:hover .resource-chip-ext {
+      color: var(--topic-color);
+      transform: translate(1px, -1px);
+    }
+
+    /* ── Cross-State Intelligence section ───────────────────────── */
+    .csi-summary-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-left: 4px solid var(--amber);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 14px 16px; margin-bottom: 14px;
+    }
+    .csi-summary-text { font-size: 14px; line-height: 1.7; color: var(--text-secondary); }
+    .csi-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+    .csi-panel { background: var(--surface); border: 1px solid var(--border);
+                 border-radius: var(--radius); overflow: hidden; }
+    .csi-panel-title { font-family: var(--mono); font-size: 10px; font-weight: 700;
+      letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted);
+      padding: 8px 12px; border-bottom: 1px solid var(--border-light); background: var(--bg); }
+    .csi-watch-item { display: flex; align-items: flex-start; gap: 8px;
+      padding: 8px 12px; border-bottom: 1px solid var(--border-light); }
+    .csi-watch-item:last-child { border-bottom: none; }
+    .csi-state-chip {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 30px; height: 22px; padding: 0 4px;
+      background: var(--red-bg); color: var(--red);
+      font-family: var(--mono); font-size: 10px; font-weight: 700;
+      border-radius: 3px; flex-shrink: 0; border: 1px solid var(--red-border);
+    }
+    .csi-watch-text { font-size: 13px; color: var(--text-secondary); line-height: 1.45; flex: 1; }
+    .csi-watch-action { font-size: 12px; color: var(--blue); margin-top: 2px; font-style: italic; }
+    .csi-mover-row { display: flex; align-items: flex-start; gap: 7px;
+      padding: 7px 12px; border-bottom: 1px solid var(--border-light); }
+    .csi-mover-row:last-child { border-bottom: none; }
+    .csi-urgency { display: inline-block; padding: 1px 5px; font-family: var(--mono);
+      font-size: 9px; font-weight: 700; border-radius: 2px; letter-spacing: .04em;
+      text-transform: uppercase; flex-shrink: 0; margin-top: 1px; }
+    .csi-urgency.high { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+    .csi-urgency.medium { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+    .csi-urgency.low { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+    .csi-mover-state { font-family: var(--mono); font-size: 11px; font-weight: 700;
+      color: var(--text-primary); min-width: 24px; flex-shrink: 0; }
+    .csi-mover-text { font-size: 13px; color: var(--text-secondary); line-height: 1.4; flex: 1; }
+    .csi-campaign-card { background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; }
+    .csi-campaign-header { display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+      cursor: pointer; background: var(--blue-bg); border-bottom: 1px solid var(--border-light);
+      transition: background 0.12s; }
+    .csi-campaign-header:hover { background: #dce8fb; }
+    .csi-campaign-chips { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; }
+    .csi-chip { padding: 2px 6px; background: var(--blue-bg); color: var(--blue);
+      font-family: var(--mono); font-size: 10px; font-weight: 700;
+      border: 1px solid rgba(21,101,192,0.2); border-radius: 3px; }
+    .csi-campaign-body-text { padding: 10px 12px; font-size: 13px; color: var(--text-secondary);
+      line-height: 1.55; }
+    .csi-campaign-relevance { padding: 8px 12px; font-size: 13px; color: var(--text-secondary);
+      background: var(--amber-bg); border-top: 1px solid var(--amber-border); line-height: 1.5; }
+    .csi-footer { display: flex; align-items: center; justify-content: space-between;
+      margin-top: 8px; font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
+    .csi-footer a { color: var(--blue); }
+    @media (max-width: 700px) { .csi-two-col { grid-template-columns: 1fr; } }
+
+    /* ── Impact badge ───────────────────────────────────────────── */
+    .badge-impact { font-size: 9px; font-weight: 700; font-family: var(--mono);
+      letter-spacing: .03em; border-radius: 2px; padding: 1px 4px; }
+    .badge-impact.hi { background: var(--red-bg); color: var(--red); }
+    .badge-impact.mid { background: var(--amber-bg); color: var(--amber); }
+    .badge-impact.lo { background: var(--green-bg); color: var(--green); }
+
+    /* ── Deadline clickable ──────────────────────────────────────── */
+    .dl-item-clickable { cursor: pointer; transition: background .12s; }
+    .dl-item-clickable:hover { background: var(--surface-sunken, #EBEDF0); }
+    .dl-click-hint { font-size: 11px; color: var(--blue); font-family: var(--mono);
+      margin-top: 3px; font-weight: 600; opacity: 0; transition: opacity .15s; }
+    .dl-item-clickable:hover .dl-click-hint { opacity: 1; }
+
+    /* ── Bill row clickable ──────────────────────────────────────── */
+    .bill-row-clickable { cursor: pointer; transition: background .12s; }
+    .bill-row-clickable:hover { background: var(--surface-sunken, #EBEDF0); }
+
+    /* ── Bill Detail Modal ───────────────────────────────────────── */
+    .bd-overlay {
+      display: none; position: fixed; inset: 0; z-index: 2100;
+      background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
+      align-items: flex-start; justify-content: center;
+      padding: 32px 16px; overflow-y: auto;
+    }
+    .bd-overlay.open { display: flex; }
+    .bd-modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; box-shadow: 0 24px 80px rgba(0,0,0,.35);
+      width: min(820px, 96vw); max-height: none;
+      display: flex; flex-direction: column;
+    }
+    .bd-header {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 14px 18px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .bd-header-left { display: flex; align-items: center; gap: 8px; flex: 1; flex-wrap: wrap; }
+    .bd-bill-label { font-size: 14px; font-weight: 700; font-family: var(--mono);
+      color: var(--text-primary); letter-spacing: -.01em; }
+    .bd-topic-badge { font-size: 11px; font-weight: 700; font-family: var(--mono);
+      letter-spacing: .05em; padding: 2px 6px; border-radius: 3px;
+      background: var(--surface-sunken, #EBEDF0); color: var(--text-secondary); }
+    .bd-severity-badge { font-size: 11px; font-weight: 700; font-family: var(--mono);
+      letter-spacing: .05em; padding: 2px 6px; border-radius: 3px; }
+    .bd-close-btn {
+      background: none; border: 1px solid var(--border); border-radius: 4px;
+      padding: 4px 12px; font-size: 12px; font-weight: 600; font-family: var(--mono);
+      color: var(--text-secondary); cursor: pointer; letter-spacing: .04em;
+      transition: border-color .15s, color .15s;
+    }
+    .bd-close-btn:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+    .bd-body { padding: 0; overflow-y: visible; }
+    .bd-section { padding: 14px 18px; border-bottom: 1px solid var(--border-light); }
+    .bd-section:last-child { border-bottom: none; }
+    .bd-section-title { font-size: 10px; font-weight: 700; font-family: var(--mono);
+      letter-spacing: .08em; color: var(--text-tertiary, #7A8194);
+      text-transform: uppercase; margin-bottom: 6px; }
+    .bd-section-body { font-size: 13px; color: var(--text-primary); line-height: 1.55; }
+    .bd-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+    .bd-two-col .bd-section { border-right: 1px solid var(--border-light); }
+    .bd-two-col .bd-section:last-child { border-right: none; }
+    .bd-action-list { margin: 0; padding: 0 0 0 16px;
+      font-size: 13px; color: var(--text-primary); line-height: 1.6; }
+    .bd-action-list li { margin-bottom: 4px; }
+    .bd-follow-up-item { display: flex; align-items: flex-start; gap: 10px;
+      padding: 6px 0; border-bottom: 1px solid var(--border-light); }
+    .bd-follow-up-item:last-child { border-bottom: none; }
+    .bd-fu-date { min-width: 80px; font-size: 12px; font-family: var(--mono);
+      font-weight: 700; color: var(--text-secondary); }
+    .bd-fu-conf { font-size: 10px; font-family: var(--mono); font-weight: 600;
+      padding: 1px 4px; border-radius: 2px; white-space: nowrap; flex-shrink: 0; }
+    .bd-fu-conf.known { background:#d1fae5;color:#065f46; }
+    .bd-fu-conf.probable { background:#fef3c7;color:#92400e; }
+    .bd-fu-conf.possible { background:#f1f5f9;color:#64748b; }
+    .bd-ics-btn { display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 8px; padding: 6px 14px;
+      background: var(--topic-color); color: #fff;
+      border: none; border-radius: 5px; font-size: 12px;
+      font-weight: 700; font-family: var(--mono); cursor: pointer;
+      text-decoration: none; letter-spacing: .03em; }
+    .bd-ics-btn:hover { opacity: .9; }
+    .bd-pending { padding: 32px 18px; text-align: center;
+      color: var(--text-secondary); font-size: 13px; }
+    .bd-pending-title { font-size: 14px; font-weight: 700; color: var(--text-primary);
+      margin-bottom: 8px; font-family: var(--mono); }
+    .bd-source-link { font-size: 12px; font-family: var(--mono); color: var(--blue);
+      text-decoration: none; padding: 4px 0; }
+    .bd-source-link:hover { text-decoration: underline; }
+    @media (max-width: 600px) {
+      .bd-two-col { grid-template-columns: 1fr; }
+      .bd-two-col .bd-section { border-right: none; }
+    }
+
+    /* ── Deadline Detail Modal ───────────────────────────────────── */
+    .dd-overlay {
+      display: none; position: fixed; inset: 0; z-index: 2200;
+      background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
+      align-items: flex-start; justify-content: center;
+      padding: 32px 16px; overflow-y: auto;
+    }
+    .dd-overlay.open { display: flex; }
+    .dd-modal { background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; box-shadow: 0 24px 80px rgba(0,0,0,.35);
+      width: min(860px, 96vw); display: flex; flex-direction: column; }
+    .dd-header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 14px 18px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .dd-header-left { display: flex; align-items: center; gap: 8px; flex: 1; flex-wrap: wrap; }
+    .dd-title-label { font-size: 14px; font-weight: 700; color: var(--text-primary);
+      line-height: 1.3; flex: 1; }
+    .dd-countdown { font-size: 13px; font-family: var(--mono); font-weight: 700;
+      padding: 3px 8px; border-radius: 4px; white-space: nowrap; }
+    .dd-body { padding: 0; overflow-y: visible; }
+    .dd-prep-row { display: flex; gap: 0; overflow: hidden;
+      border-bottom: 1px solid var(--border-light); }
+    .dd-prep-step { flex: 1; padding: 10px 14px; border-right: 1px solid var(--border-light);
+      font-size: 12px; }
+    .dd-prep-step:last-child { border-right: none; }
+    .dd-prep-label { font-size: 10px; font-weight: 700; font-family: var(--mono);
+      letter-spacing: .07em; color: var(--text-tertiary, #7A8194);
+      text-transform: uppercase; margin-bottom: 4px; }
+    .dd-prep-past { opacity: .45; }
+    @media (max-width: 600px) {
+      .dd-prep-row { flex-direction: column; }
+      .dd-prep-step { border-right: none; border-bottom: 1px solid var(--border-light); }
+    }
+
+    /* Two-column grid for panels */
+    .panel-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .panel-grid-2 .panel { margin-bottom: 0; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .article-sidebar {
+        position: static;
+        width: 100%;
+        height: 500px;
+        border-left: none;
+        border-top: 1px solid var(--border);
+      }
+      .main { margin-right: 0; }
+      .layout { flex-direction: column; }
+      .panel-grid-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <a class="topbar-back" href="preview_dashboard.html">&#8592; Dashboard</a>
+  <div class="topbar-sep"></div>
+  <span class="topbar-topic">ConflictMinerals</span>
+  <span class="topbar-label">Conflict Minerals (SEC/Dodd-Frank)</span>
+  <span class="topbar-date">25 Mar 2026</span>
+</div>
+
+<!-- ═══ BILL DETAIL MODAL ═══ -->
+<div class="bd-overlay" id="bd-overlay" onclick="closeBillDetail(event)">
+  <div class="bd-modal" onclick="event.stopPropagation()">
+    <div class="bd-header">
+      <div class="bd-header-left">
+        <span class="bd-bill-label" id="bd-bill-label">—</span>
+        <span class="bd-topic-badge" id="bd-topic-badge"></span>
+        <span class="bd-severity-badge" id="bd-severity-badge"></span>
+      </div>
+      <button class="bd-close-btn" onclick="closeBillDetail()">Close</button>
+    </div>
+    <div class="bd-body" id="bd-body"><!-- rendered by JS --></div>
+  </div>
+</div>
+
+<!-- ═══ DEADLINE DETAIL MODAL ═══ -->
+<div class="dd-overlay" id="dd-overlay" onclick="closeDeadlineDetail(event)">
+  <div class="dd-modal" onclick="event.stopPropagation()">
+    <div class="dd-header">
+      <div class="dd-header-left">
+        <span class="bd-topic-badge" id="dd-topic-badge"></span>
+        <span class="bd-severity-badge" id="dd-severity-badge"></span>
+        <span class="dd-title-label" id="dd-title-label">—</span>
+      </div>
+      <span class="dd-countdown" id="dd-countdown"></span>
+      <button class="bd-close-btn" onclick="closeDeadlineDetail()">Close</button>
+    </div>
+    <div class="dd-body" id="dd-body"><!-- rendered by JS --></div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- ── MAIN CONTENT ──────────────────────────────────────────── -->
+  <main class="main">
+
+    <!-- KPI Row --><div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-value">14</div>
+        <div class="kpi-label">Articles / 6 mo</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">0</div>
+        <div class="kpi-label">New This Week</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">9</div>
+        <div class="kpi-label">Active Bills</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">2</div>
+        <div class="kpi-label">Deadlines</div>
+      </div>
+    </div>
+
+    <!-- Resource Strip -->
+
+    <!-- AI Intelligence Summary -->
+    
+    <div class="section-header">
+      <div class="section-dot"></div>
+      <span class="section-title">AI Intelligence</span>
+      <div class="section-title-line"></div>
+    </div>
+
+    
+    <div class="breaking-alert">
+      <div class="breaking-alert-label">&#9679; Breaking</div>
+      OSI Systems filed its Form SD Conflict Minerals Report on March 23, 2026 — notable because OSI makes security inspection and optoelectronics products with dense 3TG content, making their RCOI methodology a useful industry reference. No urgent regulatory breaking news this week; the filing season is the active story.
+    </div>
+    
+
+    <div class="panel-grid-2">
+      
+      <div class="panel">
+        <div class="panel-title"><div class="panel-title-dot"></div>6-Month Trend</div>
+        <div class="insight-block">The 6-month regulatory signal for SEC Dodd-Frank conflict minerals is essentially flat in terms of new rulemaking — no SEC amendments, no new guidance, and no enforcement actions appear in the feed. The dominant activity is routine annual Form SD filing season, with issuers submitting their 2025 calendar-year conflict minerals reports on schedule. The absence of new SEC guidance or enforcement action reflects the ongoing political uncertainty around SEC priorities under the current administration, but the underlying filing obligation for public companies remains intact.</div>
+      </div>
+      
+      
+      <div class="panel">
+        <div class="panel-title"><div class="panel-title-dot"></div>Last 30 Days</div>
+        <div class="insight-block">No compliance-relevant regulatory developments were captured in the last 30 days for conflict minerals specifically. The only actionable signals are the two Form SD filings from OSI Systems (OSIS) and Alpha &amp; Omega Semiconductor (AOSL) on SEC EDGAR, confirming that annual reporting season is actively underway for calendar-year 2025 data. These filings serve as a useful benchmark — if the company is a public issuer or responds to customer CMRT requests, the clock is running.</div>
+      </div>
+      
+    </div>
+
+    
+    <div class="panel">
+      <div class="panel-title"><div class="panel-title-dot"></div>Strategic Priorities</div>
+      <ul class="insight-bullets">
+        
+        <li>Immediately confirm Form SD filing status: if publicly traded, verify that RCOI is complete, smelter/refiner list is reconciled against the RMAP-compliant smelter list, and legal counsel has reviewed the Form SD narrative — deadline is May 31, 2026.</li>
+        
+        <li>Accelerate CMRT collection from electronics and automation component suppliers — prioritize any suppliers of control boards, sensors, and motor assemblies who have not returned a completed CMRT for 2025 reporting year, and escalate non-responders to procurement now.</li>
+        
+        <li>Begin tracking EU CSDDD implementation timeline and assess whether the company&#39;s EU sales volume triggers mandatory human rights and environmental due diligence obligations — if yes, gap-assess current conflict minerals program against CSDDD&#39;s broader supply chain due diligence standard and identify where they diverge.</li>
+        
+      </ul>
+      
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-light);"><span class="insight-badge med">MEDIUM IMPACT</span>
+        <span class="insight-badge insight-badge-neutral">14 articles / 6mo</span>
+      </div>
+      
+    </div>
+    
+    
+
+    <!-- Article Volume Trend -->
+    <div class="section-header">
+      <div class="section-dot"></div>
+      <span class="section-title">30-Day Article Volume</span>
+      <div class="section-title-line"></div>
+    </div>
+    <div class="panel">
+      <div class="trend-chart-wrap">
+        <svg width="100%" height="68" viewBox="0 0 520 68"
+             preserveAspectRatio="none" style="overflow:visible;display:block;">
+          <defs>
+            <linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#1A7A87" stop-opacity="0.2"/>
+              <stop offset="100%" stop-color="#1A7A87" stop-opacity="0.02"/>
+            </linearGradient>
+          </defs><polygon points="0.0,64 0.0,0.0 17.9,0.0 17.9,30.0 35.9,30.0 35.9,30.0 53.8,30.0 53.8,30.0 71.7,30.0 71.7,60.0 89.7,60.0 89.7,60.0 107.6,60.0 107.6,60.0 125.5,60.0 125.5,60.0 143.4,60.0 143.4,60.0 161.4,60.0 161.4,60.0 179.3,60.0 179.3,60.0 197.2,60.0 197.2,60.0 215.2,60.0 215.2,60.0 233.1,60.0 233.1,60.0 251.0,60.0 251.0,60.0 269.0,60.0 269.0,60.0 286.9,60.0 286.9,60.0 304.8,60.0 304.8,60.0 322.8,60.0 322.8,60.0 340.7,60.0 340.7,60.0 358.6,60.0 358.6,60.0 376.6,60.0 376.6,60.0 394.5,60.0 394.5,60.0 412.4,60.0 412.4,30.0 430.3,30.0 430.3,60.0 448.3,60.0 448.3,60.0 466.2,60.0 466.2,60.0 484.1,60.0 484.1,0.0 502.1,0.0 502.1,30.0 520.0,30.0 520.0,60.0 520.0,64" fill="url(#chart-fill)"/>
+          <polyline points="0.0,0.0 17.9,0.0 17.9,30.0 35.9,30.0 35.9,30.0 53.8,30.0 53.8,30.0 71.7,30.0 71.7,60.0 89.7,60.0 89.7,60.0 107.6,60.0 107.6,60.0 125.5,60.0 125.5,60.0 143.4,60.0 143.4,60.0 161.4,60.0 161.4,60.0 179.3,60.0 179.3,60.0 197.2,60.0 197.2,60.0 215.2,60.0 215.2,60.0 233.1,60.0 233.1,60.0 251.0,60.0 251.0,60.0 269.0,60.0 269.0,60.0 286.9,60.0 286.9,60.0 304.8,60.0 304.8,60.0 322.8,60.0 322.8,60.0 340.7,60.0 340.7,60.0 358.6,60.0 358.6,60.0 376.6,60.0 376.6,60.0 394.5,60.0 394.5,60.0 412.4,60.0 412.4,30.0 430.3,30.0 430.3,60.0 448.3,60.0 448.3,60.0 466.2,60.0 466.2,60.0 484.1,60.0 484.1,0.0 502.1,0.0 502.1,30.0 520.0,30.0 520.0,60.0 " fill="none" stroke="#1A7A87" stroke-width="2" stroke-linejoin="round"/>
+        </svg>
+        <div class="trend-chart-axis">
+          <span>30 days ago</span>
+          <span style="font-weight:700;color:var(--text-primary);">9 articles in 30 days</span>
+          <span>Today</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- This Week Summary -->
+    
+
+    <!-- Company Impact -->
+    
+    
+    <div class="section-header">
+      <div class="section-dot"></div>
+      <span class="section-title">Company Impact</span>
+      <div class="section-title-line"></div>
+    </div>
+    <div class="panel">
+      <div class="impact-grid">
+        
+        <span class="impact-label">Products</span>
+        <span class="impact-text">If the company is a public SEC reporting issuer, Form SD for calendar year 2025 is due May 31, 2026, requiring documented RCOI covering tin in solder and hardware coatings, tantalum in automation capacitors, tungsten in wear coatings and tooling, and gold in electronics contacts.</span>
+        
+        
+        <span class="impact-label">Supply Chain</span>
+        <span class="impact-text">Electronics and automation components — sensors, motor control boards, PLCs, and power semiconductors — represent the highest 3TG exposure in the purchased component supply chain, with tantalum and gold present in virtually every active electronic assembly sourced from distributors.</span>
+        
+        
+        <span class="impact-label">Actions</span>
+        <ul class="impact-list"><li>Complete internal 3TG scoping for calendar year 2025 products this week — confirm whether tin, tantalum, tungsten, or gold are &#39;necessary to the functionality or production&#39; of manufactured components and document the determination to support Form SD filing or customer CMRT response by May 31, 2026.</li><li>Review OSI Systems&#39; and Alpha &amp; Omega Semiconductor&#39;s publicly filed Form SDs and CMRTs to benchmark smelter lists and RCOI methodology for comparability with the company&#39;s own conflict minerals program.</li></ul>
+        
+        
+        <span class="impact-label">Supplier</span>
+        <ul class="impact-list"><li>Issue CMRT 6.0 requests immediately to all electronics, automation component, and hardware suppliers — set a response deadline of April 30, 2026 to allow consolidation and gap follow-up before the May 31 Form SD filing window.</li><li>Add conflict minerals CMRT collection to the existing Assent supplier outreach campaign so that 3TG data collection runs concurrently with PFAS declarations, reducing supplier fatigue and maximizing response rates from shared distributor contacts.</li></ul>
+        
+      </div>
+    </div>
+    
+
+    <!-- Strategy Note -->
+    
+    
+    <div class="section-header">
+      <div class="section-dot"></div>
+      <span class="section-title">Strategy Note</span>
+      <div class="section-title-line"></div>
+    </div>
+    <div class="panel">
+      <div class="strategy-text">With the Form SD filing deadline of May 31, 2026 now under 70 days away, the compliance team must treat CMRT collection from electronics and automation component suppliers as an active deadline, not a background task — issue formal CMRT requests this week with a hard April 30 response cutoff. Leverage the existing Assent platform and supplier email campaign infrastructure already running for PFAS to bundle conflict minerals CMRT requests, avoiding duplicate outreach efforts and maximizing supplier response rates. Simultaneously, finalize the internal product scoping determination for calendar year 2025 to confirm Form SD filing obligation and document the reasonable country of origin inquiry (RCOI) methodology before external smelter data consolidation begins.</div>
+    </div>
+    
+
+    <!-- Upcoming Deadlines -->
+    
+    <div class="section-header">
+      <div class="section-dot"></div>
+      <span class="section-title">Upcoming Deadlines</span>
+      <div class="section-title-line"></div>
+    </div>
+    <div class="panel">
+      <div class="dl-list">
+        <div class="dl-item dl-item-clickable"
+             data-deadline-id="483" onclick="openDeadlineDetailFromEl(this)">
+          <div class="dl-days soon">
+            
+              67d
+            
+          </div>
+          <div class="dl-pipe" style="background:var(--amber);"></div>
+          <div class="dl-body">
+            <div class="dl-title">SEC Form SD Conflict Minerals Annual Filing</div>
+            <div class="dl-meta">
+              Federal
+               · 2026-05-31
+               · <span style="font-weight:600;">HIGH</span>
+            </div>
+            <div class="dl-click-hint">Click for AI analysis →</div>
+          </div>
+        </div>
+        <div class="dl-item dl-item-clickable"
+             data-deadline-id="494" onclick="openDeadlineDetailFromEl(this)">
+          <div class="dl-days soon">
+            
+              67d
+            
+          </div>
+          <div class="dl-pipe" style="background:var(--amber);"></div>
+          <div class="dl-body">
+            <div class="dl-title">Form SD Conflict Minerals Filing Deadline</div>
+            <div class="dl-meta">
+              Federal
+               · 2026-05-31
+               · <span style="font-weight:600;">HIGH</span>
+            </div>
+            <div class="dl-click-hint">Click for AI analysis →</div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+    
+
+    <!-- Legislative Activity -->
+    
+    <div class="section-header">
+      <div class="section-dot"></div>
+      <span class="section-title">Legislative Activity</span>
+      <span style="font-size:11px;font-family:var(--mono);color:var(--text-muted);margin-left:4px;">(9 active bills)</span>
+      <div class="section-title-line"></div>
+    </div>
+    <div class="panel">
+      <div class="bill-grid">
+        
+        <div class="bill-row bill-row-clickable"
+             data-state="US"
+             data-bill="HB7085"
+             onclick="openBillDetailFromEl(this)"
+             title="Click for AI analysis">
+          <div class="bill-id">US HB7085</div>
+          <div class="bill-body">
+            <div class="bill-title-text">To amend the Securities Exchange Act of 1934 to repeal certain disclosure requirements related to c…</div>
+            
+            <div class="bill-action-text">Placed on the Union Calendar, Calendar No. 481. · 2026-03-19</div>
+            
+          </div>
+          
+          <div class="bill-stage-tag committee">committee</div>
+          
+        </div>
+        
+        <div class="bill-row bill-row-clickable"
+             data-state="IL"
+             data-bill="SB2157"
+             onclick="openBillDetailFromEl(this)"
+             title="Click for AI analysis">
+          <div class="bill-id">IL SB2157</div>
+          <div class="bill-body">
+            <div class="bill-title-text">DEFORESTATION FREE IL ACT</div>
+            
+            <div class="bill-action-text">Rule 2-10 Committee Deadline Established As March 27, 2026 · 2026-03-13</div>
+            
+          </div>
+          
+          <div class="bill-stage-tag committee">committee</div>
+          
+        </div>
+        
+        <div class="bill-row bill-row-clickable"
+             data-state="US"
+             data-bill="SB3496"
+             onclick="openBillDetailFromEl(this)"
+             title="Click for AI analysis">
+          <div class="bill-id">US SB3496</div>
+          <div class="bill-body">
+            <div class="bill-title-text">United States Legal Gold and Mining Partnership Act</div>
+            
+            <div class="bill-action-text">Placed on Senate Legislative Calendar under General Orders. Calendar No. 329. · 2026-02-10</div>
+            
+          </div>
+          
+          <div class="bill-stage-tag committee">committee</div>
+          
+        </div>
+        
+        <div class="bill-row bill-row-clickable"
+             data-state="NY"
+             data-bill="A04631"
+             onclick="openBillDetailFromEl(this)"
+             title="Click for AI analysis">
+          <div class="bill-id">NY A04631</div>
+          <div class="bill-body">
+            <div class="bill-title-text">Requires fashion sellers to carry out environmental due diligence for the portions of their busines…</div>
+            
+            <div class="bill-action-text">referred to consumer affairs and protection · 2026-01-07</div>
+            
+          </div>
+          
+          <div class="bill-stage-tag committee">committee</div>
+          
+        </div>
+        
+        <div class="bill-row bill-row-clickable"
+             data-state="NY"
+             data-bill="S07203"
+             onclick="openBillDetailFromEl(this)"
+             title="Click for AI analysis">
+          <div class="bill-id">NY S07203</div>
+          <div class="bill-body">
+            <div class="bill-title-text">Enacts the tropical rainforest economic &amp; environmental sustainability act requiring that companies…</div>
+            
+            <div class="bill-action-text">REFERRED TO PROCUREMENT AND CONTRACTS · 2026-01-07</div>
+            
+          </div>
+          
+          <div class="bill-stage-tag passed_one">passed_one</div>
+          
+        </div>
+        
+        <div class="bill-row bill-row-clickable"
+             data-state="NY"
+             data-bill="A08673"
+             onclick="openBillDetailFromEl(this)"
+             title="Click for AI analysis">
+          <div class="bill-id">NY A08673</div>
+          <div class="bill-body">
+            <div class="bill-title-text">Enacts the tropical rainforest economic &amp; environmental sustainability act requiring that companies…</div>
+            
+            <div class="bill-action-text">referred to governmental operations · 2026-01-07</div>
+            
+          </div>
+          
+          <div class="bill-stage-tag committee">committee</div>
+          
+        </div>
+        
+        <div class="bill-row bill-row-clickable"
+             data-state="US"
+             data-bill="SB799"
+             onclick="openBillDetailFromEl(this)"
+             title="Click for AI analysis">
+          <div class="bill-id">US SB799</div>
+          <div class="bill-body">
+            <div class="bill-title-text">United States Legal Gold and Mining Partnership Act</div>
+            
+            <div class="bill-action-text">Committee on Foreign Relations. Ordered to be reported with an amendment in the… · 2025-10-22</div>
+            
+          </div>
+          
+          <div class="bill-stage-tag committee">committee</div>
+          
+        </div>
+        
+        <div class="bill-row bill-row-clickable"
+             data-state="IL"
+             data-bill="HB3197"
+             onclick="openBillDetailFromEl(this)"
+             title="Click for AI analysis">
+          <div class="bill-id">IL HB3197</div>
+          <div class="bill-body">
+            <div class="bill-title-text">DEFORESTATION FREE IL ACT</div>
+            
+            <div class="bill-action-text">Rule 19(a) / Re-referred to Rules Committee · 2025-04-11</div>
+            
+          </div>
+          
+          <div class="bill-stage-tag committee">committee</div>
+          
+        </div>
+        
+        <div class="bill-row bill-row-clickable"
+             data-state="NY"
+             data-bill="S04558"
+             onclick="openBillDetailFromEl(this)"
+             title="Click for AI analysis">
+          <div class="bill-id">NY S04558</div>
+          <div class="bill-body">
+            <div class="bill-title-text">Requires fashion sellers to carry out environmental due diligence for the portions of their busines…</div>
+            
+            <div class="bill-action-text">PRINT NUMBER 4558B · 2025-04-07</div>
+            
+          </div>
+          
+          <div class="bill-stage-tag committee">committee</div>
+          
+        </div>
+        
+      </div>
+    </div>
+    
+
+    <!-- Cross-State Intelligence -->
+    <div class="section-header">
+      <div class="section-dot"></div>
+      <span class="section-title">Cross-State Intelligence</span>
+      <div class="section-title-line"></div>
+    </div>
+
+    
+    <div class="csi-summary-card">
+      <p class="csi-summary-text">The ConflictMinerals legislative landscape as of March 2026 shows a coordinated, early-stage campaign across NY (4 bills, 1 passed one chamber), IL (2 bills in committee), and the US federal level (3 bills in committee), with 9 total bills tracked and the campaign&#39;s leading edge in New York. The simultaneous introduction of deforestation-focused supply chain transparency bills across all three jurisdictions within a 10-week window is consistent with a model legislation strategy, with NY serving as the flagship state. A windows and doors manufacturer faces material near-term risk in NY — where enactment is plausible within 2026 — and medium-term federal exposure via the SEC Act amendment, warranting immediate engagement at the NY committee level and proactive supply chain documentation of tropical hardwood sourcing.</p>
+    </div>
+    
+    <div class="csi-two-col">
+      
+      <div class="csi-panel">
+        <div class="csi-panel-title">Watch List</div>
+        
+        <div class="csi-watch-item">
+          <span class="csi-state-chip">NY</span>
+          <div>
+            <div class="csi-watch-text">NY has 4 bills tracked — the largest portfolio of any state — with 1 already past one chamber (Tropical Rainforest Economic &amp; Environmental Sustainability Act). This is the furthest-advanced bill in the entire dataset and represents the highest near-term enactment probability. NY legislation in this space historically becomes the template other states adopt verbatim.</div>
+            
+            <div class="csi-watch-action">&#8594; Immediately engage NY legislative counsel to review bill text for hardwood sourcing disclosure requirements that would affect window and door product lines. Submit written testimony or coordinate with industry association (e.g., Window &amp; Door Manufacturers Association) for committee appearances on the 3 remaining committee-stage bills. Flag NY legal team to assess compliance cost if enacted.</div>
+            
+          </div>
+        </div>
+        
+        <div class="csi-watch-item">
+          <span class="csi-state-chip">US</span>
+          <div>
+            <div class="csi-watch-text">Three federal bills are in committee, including a direct amendment to the Securities Exchange Act of 1934 introduced 2026-03-19. Federal action would preempt or supplement state laws and impose SEC-level reporting obligations on publicly traded manufacturers, dramatically raising compliance stakes and disclosure costs.</div>
+            
+            <div class="csi-watch-action">&#8594; Engage federal government affairs counsel or lobbyist to monitor the SEC amendment bill&#39;s committee assignment and hearing schedule. Coordinate with the American Chemistry Council, Window &amp; Door Manufacturers Association, or National Association of Manufacturers on a unified industry comment. Assess whether current supplier contracts include deforestation certification clauses that would satisfy potential disclosure requirements.</div>
+            
+          </div>
+        </div>
+        
+        <div class="csi-watch-item">
+          <span class="csi-state-chip">IL</span>
+          <div>
+            <div class="csi-watch-text">IL&#39;s Deforestation Free IL Act entered committee just 10 days ago (2026-03-13), making it the most recently activated jurisdiction. Illinois is a major manufacturing state, and a deforestation-free procurement law could affect state contract eligibility for windows and doors sold to IL public buildings and institutions.</div>
+            
+            <div class="csi-watch-action">&#8594; Monitor IL committee assignment and hearing dates. Identify IL-based manufacturing advocacy partners. Assess revenue exposure from IL public sector contracts that could be jeopardized by non-compliance with deforestation-free sourcing requirements.</div>
+            
+          </div>
+        </div>
+        
+      </div>
+      
+      
+      <div class="csi-panel">
+        <div class="csi-panel-title">Next-Mover Predictions</div>
+        
+        <div class="csi-mover-row">
+          <span class="csi-urgency high">HIGH</span>
+          <span class="csi-mover-state">CA</span>
+          <span class="csi-mover-text">California has a well-established pattern of adopting supply chain transparency legislation ahead of other states (e.g., CA Transparency in Supply Chains Act, SB 657). Given that NY and IL have active bills and federal momentum is building, CA legislators are likely drafting or will introduce a deforestation-free procurement or disclosure bill in the 2026 session, potentially with stronger enforcement mechanisms than the NY or IL versions.</span>
+        </div>
+        
+        <div class="csi-mover-row">
+          <span class="csi-urgency medium">MEDIUM</span>
+          <span class="csi-mover-state">WA</span>
+          <span class="csi-mover-text">Washington State has active environmental supply chain advocacy infrastructure and has previously mirrored NY environmental legislation. With IL now in committee and NY already past one chamber, WA is a high-probability next mover, particularly given its forestry industry context creating both opposition and advocacy pressure.</span>
+        </div>
+        
+        <div class="csi-mover-row">
+          <span class="csi-urgency medium">MEDIUM</span>
+          <span class="csi-mover-state">MA</span>
+          <span class="csi-mover-text">Massachusetts has a history of following NY on environmental disclosure bills and has active climate-focused legislative caucuses. The absence of a current MA bill is notable and likely temporary given the regional pattern.</span>
+        </div>
+        
+      </div>
+      
+    </div>
+    
+    <div style="margin-bottom:14px;">
+      
+      <div class="csi-campaign-card">
+        <div class="csi-campaign-header">
+          <div class="csi-campaign-chips">
+            <span class="csi-chip">NY</span><span class="csi-chip">IL</span><span class="csi-chip">US</span>
+          </div>
+          <span style="font-size:10px;color:var(--text-muted);font-family:var(--mono);">&#9660;</span>
+        </div>
+        <div class="csi-campaign-body-text">Parallel deforestation/supply chain transparency bills introduced in NY, IL, and at the federal level (US) within a compressed timeframe, suggesting coordinated model legislation rollout</div>
+        
+        <div class="csi-campaign-relevance">Windows and doors manufacturers sourcing tropical hardwoods (teak, mahogany, sapele) for premium product lines face dual exposure: state-level procurement bans or disclosure mandates and potential federal securities disclosure requirements. NY already has the most advanced bill; if federal legislation passes, it could impose SEC-style reporting on publicly traded manufacturers regarding deforestation in their supply chains.</div>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="csi-footer">
+      <span>Updated 2026-03-23 &middot; Weekly analysis</span>
+      <a href="cross_state_report.html" target="_blank">Full cross-state report &#8594;</a>
+    </div>
+    
+
+  </main>
+
+  <!-- ── RIGHT ARTICLE SIDEBAR ─────────────────────────────────── -->
+  <aside class="article-sidebar" id="article-sidebar">
+    <div class="sidebar-resize-handle" id="resize-handle" title="Drag to resize"></div>
+    <div class="article-sidebar-head">
+      <div class="article-sidebar-title">Article Archive</div>
+      <div class="filter-row">
+        <input class="filter-search" id="tp-search" type="text" placeholder="Search…" oninput="filterArticles()">
+        <select class="filter-select" id="tp-period" onchange="filterArticles()">
+          <option value="">All time</option>
+          <option value="7">7 days</option>
+          <option value="30">30 days</option>
+          <option value="90">90 days</option>
+        </select>
+      </div>
+      <div class="filter-count" id="tp-count">14 articles</div>
+    </div>
+
+    <div class="article-list-scroll" id="tp-article-list">
+      <div class="no-results" id="tp-no-results">No articles match your filters.</div>
+      
+      <div class="month-divider" data-month-divider>2026-03</div><div class="article-item"
+           data-headline="direct sale of public land for affordable housing purposes in the city of henderson, nevada"
+           data-snippet="the bureau of land management (blm) proposes to sell an 18.59- acre parcel of public land located in the west portion of henderson, nevada, under the authority of section 203 of the federal land policy and management act of 1976, as amended (flpma); applicable blm land sale regulations; and the southern nevada public land management act of 1998, as amended (snplma). the blm intends to conduct a direct sale of the parcel to the city of henderson, a political subdivision of the state of nevada, at"
+           data-urgency="low"
+           data-date="2026-03-24">
+        <div class="article-head">
+          
+          <span class="article-headline">
+            <a href="https://www.federalregister.gov/documents/2026/03/24/2026-05669/direct-sale-of-public-land-for-affordable-housing-purposes-in-the-city-of-henderson-nevada" target="_blank">Direct Sale of Public Land for Affordable Housing Purposes in the City of Henderson, Nevada</a>
+          </span>
+          <span class="badge badge-low">LOW</span>
+          
+        </div>
+        <div class="article-meta">
+          <span>Federal Register</span>
+          
+          <span>·</span>
+          <span>2026-03-24</span>
+          
+        </div>
+        
+        <div class="article-snippet">The Bureau of Land Management (BLM) proposes to sell an 18.59- acre parcel of public land located in the west portion of Henderson, Nevada, under the authority of section 203 of the Federal Land Policy and Management Act of 1976, as amended (FLPMA); applicable BLM land sale regulations; and the Southern Nevada Public Land Management Act of 1998, as amended (SNPLMA). The BLM intends to conduct a direct sale of the parcel to the City of Henderson, a political subdivision of the State of Nevada, at</div>
+        
+      </div>
+      <div class="article-item"
+           data-headline="deep seabed mining: notice of receipt of applications for deep seabed mining exploration licenses and announcement of public comment period and virtual public hearings"
+           data-snippet="noaa has received two applications for licenses to conduct seabed mining exploration activities that are fully compliant with the applicable information requirements of the deep seabed hard mineral resources act (dshmra or the act) and the act&#39;s implementing regulations. as part of the application review process, noaa will hold one virtual public hearing on american metal resources, llc&#39;s (amr) application and one virtual public hearing on seax, inc.&#39;s (seax) application, and will accept written"
+           data-urgency="low"
+           data-date="2026-03-23">
+        <div class="article-head">
+          
+          <span class="article-headline">
+            <a href="https://www.federalregister.gov/documents/2026/03/23/2026-05599/deep-seabed-mining-notice-of-receipt-of-applications-for-deep-seabed-mining-exploration-licenses-and" target="_blank">Deep Seabed Mining: Notice of Receipt of Applications for Deep Seabed Mining Exploration Licenses and Announcement of Public Comment Period and Virtual Public Hearings</a>
+          </span>
+          <span class="badge badge-low">LOW</span>
+          
+        </div>
+        <div class="article-meta">
+          <span>Federal Register</span>
+          
+          <span>·</span>
+          <span>2026-03-23</span>
+          
+        </div>
+        
+        <div class="article-snippet">NOAA has received two applications for licenses to conduct seabed mining exploration activities that are fully compliant with the applicable information requirements of the Deep Seabed Hard Mineral Resources Act (DSHMRA or the Act) and the Act&#39;s implementing regulations. As part of the application review process, NOAA will hold one virtual public hearing on American Metal Resources, LLC&#39;s (AMR) application and one virtual public hearing on SeaX, Inc.&#39;s (SeaX) application, and will accept written</div>
+        
+      </div>
+      <div class="article-item"
+           data-headline="osi systems inc  (osis)  (cik 0001039065) — form sd conflict minerals report (2026-03)"
+           data-snippet="sec form sd annual conflict minerals disclosure under dodd-frank section 1502. company: osi systems inc  (osis)  (cik 0001039065). filed: 2026-03-23. accession: 0001104659-26-033292."
+           data-urgency="low"
+           data-date="2026-03-23">
+        <div class="article-head">
+          
+          <span class="article-headline">
+            <a href="https://www.sec.gov/Archives/edgar/data/0001039065/000110465926033292/0001104659-26-033292-index.htm" target="_blank">OSI SYSTEMS INC  (OSIS)  (CIK 0001039065) — Form SD Conflict Minerals Report (2026-03)</a>
+          </span>
+          <span class="badge badge-low">LOW</span>
+          
+        </div>
+        <div class="article-meta">
+          <span>SEC EDGAR — Form SD</span>
+          
+          <span>·</span>
+          <span>2026-03-23</span>
+          
+        </div>
+        
+        <div class="article-snippet">SEC Form SD annual conflict minerals disclosure under Dodd-Frank Section 1502. Company: OSI SYSTEMS INC  (OSIS)  (CIK 0001039065). Filed: 2026-03-23. Accession: 0001104659-26-033292.</div>
+        
+      </div>
+      <div class="article-item"
+           data-headline="land uses; special uses"
+           data-snippet="the united states department of agriculture (department), forest service (forest service or agency), is issuing this final rule to update its special uses regulations on filming and still photography to be consistent with the new requirements in the expanding public lands outdoor recreation experiences act (explore act or act). the technical revisions include adding a statutory reference to the explore act and updating terminology and definitions to be consistent with the act."
+           data-urgency="low"
+           data-date="2026-03-19">
+        <div class="article-head">
+          
+          <span class="article-headline">
+            <a href="https://www.federalregister.gov/documents/2026/03/19/2026-05457/land-uses-special-uses" target="_blank">Land Uses; Special Uses</a>
+          </span>
+          <span class="badge badge-low">LOW</span>
+          
+        </div>
+        <div class="article-meta">
+          <span>Federal Register</span>
+          
+          <span>·</span>
+          <span>2026-03-19</span>
+          
+        </div>
+        
+        <div class="article-snippet">The United States Department of Agriculture (Department), Forest Service (Forest Service or Agency), is issuing this final rule to update its special uses regulations on filming and still photography to be consistent with the new requirements in the Expanding Public Lands Outdoor Recreation Experiences Act (EXPLORE Act or Act). The technical revisions include adding a statutory reference to the EXPLORE Act and updating terminology and definitions to be consistent with the Act.</div>
+        
+      </div>
+      <div class="month-divider" data-month-divider>2026-02</div><div class="article-item"
+           data-headline="alpha &amp; omega semiconductor ltd  (aosl)  (cik 0001387467) — form sd conflict minerals report (2026-02)"
+           data-snippet="sec form sd annual conflict minerals disclosure under dodd-frank section 1502. company: alpha &amp; omega semiconductor ltd  (aosl)  (cik 0001387467). filed: 2026-02-27. accession: 0001387467-26-000015."
+           data-urgency="low"
+           data-date="2026-02-27">
+        <div class="article-head">
+          
+          <span class="article-headline">
+            <a href="https://www.sec.gov/Archives/edgar/data/0001387467/000138746726000015/0001387467-26-000015-index.htm" target="_blank">ALPHA &amp; OMEGA SEMICONDUCTOR Ltd  (AOSL)  (CIK 0001387467) — Form SD Conflict Minerals Report (2026-02)</a>
+          </span>
+          <span class="badge badge-low">LOW</span>
+          
+        </div>
+        <div class="article-meta">
+          <span>SEC EDGAR — Form SD</span>
+          
+          <span>·</span>
+          <span>2026-02-27</span>
+          
+        </div>
+        
+        <div class="article-snippet">SEC Form SD annual conflict minerals disclosure under Dodd-Frank Section 1502. Company: ALPHA &amp; OMEGA SEMICONDUCTOR Ltd  (AOSL)  (CIK 0001387467). Filed: 2026-02-27. Accession: 0001387467-26-000015.</div>
+        
+      </div>
+      <div class="article-item"
+           data-headline="endangered and threatened wildlife and plants; removal of geocarpon minimum from the list of endangered and threatened plants"
+           data-snippet="we, the u.s. fish and wildlife service (service), propose to remove geocarpon minimum from the federal list of endangered and threatened plants. our review indicates that the threats to geocarpon minimum have been eliminated or reduced to the point that the species no longer meets the definition of an endangered or threatened species under the endangered species act of 1973, as amended (act). accordingly, we propose to delist geocarpon minimum. this proposed rule completes the 5-year status revi"
+           data-urgency="low"
+           data-date="2026-02-26">
+        <div class="article-head">
+          
+          <span class="article-headline">
+            <a href="https://www.federalregister.gov/documents/2026/02/26/2026-03831/endangered-and-threatened-wildlife-and-plants-removal-of-geocarpon-minimum-from-the-list-of" target="_blank">Endangered and Threatened Wildlife and Plants; Removal of Geocarpon Minimum From the List of Endangered and Threatened Plants</a>
+          </span>
+          <span class="badge badge-low">LOW</span>
+          
+        </div>
+        <div class="article-meta">
+          <span>Federal Register</span>
+          
+          <span>·</span>
+          <span>2026-02-26</span>
+          
+        </div>
+        
+        <div class="article-snippet">We, the U.S. Fish and Wildlife Service (Service), propose to remove Geocarpon minimum from the Federal List of Endangered and Threatened Plants. Our review indicates that the threats to Geocarpon minimum have been eliminated or reduced to the point that the species no longer meets the definition of an endangered or threatened species under the Endangered Species Act of 1973, as amended (Act). Accordingly, we propose to delist Geocarpon minimum. This proposed rule completes the 5-year status revi</div>
+        
+      </div>
+      <div class="article-item"
+           data-headline="public land order no. 7966; partial revocation of public land order nos. 5150 and 5180, as amended, modified, or corrected; alaska"
+           data-snippet="this order partially revokes two public land orders (plos) insofar as they affect approximately 2,127,845 acres of public land reserved for use as the dalton utility corridor and for study and classification, as appropriate, by the department of the interior. revocation of the plos within the dalton utility corridor opens these lands to mineral and resource development opportunity. the bureau of land management (blm) analyzed partial revocation of these plos in the final environmental impact sta"
+           data-urgency="low"
+           data-date="2026-02-25">
+        <div class="article-head">
+          
+          <span class="article-headline">
+            <a href="https://www.federalregister.gov/documents/2026/02/25/2026-03777/public-land-order-no-7966-partial-revocation-of-public-land-order-nos-5150-and-5180-as-amended" target="_blank">Public Land Order No. 7966; Partial Revocation of Public Land Order Nos. 5150 and 5180, as Amended, Modified, or Corrected; Alaska</a>
+          </span>
+          <span class="badge badge-low">LOW</span>
+          
+        </div>
+        <div class="article-meta">
+          <span>Federal Register</span>
+          
+          <span>·</span>
+          <span>2026-02-25</span>
+          
+        </div>
+        
+        <div class="article-snippet">This order partially revokes two Public Land Orders (PLOs) insofar as they affect approximately 2,127,845 acres of public land reserved for use as the Dalton Utility Corridor and for study and classification, as appropriate, by the Department of the Interior. Revocation of the PLOs within the Dalton Utility Corridor opens these lands to mineral and resource development opportunity. The Bureau of Land Management (BLM) analyzed partial revocation of these PLOs in the Final Environmental Impact Sta</div>
+        
+      </div>
+      <div class="article-item"
+           data-headline="national environmental policy act implementing regulations"
+           data-snippet="the department of the interior (department or doi) is adopting the interim final rule (ifr) published on july 3, 2025, with minor changes, as final. in the ifr, doi provided a 30-day comment period for the public to review and make comments. this final rule addresses public comments and adopts as final the ifr, with certain substantive changes as explained herein. the ifr partially rescinded doi&#39;s regulations implementing the national environmental policy act (nepa) and made necessary targeted u"
+           data-urgency="low"
+           data-date="2026-02-24">
+        <div class="article-head">
+          
+          <span class="article-headline">
+            <a href="https://www.federalregister.gov/documents/2026/02/24/2026-03708/national-environmental-policy-act-implementing-regulations" target="_blank">National Environmental Policy Act Implementing Regulations</a>
+          </span>
+          <span class="badge badge-low">LOW</span>
+          
+        </div>
+        <div class="article-meta">
+          <span>Federal Register</span>
+          
+          <span>·</span>
+          <span>2026-02-24</span>
+          
+        </div>
+        
+        <div class="article-snippet">The Department of the Interior (Department or DOI) is adopting the interim final rule (IFR) published on July 3, 2025, with minor changes, as final. In the IFR, DOI provided a 30-day comment period for the public to review and make comments. This final rule addresses public comments and adopts as final the IFR, with certain substantive changes as explained herein. The IFR partially rescinded DOI&#39;s regulations implementing the National Environmental Policy Act (NEPA) and made necessary targeted u</div>
+        
+      </div>
+      <div class="article-item"
+           data-headline="taking and importing marine mammals; taking marine mammals incidental to geophysical surveys in the gulf of america"
+           data-snippet="nmfs has received a request for the reimplementation of incidental take regulations (itr) governing the incidental taking of marine mammals during geophysical survey activity conducted in the gulf of america (goa). pursuant to the marine mammal protection act (mmpa), nmfs is requesting comments on its proposed rule and will consider public comments relevant to this proposed rule prior to issuing any final rule."
+           data-urgency="low"
+           data-date="2026-02-24">
+        <div class="article-head">
+          
+          <span class="article-headline">
+            <a href="https://www.federalregister.gov/documents/2026/02/24/2026-03691/taking-and-importing-marine-mammals-taking-marine-mammals-incidental-to-geophysical-surveys-in-the" target="_blank">Taking and Importing Marine Mammals; Taking Marine Mammals Incidental to Geophysical Surveys in the Gulf of America</a>
+          </span>
+          <span class="badge badge-low">LOW</span>
+          
+        </div>
+        <div class="article-meta">
+          <span>Federal Register</span>
+          
+          <span>·</span>
+          <span>2026-02-24</span>
+          
+        </div>
+        
+        <div class="article-snippet">NMFS has received a request for the reimplementation of incidental take regulations (ITR) governing the incidental taking of marine mammals during geophysical survey activity conducted in the Gulf of America (GOA). Pursuant to the Marine Mammal Protection Act (MMPA), NMFS is requesting comments on its proposed rule and will consider public comments relevant to this proposed rule prior to issuing any final rule.</div>
+        
+      </div>
+      <div class="article-item"
+           data-headline="west virginia regulatory program"
+           data-snippet="we, the office of surface mining reclamation and enforcement (osmre), are publishing this final rule to amend the existing federal lands cooperative agreement between west virginia and the u.s. department of the interior (department). the surface mining control and reclamation act of 1977 (smcra or the act) and the federal regulations authorize a state with an approved permanent regulatory program to enter into an agreement for the state regulation of surface coal mining and reclamation operatio"
+           data-urgency="low"
+           data-date="2026-02-20">
+        <div class="article-head">
+          
+          <span class="article-headline">
+            <a href="https://www.federalregister.gov/documents/2026/02/20/2026-03413/west-virginia-regulatory-program" target="_blank">West Virginia Regulatory Program</a>
+          </span>
+          <span class="badge badge-low">LOW</span>
+          
+        </div>
+        <div class="article-meta">
+          <span>Federal Register</span>
+          
+          <span>·</span>
+          <span>2026-02-20</span>
+          
+        </div>
+        
+        <div class="article-snippet">We, the Office of Surface Mining Reclamation and Enforcement (OSMRE), are publishing this final rule to amend the existing Federal Lands Cooperative Agreement between West Virginia and the U.S. Department of the Interior (Department). The Surface Mining Control and Reclamation Act of 1977 (SMCRA or the Act) and the Federal regulations authorize a State with an approved permanent regulatory program to enter into an agreement for the State regulation of surface coal mining and reclamation operatio</div>
+        
+      </div>
+      <div class="article-item"
+           data-headline="locatable minerals"
+           data-snippet="the u.s. department of agriculture, forest service (agency), is proposing to revise its regulations governing occupancy and use of the surface of national forest system lands in connection with prospecting, exploration, development, mining, processing, and reclamation and reasonably incident uses authorized by u.s. mining laws and the organic administration act of 1897. regulatory revisions are needed to improve the efficiency and transparency of forest service regulation of locatable mineral op"
+           data-urgency="low"
+           data-date="2026-02-20">
+        <div class="article-head">
+          
+          <span class="article-headline">
+            <a href="https://www.federalregister.gov/documents/2026/02/20/2026-03364/locatable-minerals" target="_blank">Locatable Minerals</a>
+          </span>
+          <span class="badge badge-low">LOW</span>
+          
+        </div>
+        <div class="article-meta">
+          <span>Federal Register</span>
+          
+          <span>·</span>
+          <span>2026-02-20</span>
+          
+        </div>
+        
+        <div class="article-snippet">The U.S. Department of Agriculture, Forest Service (Agency), is proposing to revise its regulations governing occupancy and use of the surface of National Forest System lands in connection with prospecting, exploration, development, mining, processing, and reclamation and reasonably incident uses authorized by U.S. mining laws and the Organic Administration Act of 1897. Regulatory revisions are needed to improve the efficiency and transparency of Forest Service regulation of locatable mineral op</div>
+        
+      </div>
+      <div class="article-item"
+           data-headline="rescission of the “ten-day notices and corrective action for state regulatory program issues” rule, issued april 9, 2024"
+           data-snippet="the office of surface mining reclamation and enforcement (&#34;osmre&#34; or &#34;osm&#34;) is rescinding the &#34;ten-day notices and corrective action for state regulatory program issues&#34; rule adopted on april 9, 2024 (the &#34;2024 rule&#34;), and replacing it, in large part, with the rule titled, &#34;clarification of provisions related to the issuance of ten-day notices to state regulatory authorities and enhancement of corrective action for state regulatory program issues,&#34; which was first adopted on november 24, 2020 (t"
+           data-urgency="low"
+           data-date="2026-02-19">
+        <div class="article-head">
+          
+          <span class="article-headline">
+            <a href="https://www.federalregister.gov/documents/2026/02/19/2026-03301/rescission-of-the-ten-day-notices-and-corrective-action-for-state-regulatory-program-issues-rule" target="_blank">Rescission of the “Ten-Day Notices and Corrective Action for State Regulatory Program Issues” Rule, Issued April 9, 2024</a>
+          </span>
+          <span class="badge badge-low">LOW</span>
+          
+        </div>
+        <div class="article-meta">
+          <span>Federal Register</span>
+          
+          <span>·</span>
+          <span>2026-02-19</span>
+          
+        </div>
+        
+        <div class="article-snippet">The Office of Surface Mining Reclamation and Enforcement (&#34;OSMRE&#34; or &#34;OSM&#34;) is rescinding the &#34;Ten-Day Notices and Corrective Action for State Regulatory Program Issues&#34; rule adopted on April 9, 2024 (the &#34;2024 Rule&#34;), and replacing it, in large part, with the rule titled, &#34;Clarification of Provisions Related to the Issuance of Ten-Day Notices to State Regulatory Authorities and Enhancement of Corrective Action for State Regulatory Program Issues,&#34; which was first adopted on November 24, 2020 (t</div>
+        
+      </div>
+      <div class="article-item"
+           data-headline="tongass national forest; alaska; land management plan revision"
+           data-snippet="the u.s. department of agriculture, forest service is revising the land management plan for the tongass national forest. this notice announces the forest service&#39;s initiation of the development of a revised land management plan (revised plan) and intent to prepare an environmental impact statement (eis) to evaluate the effects of revising the current plan. this notice initiates the scoping period on the development of the proposed action and eis. this notice also describes the documents and back"
+           data-urgency="low"
+           data-date="2026-02-18">
+        <div class="article-head">
+          
+          <span class="article-headline">
+            <a href="https://www.federalregister.gov/documents/2026/02/18/2026-03197/tongass-national-forest-alaska-land-management-plan-revision" target="_blank">Tongass National Forest; Alaska; Land Management Plan Revision</a>
+          </span>
+          <span class="badge badge-low">LOW</span>
+          
+        </div>
+        <div class="article-meta">
+          <span>Federal Register</span>
+          
+          <span>·</span>
+          <span>2026-02-18</span>
+          
+        </div>
+        
+        <div class="article-snippet">The U.S. Department of Agriculture, Forest Service is revising the land management plan for the Tongass National Forest. This notice announces the Forest Service&#39;s initiation of the development of a revised land management plan (revised plan) and intent to prepare an environmental impact statement (EIS) to evaluate the effects of revising the current plan. This notice initiates the scoping period on the development of the proposed action and EIS. This notice also describes the documents and back</div>
+        
+      </div>
+      <div class="article-item"
+           data-headline="united states v. reddy ice llc, et al. proposed final judgment and competitive impact statement"
+           data-snippet=""
+           data-urgency="low"
+           data-date="2026-02-18">
+        <div class="article-head">
+          
+          <span class="article-headline">
+            <a href="https://www.federalregister.gov/documents/2026/02/18/2026-03102/united-states-v-reddy-ice-llc-et-al-proposed-final-judgment-and-competitive-impact-statement" target="_blank">United States v. Reddy Ice LLC, et al. Proposed Final Judgment and Competitive Impact Statement</a>
+          </span>
+          <span class="badge badge-low">LOW</span>
+          
+        </div>
+        <div class="article-meta">
+          <span>Federal Register</span>
+          
+          <span>·</span>
+          <span>2026-02-18</span>
+          
+        </div>
+        
+      </div>
+      
+    </div>
+  </aside>
+
+</div>
+
+<script>
+  // ── Sidebar resize ──────────────────────────────────────────────
+  (function() {
+    const handle = document.getElementById('resize-handle');
+    const sidebar = document.getElementById('article-sidebar');
+    const main = document.querySelector('.main');
+    const STORAGE_KEY = 'tp-sidebar-w';
+    const MIN_W = 280, MAX_W = Math.round(window.innerWidth * 0.8);
+
+    // Restore saved width
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) applyWidth(parseInt(saved));
+
+    function applyWidth(w) {
+      w = Math.max(MIN_W, Math.min(MAX_W, w));
+      sidebar.style.width = w + 'px';
+      main.style.marginRight = w + 'px';
+    }
+
+    let startX, startW;
+    handle.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      startX = e.clientX;
+      startW = sidebar.offsetWidth;
+      handle.classList.add('dragging');
+      document.body.classList.add('resizing');
+
+      function onMove(e) {
+        const delta = startX - e.clientX; // dragging left = wider
+        applyWidth(startW + delta);
+      }
+      function onUp(e) {
+        handle.classList.remove('dragging');
+        document.body.classList.remove('resizing');
+        localStorage.setItem(STORAGE_KEY, sidebar.offsetWidth);
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+      }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+  })();
+
+  function filterArticles() {
+    const query = document.getElementById('tp-search').value.toLowerCase().trim();
+    const periodFilter = parseInt(document.getElementById('tp-period').value) || 0;
+    const now = new Date();
+    const items = document.querySelectorAll('#tp-article-list .article-item');
+    const dividers = document.querySelectorAll('#tp-article-list .month-divider');
+    let visibleCount = 0;
+
+    items.forEach(item => {
+      const headline = item.dataset.headline || '';
+      const snippet = item.dataset.snippet || '';
+      const dateStr = item.dataset.date || '';
+      let show = true;
+      if (query && !headline.includes(query) && !snippet.includes(query)) show = false;
+      if (periodFilter && dateStr) {
+        const cutoff = new Date(now.getTime() - periodFilter * 86400000);
+        if (new Date(dateStr) < cutoff) show = false;
+      }
+      item.style.display = show ? '' : 'none';
+      if (show) visibleCount++;
+    });
+
+    dividers.forEach(div => {
+      let next = div.nextElementSibling;
+      let hasVisible = false;
+      while (next && !next.hasAttribute('data-month-divider')) {
+        if (next.classList.contains('article-item') && next.style.display !== 'none') { hasVisible = true; break; }
+        next = next.nextElementSibling;
+      }
+      div.style.display = hasVisible ? '' : 'none';
+    });
+
+    document.getElementById('tp-count').textContent = visibleCount + ' articles';
+    document.getElementById('tp-no-results').classList.toggle('visible', visibleCount === 0 && items.length > 0);
+  }
+</script>
+
+<script>
+var BILL_ANALYSES = {"US_HB7085": {"analyzed_at": "2026-03-24T17:06:43.012238", "bill_number": "HB7085", "bill_title": "To amend the Securities Exchange Act of 1934 to repeal certain disclosure requirements related to conflict minerals, and for other purposes.", "company_impact": {"direct": "If the company is publicly traded and currently files Form SD, repeal eliminates that federal filing obligation \u2014 reducing annual compliance cost and SEC enforcement exposure tied to conflict minerals disclosures. If not publicly traded, direct regulatory impact is nil since Section 1502 only applies to SEC registrants.", "supply_chain": "The real downstream risk is supplier behavior: if Dodd-Frank reporting is repealed, tier-1 and tier-2 suppliers of hardware, mechanical components, and coatings containing tin (solder), tungsten (hardware), and gold (electronic actuators/sensors) will likely stop maintaining smelter-level traceability data, degrading the supply chain visibility the company currently relies on for customer and export compliance inquiries."}, "follow_up_dates": [{"confidence": "probable", "date": "2026-04-30", "event": "Check House floor schedule \u2014 leadership typically schedules Union Calendar bills within 4-8 weeks of reporting; if no floor vote scheduled by end of April, bill may be deprioritized before Memorial Day recess."}, {"confidence": "possible", "date": "2026-05-15", "event": "Watch for Senate companion bill introduction; absence by mid-May significantly reduces bicameral passage probability in this Congress."}, {"confidence": "probable", "date": "2026-07-01", "event": "Mid-year congressional recess begins \u2014 if House has not passed HB7085 by this point, probability of enactment in 119th Congress drops materially."}], "last_action": "Placed on the Union Calendar, Calendar No. 481.", "last_action_date": "2026-03-19", "long_term_trajectory": "Passage probability in the House is plausible given Republican majority control and leadership support for deregulation, but Senate passage faces significant headwinds \u2014 no companion bill has been identified and bipartisan support for conflict minerals accountability has historically been stronger in the Senate. Over the next 6-12 months, expect a House floor vote possible by Q2-Q3 2026 but Senate action uncertain; the most likely outcome is House passage with Senate stall or amendment. Even if it passes, the administration could use rulemaking to effectively neuter Section 1502 enforcement without full repeal, which is already a parallel risk to monitor.", "outlook_event": {"description": "Check House Majority Leader\u0027s floor schedule for HB7085 listing and any Senate companion bill activity. Pull current supplier conflict minerals declaration inventory to identify which declarations are SEC-driven vs. contract-driven. Loop in procurement and legal to assess supplier contract language adequacy if federal mandate is removed. Decision point: whether to proactively amend supplier agreements to require continued 3TG disclosure independent of Dodd-Frank.", "reminder_days_before": 3, "suggested_date": "2026-04-28", "title": "HB7085 Conflict Minerals Repeal \u2014 House Floor Vote Watch"}, "recent_action_analysis": "Placement on the Union Calendar five weeks after introduction, following a narrow 30-24 party-line committee vote, signals the bill is advancing but with meaningful opposition. House leadership controls floor scheduling and has not yet calendared a floor vote, which is the critical bottleneck \u2014 bills can sit on Union Calendar for weeks to months. The narrow committee margin and likely Senate resistance (no companion bill identified) suggest this is advancing but not assured.", "recommended_actions": ["Audit current conflict minerals program now: document which supplier declarations, smelter lists, and RCOI data are held solely because of Form SD obligations versus customer contract requirements \u2014 if repeal passes, contractual obligations survive and you need to know the gap.", "Contact your top 10 hardware and electronics component suppliers this month to understand whether their conflict minerals data collection is driven by their own SEC obligations or yours \u2014 if it\u0027s yours, flag the risk that their data pipelines may go dark post-repeal and build contract language requiring continued disclosure regardless of federal mandate.", "Monitor for Senate companion bill introduction through April 2026; if none appears by May, downgrade active tracking and shift to a quarterly legislative scan posture while keeping supplier contract language in place."], "severity": "MEDIUM", "source_url": "https://legiscan.com/US/bill/HB7085/2025", "stage": "committee", "stage_meaning": "The bill has cleared committee markup and been reported to the full House, placing it on the Union Calendar \u2014 the queue for non-controversial or majority-supported bills awaiting floor scheduling by House leadership. The next step is House floor scheduling by the Majority Leader, followed by a full House vote.", "state": "US", "synopsis": "HB7085 would repeal Section 1502 of Dodd-Frank (codified in the Securities Exchange Act), eliminating the SEC\u0027s mandatory conflict minerals disclosure and due diligence reporting requirement for 3TG minerals (tin, tantalum, tungsten, gold). If enacted, publicly traded companies would no longer be required to file annual Conflict Minerals Reports (Form SD) or conduct RCOI/due diligence on their supply chains for DRC-linked sourcing \u2014 removing the federal regulatory backbone that currently drives supplier disclosure requests across the industry.", "topic": "CONFLICTMINERALS"}};
+var DEADLINE_ANALYSES = {"483": {"analyzed_at": "2026-03-25T00:23:25.015983", "company_impact": {"direct": "If we are an SEC registrant, we have a direct filing obligation and must ensure our Form SD accurately reflects our 2025 RCOI results for all product lines containing 3TG \u2014 particularly hardware-intensive window and door products with metal components. If we are not an SEC registrant, no direct filing obligation exists, but we must still respond to customer conflict minerals inquiries.", "severity": "HIGH", "supply_chain": "Hardware suppliers (hinges, locks, handles, multi-point locking systems), glass coating suppliers, and any electronic/motorized component suppliers are the highest-risk tiers for 3TG presence and require current, completed conflict minerals declarations \u2014 gaps in supplier responses will impair our ability to complete an RCOI or CMR. Tier-2 smelter/refiner data obtained through the Responsible Minerals Initiative (RMI) CMRT process is the industry-standard evidence base."}, "deadline_date": "2026-05-31", "deadline_id": 483, "description": "File Form SD conflict minerals disclosure report with SEC for calendar-year issuers.", "jurisdiction": "Federal", "outlook_event": {"description": "30-day checkpoint before the May 31, 2026 SEC Form SD filing deadline. Review team must confirm: (1) RCOI is complete with all supplier CMRTs collected, (2) Form SD draft and any required CMR exhibit are finalized and with legal counsel, (3) EDGAR filing credentials and authorized signatory are confirmed. Compliance lead, CFO, and outside securities counsel must be present. Any unresolved supplier gaps or legal questions must be escalated immediately \u2014 there is no extension available for this deadline.", "reminder_days_before": 7, "suggested_date": "2026-05-01", "title": "SEC Form SD Conflict Minerals Filing Review [Federal]"}, "penalties": "Failure to file or a materially false/misleading Form SD exposes an SEC registrant to SEC enforcement action, including civil penalties and potential cease-and-desist orders; there is no private right of action, but noncompliance creates material securities law liability and reputational risk with investors and customers. Non-SEC issuers face no direct SEC penalty, but downstream customers who are SEC issuers may reject components without adequate conflict minerals documentation, creating commercial market-access risk.", "preparation_timeline": [{"action": "Chase down all outstanding supplier Conflict Minerals Reporting Template (CMRT) responses; escalate non-responders to procurement leads for contract leverage. Compile complete 3TG necessity determination for all product lines and document the RCOI methodology. Engage outside securities counsel to review Form SD draft structure and determine whether a full CMR exhibit is required based on RCOI results.", "days_before": 60}, {"action": "Finalize RCOI findings and complete draft Form SD (and CMR if applicable); submit to legal and executive sign-off. Verify EDGAR filing credentials are current and the authorized officer (CEO/CFO typically signs Form SD) is available and briefed. Conduct final review of smelter/refiner lists against RMI\u0027s conformant smelter database to support any DRC-free or due-diligence claims.", "days_before": 30}, {"action": "File completed Form SD (and CMR exhibit if required) via SEC EDGAR no later than May 31, 2026. Retain all underlying RCOI documentation, supplier CMRTs, and due diligence records for a minimum of five years to support any future SEC inquiry or customer audit. Confirm filing acceptance receipt from EDGAR and archive confirmation internally.", "days_before": 0}], "recommended_actions": ["Immediately confirm with legal/finance whether the company is an SEC Exchange Act registrant \u2014 if yes, escalate Form SD preparation to HIGH priority and confirm outside securities counsel is engaged; if no, document that determination and pivot to customer-facing CMRT response readiness only.", "Pull the current CMRT response log from your conflict minerals tracking system and identify all hardware, coating, and electronic component suppliers who have not returned a completed CMRT for 2025 \u2014 send final escalation notices to procurement this week with a response deadline of April 15 to allow RCOI completion time.", "Schedule a Form SD legal review meeting for the week of April 20 with securities counsel, the compliance lead, and the CFO/signing officer to review draft disclosures, confirm the DRC-sourcing risk determination, and lock the filing narrative before the May 31 deadline."], "related_context": "The Conflict Minerals rule operates in parallel with UFLPA forced labor due diligence \u2014 both programs require supply chain transparency into high-risk sourcing regions, and supplier engagement efforts can be coordinated to reduce duplication. Additionally, several customers and OEMs independently require annual CMRT submissions regardless of SEC registrant status, so maintaining a live conflict minerals program has commercial value beyond the SEC filing itself.", "source_url": "https://www.sec.gov/Archives/edgar/data/0001039065/000110465926033292/0001104659-26-033292-index.htm", "title": "SEC Form SD Conflict Minerals Annual Filing", "topic": "CONFLICTMINERALS", "urgency": "HIGH", "what_is_required": "SEC-reporting companies that manufacture or contract to manufacture products must file Form SD (Specialized Disclosure Report) with the SEC by May 31, 2026 for the calendar year 2025, disclosing whether conflict minerals (tin, tantalum, tungsten, gold \u2014 3TG) are necessary to the functionality or production of their products. If 3TG are present, the issuer must conduct a reasonable country-of-origin inquiry (RCOI) and, if sourcing from covered countries cannot be ruled out, perform due diligence per an internationally recognized framework (e.g., OECD Due Diligence Guidance) and potentially file a Conflict Minerals Report (CMR) as an exhibit. The regulatory basis is Dodd-Frank Wall Street Reform Act Section 1502 and the SEC\u0027s implementing rule at 17 CFR \u00a7240.13p-1.", "what_we_must_do": "First, confirm whether our company is an SEC reporting issuer (Exchange Act registrant); if we are privately held and not SEC-registered, this filing obligation does not apply and no Form SD is required. If we are SEC-registered, we must determine whether tin, tantalum, tungsten, or gold are necessary to the functionality or production of our windows and doors \u2014 common exposure points include hardware (hinges, locks, latches containing tin-solder or tungsten), glass coatings, and electronic components in smart/automated products. If 3TG are necessary, we must complete our RCOI using supplier declarations collected via our Conflict Minerals program, assess DRC-region sourcing risk, prepare the Form SD (and CMR if required), have legal/external counsel review it, and file via EDGAR no later than May 31, 2026.", "who_must_comply": "This requirement applies exclusively to companies that are SEC reporting issuers (i.e., registered under the Securities Exchange Act of 1934 and required to file annual reports) AND that manufacture or contract to manufacture products for which 3TG are necessary to functionality or production. There are no revenue or employee size thresholds \u2014 any qualifying SEC registrant must comply, regardless of company size."}, "494": {"analyzed_at": "2026-03-25T00:25:05.403403", "company_impact": {"direct": "If we are an SEC-reporting issuer, we have a hard May 31 EDGAR filing deadline with no extension mechanism; a missed filing is an immediate public violation. Even if we are a private company, many of our OEM and retail customers (who are SEC filers) will require our CMRT data to satisfy their own filings, creating a commercial obligation with equivalent urgency.", "severity": "HIGH", "supply_chain": "Metal hardware components (hinges, locks, window operators, fasteners), any PCB-based or sensor assemblies, and plated or soldered components are the highest-risk purchased categories for 3TG content; suppliers of these parts \u2014 especially those sourcing from Asian smelters \u2014 must provide current CMRTs to support our RCOI before we can finalize the filing."}, "deadline_date": "2026-05-31", "deadline_id": 494, "description": "File Form SD conflict minerals report with SEC for calendar year 2025 3TG usage.", "jurisdiction": "Federal", "outlook_event": {"description": "Review checkpoint for the May 31, 2026 Form SD filing covering CY2025 3TG usage. Verify that all CMRT supplier responses have been received and reconciled, RCOI conclusion is documented, and the Form SD draft (plus Conflict Minerals Report exhibit if required) has been reviewed by legal counsel. Confirm EDGAR account credentials are active and website publication process is ready. Attendees: Compliance Lead, General Counsel, CFO or designated executive signatory.", "reminder_days_before": 7, "suggested_date": "2026-05-01", "title": "SEC Form SD Conflict Minerals Filing \u2014 Final Review [Federal]"}, "penalties": "Failure to file Form SD is a violation of the Securities Exchange Act and SEC rules, exposing the company to SEC enforcement action including cease-and-desist orders, civil monetary penalties, and reputational damage from public enforcement proceedings. There is no private right of action under Section 1502, but a missed or materially deficient filing creates securities disclosure liability risk and can trigger investor and customer scrutiny, particularly from ESG-focused stakeholders.", "preparation_timeline": [{"action": "TODAY IS 67 DAYS OUT \u2014 treat this as the 60-day milestone: confirm whether the company is an SEC reporting issuer obligated to file; simultaneously blast CMRT data requests to all direct suppliers of metal-containing components with a 21-day response deadline; pull prior-year CMRTs from supplier portal and identify gaps.", "days_before": 60}, {"action": "By May 1: complete RCOI \u2014 compile all CMRT responses, flag any Covered Country smelters identified, and make a preliminary determination (not from covered countries / undeterminable / conflict-free). Draft Form SD and, if a Conflict Minerals Report is required, draft that exhibit with due diligence findings and steps taken. Route draft to legal counsel and executive signatory for review.", "days_before": 30}, {"action": "By May 31: obtain final executive sign-off, submit Form SD (with any required Conflict Minerals Report exhibit) via EDGAR, and simultaneously publish the filing on the company\u0027s public-facing website. Retain all CMRT source data, RCOI documentation, and due diligence records for at least five years.", "days_before": 0}], "recommended_actions": ["Within 48 hours: confirm SEC reporting status with corporate counsel and CFO; if confirmed, formally open the Form SD project in your compliance tracking system, assign an executive signatory, and issue CMRT 6.0 data requests immediately to all direct suppliers of hardware, fasteners, coatings, and electronic subassemblies \u2014 deadline for supplier response: April 15.", "By April 10: conduct an internal product-scope review to produce a written list of product lines where 3TG are \u0027necessary to functionality or production,\u0027 documenting the analysis \u2014 this is the foundation of the RCOI and will be reviewed by SEC staff if the filing is ever examined.", "By May 1: complete gap-chase on any non-responding suppliers (escalate to procurement/commercial leads for leverage), finalize RCOI conclusion, and deliver full draft Form SD plus any required Conflict Minerals Report exhibit to legal counsel for review, leaving a 30-day buffer for revisions before the hard May 31 deadline."], "related_context": "Form SD is an annual obligation tied to the calendar year; the May 31 deadline is fixed by Rule 13p-1 with no provision for extension, making it harder than most SEC filings. This filing feeds directly into customer supply chain compliance programs (many large window/door buyers are themselves SEC filers who need our CMRT data weeks before their own May 31 deadline), and the data infrastructure built here \u2014 supplier CMRT collection, smelter mapping \u2014 overlaps substantially with the REACH SVHC and forced labor (UFLPA) supply chain traceability work already underway on our Assent platform.", "source_url": "https://www.sec.gov/Archives/edgar/data/0001039065/000110465926033292/0001104659-26-033292-index.htm", "title": "Form SD Conflict Minerals Filing Deadline", "topic": "CONFLICTMINERALS", "urgency": "HIGH", "what_is_required": "SEC-reporting issuers that manufacture or contract to manufacture products must file Form SD (and, if required, a Conflict Minerals Report as an exhibit) with the SEC by May 31, 2026, covering calendar year 2025 use of tin, tantalum, tungsten, and gold (3TG). The obligation arises under Dodd-Frank Act Section 1502 and SEC Rule 13p-1 (17 CFR 240.13p-1), which require a reasonable country-of-origin inquiry (RCOI) and, where 3TG may originate from Covered Countries (DRC and adjoining nations), a supply chain due diligence exercise conforming to an internationally recognized framework (e.g., OECD Due Diligence Guidance). The filing must be publicly posted on the company\u0027s website on the same day it is submitted to EDGAR.", "what_we_must_do": "As a manufacturer of windows and doors that is (or may be) an SEC reporting issuer, we must determine whether 3TG are necessary to the functionality or production of any of our products \u2014 focusing specifically on hardware components (hinges, locks, latches, operators), coatings, solder, and electronic control or sensor assemblies, all of which are plausible 3TG vectors. If our RCOI concludes 3TG are used and may originate from Covered Countries, we must complete supply chain due diligence, prepare a Conflict Minerals Report, and file both Form SD and the report (or Form SD alone with a \u0027DRC conflict undeterminable\u0027 or \u0027not from covered countries\u0027 conclusion) on EDGAR by May 31, 2026, and simultaneously publish on our website. On the procurement side, we must collect supplier-level 3TG declarations (ideally via the CMRT \u2014 Responsible Minerals Initiative template) from all direct material suppliers of metal-containing components to support our RCOI.", "who_must_comply": "Any issuer registered under Exchange Act Sections 12 or 15(d) that manufactures, or contracts to manufacture, products for which 3TG are necessary to the functionality or production of those products must comply \u2014 there is no revenue or employee-size exemption. The rule applies regardless of where manufacturing occurs; a US-listed company contracting overseas production is equally covered."}};
+</script>
+
+<script>
+(function() {
+  'use strict';
+
+  var _SEVERITY_STYLES = {
+    HIGH:       { bg: '#fee2e2', color: '#991b1b' },
+    MEDIUM:     { bg: '#fef3c7', color: '#92400e' },
+    LOW:        { bg: '#d1fae5', color: '#065f46' },
+    MONITORING: { bg: '#f1f5f9', color: '#475569' },
+  };
+
+  function _escHtml(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function _buildIcsDataUrl(ev, billLabel) {
+    if (!ev || !ev.suggested_date) return null;
+    try {
+      var d = ev.suggested_date.replace(/-/g,'');
+      var uid = 'bill-' + billLabel.replace(/\s/g,'-') + '-' + d + '@compliance-monitor';
+      var desc = (ev.description || '').replace(/\n/g,'\\n');
+      var title = (ev.title || billLabel + ' — Review').slice(0, 60);
+      var reminderMin = ((ev.reminder_days_before || 3) * 24 * 60);
+      var ics = [
+        'BEGIN:VCALENDAR','VERSION:2.0',
+        'PRODID:-//Compliance Monitor//Bill Analyst//EN',
+        'BEGIN:VEVENT','UID:' + uid,
+        'DTSTART;VALUE=DATE:' + d,'DTEND;VALUE=DATE:' + d,
+        'SUMMARY:' + title,'DESCRIPTION:' + desc,
+        'BEGIN:VALARM','TRIGGER:-PT' + reminderMin + 'M',
+        'ACTION:DISPLAY','DESCRIPTION:Reminder: ' + title,
+        'END:VALARM','END:VEVENT','END:VCALENDAR',
+      ].join('\r\n');
+      return 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
+    } catch(e) { return null; }
+  }
+
+  function _renderAnalysis(a) {
+    var impact = a.company_impact || {};
+    var sev = (impact.severity || 'MONITORING').toUpperCase();
+    var sevStyle = _SEVERITY_STYLES[sev] || _SEVERITY_STYLES.MONITORING;
+    document.getElementById('bd-bill-label').textContent = (a.state || '') + ' ' + (a.bill_number || a.bill_title || '');
+    var topicBadge = document.getElementById('bd-topic-badge');
+    topicBadge.textContent = a.topic || '';
+    var sevBadge = document.getElementById('bd-severity-badge');
+    sevBadge.textContent = sev;
+    sevBadge.style.background = sevStyle.bg;
+    sevBadge.style.color = sevStyle.color;
+    var sections = '';
+    sections += '<div class="bd-section">';
+    if (a.bill_title) {
+      sections += '<div class="bd-section-title">Bill Title</div>';
+      sections += '<div class="bd-section-body" style="font-weight:600;margin-bottom:8px;">' + _escHtml(a.bill_title) + '</div>';
+    }
+    if (a.source_url) {
+      sections += '<a class="bd-source-link" href="' + _escHtml(a.source_url) + '" target="_blank">View on LegiScan / State Legislature &rarr;</a>';
+    }
+    sections += '</div>';
+    if (a.synopsis) {
+      sections += '<div class="bd-section"><div class="bd-section-title">Synopsis</div><div class="bd-section-body">' + _escHtml(a.synopsis) + '</div></div>';
+    }
+    sections += '<div class="bd-two-col">';
+    if (a.stage_meaning) {
+      sections += '<div class="bd-section"><div class="bd-section-title">Current Stage — ' + _escHtml((a.stage||'').replace(/_/g,' ')) + '</div><div class="bd-section-body">' + _escHtml(a.stage_meaning) + '</div></div>';
+    }
+    if (a.recent_action_analysis) {
+      sections += '<div class="bd-section"><div class="bd-section-title">Recent Action Analysis</div>';
+      if (a.last_action_date || a.last_action) {
+        sections += '<div style="font-size:11px;font-family:var(--mono);color:var(--text-tertiary);margin-bottom:4px;">' + _escHtml(a.last_action_date || '') + (a.last_action ? ' — ' + _escHtml(a.last_action) : '') + '</div>';
+      }
+      sections += '<div class="bd-section-body">' + _escHtml(a.recent_action_analysis) + '</div></div>';
+    }
+    sections += '</div>';
+    if (impact.direct || impact.supply_chain) {
+      sections += '<div class="bd-section" style="background:' + sevStyle.bg + '10;"><div class="bd-section-title" style="color:' + sevStyle.color + ';">Company Impact — ' + sev + '</div>';
+      if (impact.direct) sections += '<div style="margin-bottom:6px;"><span style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--text-tertiary);display:block;margin-bottom:2px;">DIRECT PRODUCTS</span><div class="bd-section-body">' + _escHtml(impact.direct) + '</div></div>';
+      if (impact.supply_chain) sections += '<div><span style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--text-tertiary);display:block;margin-bottom:2px;">SUPPLY CHAIN</span><div class="bd-section-body">' + _escHtml(impact.supply_chain) + '</div></div>';
+      sections += '</div>';
+    }
+    if (a.long_term_trajectory) {
+      sections += '<div class="bd-section"><div class="bd-section-title">Long-Term Trajectory</div><div class="bd-section-body">' + _escHtml(a.long_term_trajectory) + '</div></div>';
+    }
+    if (a.recommended_actions && a.recommended_actions.length) {
+      sections += '<div class="bd-section"><div class="bd-section-title">Recommended Actions</div><ul class="bd-action-list">';
+      a.recommended_actions.forEach(function(act) { sections += '<li>' + _escHtml(act) + '</li>'; });
+      sections += '</ul></div>';
+    }
+    var hasDates = a.follow_up_dates && a.follow_up_dates.length;
+    var hasOutlook = a.outlook_event && a.outlook_event.suggested_date;
+    if (hasDates || hasOutlook) {
+      sections += '<div class="bd-section"><div class="bd-section-title">Follow-Up Dates</div>';
+      if (hasDates) {
+        a.follow_up_dates.forEach(function(fu) {
+          var conf = (fu.confidence || 'possible').toLowerCase();
+          sections += '<div class="bd-follow-up-item"><div class="bd-fu-date">' + _escHtml(fu.date || 'TBD') + '</div><span class="bd-fu-conf ' + conf + '">' + conf + '</span><div style="font-size:12px;color:var(--text-primary);flex:1;">' + _escHtml(fu.event || '') + '</div></div>';
+        });
+      }
+      if (hasOutlook) {
+        var icsUrl = _buildIcsDataUrl(a.outlook_event, (a.state || '') + ' ' + (a.bill_number || ''));
+        if (icsUrl) {
+          sections += '<a class="bd-ics-btn" href="' + icsUrl + '" download="' + _escHtml((a.outlook_event.title || 'Bill Review').replace(/[^\w\s-]/g,'')) + '.ics">&#128197; Add to Outlook / Calendar</a>';
+        }
+      }
+      sections += '</div>';
+    }
+    document.getElementById('bd-body').innerHTML = sections;
+  }
+
+  window.openBillDetailFromEl = function(el) {
+    openBillDetail(el.dataset.state || '', el.dataset.bill || '');
+  };
+
+  window.openBillDetail = function(stateCode, billNumber) {
+    var key = stateCode + '_' + billNumber.replace(/\s+/g, '_');
+    var overlay = document.getElementById('bd-overlay');
+    var body = document.getElementById('bd-body');
+    var analysis = (typeof BILL_ANALYSES !== 'undefined') ? BILL_ANALYSES[key] : null;
+    if (analysis && analysis.synopsis) {
+      _renderAnalysis(analysis);
+    } else {
+      document.getElementById('bd-bill-label').textContent = stateCode + ' ' + billNumber.replace(/_/g,' ');
+      document.getElementById('bd-topic-badge').textContent = '';
+      var sevBadge = document.getElementById('bd-severity-badge');
+      sevBadge.textContent = 'PENDING'; sevBadge.style.background = '#f1f5f9'; sevBadge.style.color = '#64748b';
+      body.innerHTML = '<div class="bd-pending"><div class="bd-pending-title">' + stateCode + ' ' + billNumber.replace(/_/g,' ') + '</div><p>Deep analysis not yet generated for this bill.</p><p style="font-size:12px;color:var(--text-tertiary);">Analysis runs automatically for active bills during each pipeline run.</p></div>';
+    }
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeBillDetail = function(e) {
+    if (e && e.target !== document.getElementById('bd-overlay')) return;
+    document.getElementById('bd-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  window.openDeadlineDetailFromEl = function(el) {
+    openDeadlineDetail(el.dataset.deadlineId || '');
+  };
+
+  window.openDeadlineDetail = function(deadlineId) {
+    var overlay = document.getElementById('dd-overlay');
+    var body = document.getElementById('dd-body');
+    var key = String(deadlineId);
+    var analysis = (typeof DEADLINE_ANALYSES !== 'undefined') ? DEADLINE_ANALYSES[key] : null;
+    if (analysis && analysis.what_is_required) {
+      _renderDeadlineAnalysis(analysis);
+    } else {
+      document.getElementById('dd-title-label').textContent = 'Deadline #' + deadlineId;
+      document.getElementById('dd-topic-badge').textContent = '';
+      var sevBadge = document.getElementById('dd-severity-badge');
+      sevBadge.textContent = 'PENDING'; sevBadge.style.background = '#f1f5f9'; sevBadge.style.color = '#64748b';
+      document.getElementById('dd-countdown').textContent = '';
+      body.innerHTML = '<div class="bd-pending"><div class="bd-pending-title">Analysis Pending</div><p>Deep analysis has not yet been generated for this deadline.</p><p style="font-size:12px;color:var(--text-tertiary);">Analysis runs automatically for HIGH/MEDIUM deadlines during each pipeline run.</p></div>';
+    }
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeDeadlineDetail = function(e) {
+    if (e && e.target !== document.getElementById('dd-overlay')) return;
+    document.getElementById('dd-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  function _renderDeadlineAnalysis(a) {
+    var impact = a.company_impact || {};
+    var sev = (impact.severity || 'MONITORING').toUpperCase();
+    var sevStyle = _SEVERITY_STYLES[sev] || _SEVERITY_STYLES.MONITORING;
+    var today = new Date();
+    document.getElementById('dd-title-label').textContent = a.title || 'Deadline';
+    document.getElementById('dd-topic-badge').textContent = a.topic || '';
+    var sevBadge = document.getElementById('dd-severity-badge');
+    sevBadge.textContent = sev; sevBadge.style.background = sevStyle.bg; sevBadge.style.color = sevStyle.color;
+    var cdEl = document.getElementById('dd-countdown');
+    if (a.deadline_date) {
+      var ddDate = new Date(a.deadline_date);
+      var diffDays = Math.ceil((ddDate - today) / (1000 * 60 * 60 * 24));
+      if (diffDays < 0) { cdEl.textContent = Math.abs(diffDays) + 'd overdue'; cdEl.style.background = 'var(--red-bg)'; cdEl.style.color = 'var(--red)'; }
+      else if (diffDays === 0) { cdEl.textContent = 'TODAY'; cdEl.style.background = 'var(--red-bg)'; cdEl.style.color = 'var(--red)'; }
+      else if (diffDays <= 14) { cdEl.textContent = diffDays + ' days'; cdEl.style.background = 'var(--red-bg)'; cdEl.style.color = 'var(--red)'; }
+      else if (diffDays <= 90) { cdEl.textContent = diffDays + ' days'; cdEl.style.background = 'var(--amber-bg)'; cdEl.style.color = 'var(--amber)'; }
+      else { cdEl.textContent = a.deadline_date; cdEl.style.background = 'var(--surface-sunken)'; cdEl.style.color = 'var(--text-secondary)'; }
+    } else { cdEl.textContent = ''; }
+    var sections = '';
+    sections += '<div class="bd-two-col">';
+    if (a.what_is_required) {
+      sections += '<div class="bd-section"><div class="bd-section-title">What Is Required</div><div class="bd-section-body">' + _escHtml(a.what_is_required) + '</div>';
+      if (a.jurisdiction) sections += '<div style="font-size:11px;font-family:var(--mono);color:var(--text-tertiary);margin-top:6px;">' + _escHtml(a.jurisdiction) + (a.urgency ? ' · ' + a.urgency : '') + '</div>';
+      if (a.source_url) sections += '<a class="bd-source-link" href="' + _escHtml(a.source_url) + '" target="_blank" style="display:block;margin-top:6px;">View Source &rarr;</a>';
+      sections += '</div>';
+    }
+    if (a.who_must_comply) {
+      sections += '<div class="bd-section"><div class="bd-section-title">Who Must Comply</div><div class="bd-section-body">' + _escHtml(a.who_must_comply) + '</div></div>';
+    }
+    sections += '</div>';
+    if (a.what_we_must_do) {
+      sections += '<div class="bd-section" style="background:' + sevStyle.bg + '10;"><div class="bd-section-title" style="color:' + sevStyle.color + ';">What We Must Do</div><div class="bd-section-body">' + _escHtml(a.what_we_must_do) + '</div></div>';
+    }
+    if (impact.direct || impact.supply_chain) {
+      sections += '<div class="bd-section" style="background:' + sevStyle.bg + '10;"><div class="bd-section-title" style="color:' + sevStyle.color + ';">Company Impact — ' + sev + '</div><div class="bd-two-col" style="margin: 0 -18px;">';
+      if (impact.direct) sections += '<div style="padding: 8px 18px; border-right: 1px solid var(--border-light);"><span style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--text-tertiary);display:block;margin-bottom:2px;">DIRECT PRODUCTS</span><div class="bd-section-body">' + _escHtml(impact.direct) + '</div></div>';
+      if (impact.supply_chain) sections += '<div style="padding: 8px 18px;"><span style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--text-tertiary);display:block;margin-bottom:2px;">SUPPLY CHAIN</span><div class="bd-section-body">' + _escHtml(impact.supply_chain) + '</div></div>';
+      sections += '</div></div>';
+    }
+    if (a.penalties) {
+      sections += '<div class="bd-section"><div class="bd-section-title">Penalties for Non-Compliance</div><div class="bd-section-body">' + _escHtml(a.penalties) + '</div></div>';
+    }
+    if (a.preparation_timeline && a.preparation_timeline.length) {
+      sections += '<div class="bd-section"><div class="bd-section-title">Preparation Timeline</div><div class="dd-prep-row">';
+      a.preparation_timeline.forEach(function(step) {
+        var daysLabel = step.days_before === 0 ? 'Deadline Day' : step.days_before + ' days before';
+        var isPast = false;
+        if (a.deadline_date) { var sd = new Date(a.deadline_date); sd.setDate(sd.getDate() - step.days_before); isPast = sd < today; }
+        sections += '<div class="dd-prep-step' + (isPast ? ' dd-prep-past' : '') + '"><div class="dd-prep-label">' + _escHtml(daysLabel) + (isPast ? ' (past)' : '') + '</div><div style="font-size:12px;color:var(--text-primary);line-height:1.45;">' + _escHtml(step.action) + '</div></div>';
+      });
+      sections += '</div></div>';
+    }
+    if (a.related_context) {
+      sections += '<div class="bd-section"><div class="bd-section-title">Related Context</div><div class="bd-section-body">' + _escHtml(a.related_context) + '</div></div>';
+    }
+    if (a.recommended_actions && a.recommended_actions.length) {
+      sections += '<div class="bd-section"><div class="bd-section-title">Recommended Actions Now</div><ul class="bd-action-list">';
+      a.recommended_actions.forEach(function(act) { sections += '<li>' + _escHtml(act) + '</li>'; });
+      sections += '</ul></div>';
+    }
+    if (a.outlook_event && a.outlook_event.suggested_date) {
+      var icsUrl = _buildIcsDataUrl(a.outlook_event, a.title || 'Deadline');
+      if (icsUrl) {
+        sections += '<div class="bd-section"><div class="bd-section-title">Calendar Reminder</div>';
+        if (a.outlook_event.description) sections += '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;line-height:1.5;">' + _escHtml(a.outlook_event.description) + '</div>';
+        sections += '<a class="bd-ics-btn" href="' + icsUrl + '" download="' + _escHtml((a.outlook_event.title || 'Deadline').replace(/[^\w\s-]/g,'')) + '.ics">&#128197; Add to Outlook / Calendar</a></div>';
+      }
+    }
+    document.getElementById('dd-body').innerHTML = sections;
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.getElementById('bd-overlay').classList.remove('open');
+      document.getElementById('dd-overlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  });
+})();
+</script>
+</body>
+</html>
