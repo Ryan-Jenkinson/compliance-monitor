@@ -596,8 +596,9 @@ a:hover { text-decoration: underline; }
 }
 .cs-campaign-evidence {
   padding: 8px 14px 12px;
-  font-size: 11.5px; color: var(--text-muted); font-family: var(--mono); line-height: 1.5;
+  font-size: 12px; color: var(--text-muted); font-family: var(--mono); line-height: 1.5;
   border-top: 1px solid var(--border-light);
+  word-break: break-word; overflow-wrap: break-word;
 }
 
 .cs-empty-panel { padding: 24px 14px; text-align: center; color: var(--text-muted);
@@ -964,7 +965,7 @@ def _write_html_report(results: list[dict], today: str) -> Path:
         f'<style>{_CSS}</style>\n'
         f'</head>\n<body>\n'
         f'<header class="cs-topbar">'
-        f'<a class="cs-topbar-back" href="preview_dashboard.html">\u2190 Dashboard</a>'
+        f'<a class="cs-topbar-back" href="dashboard.html">\u2190 Dashboard</a>'
         f'<div class="cs-topbar-sep"></div>'
         f'<span class="cs-topbar-title">Cross-State Legislative Intelligence</span>'
         f'<span class="cs-topbar-confidential">Confidential Internal</span>'
