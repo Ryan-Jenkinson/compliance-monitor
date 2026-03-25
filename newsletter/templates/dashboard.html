@@ -1024,6 +1024,57 @@
     }
     .tl-link:hover { border-color: var(--teal); color: var(--teal); text-decoration: none; }
 
+    /* ── Cross-State Intel sidebar widget ─────────────────────── */
+    .cs-dash-full-link { margin-left: auto; font-family: var(--mono); font-size: 11px;
+      font-weight: 600; color: var(--blue); text-decoration: none; }
+    .cs-dash-full-link:hover { text-decoration: underline; }
+    .cs-dash-tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 12px;
+      border-bottom: 1px solid var(--border-light); }
+    .cs-dash-tab {
+      padding: 3px 8px; font-family: var(--mono); font-size: 10px; font-weight: 600;
+      letter-spacing: .04em; text-transform: uppercase; background: var(--bg);
+      color: var(--text-muted); border: 1px solid var(--border); border-radius: 3px;
+      cursor: pointer; transition: all 0.12s;
+    }
+    .cs-dash-tab:hover { background: var(--border); color: var(--text-primary); }
+    .cs-dash-tab.active { background: #1A1D23; color: #fff; border-color: #1A1D23; }
+    .cs-dash-panel { display: none; padding: 10px 12px; }
+    .cs-dash-panel.active { display: block; }
+    .cs-dash-summary { font-size: 12px; line-height: 1.6; color: var(--text-secondary);
+      padding: 8px 10px; background: var(--bg); border-radius: 4px; margin-bottom: 8px;
+      border-left: 3px solid var(--amber); }
+    .cs-dash-sublabel { font-family: var(--mono); font-size: 9px; font-weight: 700;
+      letter-spacing: .08em; color: var(--text-muted); margin: 8px 0 5px;
+      text-transform: uppercase; }
+    .cs-dash-watch-row { display: flex; align-items: flex-start; gap: 7px;
+      padding: 4px 0; border-bottom: 1px solid var(--border-light); }
+    .cs-dash-watch-row:last-of-type { border-bottom: none; }
+    .cs-dash-state-chip {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 28px; height: 20px; padding: 0 4px;
+      background: var(--red-bg); color: var(--red);
+      font-family: var(--mono); font-size: 10px; font-weight: 700;
+      border-radius: 3px; flex-shrink: 0; border: 1px solid var(--red-border);
+    }
+    .cs-dash-watch-reason { font-size: 11.5px; color: var(--text-secondary); line-height: 1.4; flex: 1; }
+    .cs-dash-mover-row { display: flex; align-items: baseline; gap: 6px;
+      padding: 4px 0; border-bottom: 1px solid var(--border-light); }
+    .cs-dash-mover-row:last-of-type { border-bottom: none; }
+    .cs-dash-urgency {
+      display: inline-block; padding: 1px 4px; font-family: var(--mono); font-size: 9px;
+      font-weight: 700; border-radius: 2px; flex-shrink: 0; letter-spacing: .04em;
+    }
+    .cs-dash-urgency.high { background: var(--red-bg); color: var(--red); }
+    .cs-dash-urgency.med { background: var(--amber-bg); color: var(--amber); }
+    .cs-dash-urgency.low { background: var(--green-bg); color: var(--green); }
+    .cs-dash-mover-state { font-family: var(--mono); font-size: 11px; font-weight: 700;
+      color: var(--text-primary); flex-shrink: 0; }
+    .cs-dash-mover-text { font-size: 11.5px; color: var(--text-secondary); line-height: 1.4; flex: 1; }
+    .cs-dash-more { font-size: 11px; color: var(--blue); font-family: var(--mono);
+      text-align: right; margin-top: 4px; cursor: pointer; }
+    .cs-dash-footer { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-light);
+      font-family: var(--mono); font-size: 10px; color: var(--text-muted); text-align: right; }
+
     /* ============================================================
        RESPONSIVE
        ============================================================ */
@@ -2548,6 +2599,56 @@
         <button class="sidebar-collapse-btn" onclick="toggleSidebarPanel()" title="Hide sidebar" id="sidebar-collapse-btn">
           <span id="sidebar-collapse-icon">&#9654;</span>
         </button>
+
+        <!-- Cross-State Intel Widget -->
+        {% if cross_state_reports %}
+        <div class="panel animate-in" id="section-cross-state" data-widget-id="cross-state" data-widget-label="Cross-State Intel" style="margin-bottom:12px;">
+          <div class="panel-header">
+            <span class="panel-title">Cross-State Intel</span>
+            <a class="cs-dash-full-link" href="cross_state_report.html" target="_blank">Full Report &#8594;</a>
+          </div>
+          <div class="cs-dash-tabs">
+            {% for report in cross_state_reports %}
+            <button class="cs-dash-tab{% if loop.first %} active{% endif %}"
+                    data-cs-topic="{{ report.topic }}"
+                    onclick="csDashTabShow('{{ report.topic }}')">{{ report.topic }}</button>
+            {% endfor %}
+          </div>
+          {% for report in cross_state_reports %}
+          {%- set a = report.analysis -%}
+          <div class="cs-dash-panel{% if loop.first %} active{% endif %}" data-cs-panel="{{ report.topic }}">
+            {% if a.summary %}
+            <div class="cs-dash-summary">{{ a.summary | truncate(220, true, '…') }}</div>
+            {% endif %}
+            {%- set watch = a.watch_list | default([]) -%}
+            {% if watch %}
+            <div class="cs-dash-sublabel">Watch List</div>
+            {% for w in watch[:3] %}
+            <div class="cs-dash-watch-row">
+              <span class="cs-dash-state-chip">{{ w.state }}</span>
+              <span class="cs-dash-watch-reason">{{ w.reason | truncate(65, true, '…') }}</span>
+            </div>
+            {% endfor %}
+            {% if watch | length > 3 %}
+            <div class="cs-dash-more">+{{ watch | length - 3 }} more &#8594;</div>
+            {% endif %}
+            {% endif %}
+            {%- set movers = a.next_mover_predictions | default([]) -%}
+            {% if movers %}
+            <div class="cs-dash-sublabel">Next Movers</div>
+            {% for m in movers[:3] %}
+            <div class="cs-dash-mover-row">
+              <span class="cs-dash-urgency {% if m.urgency == 'HIGH' %}high{% elif m.urgency == 'MEDIUM' %}med{% else %}low{% endif %}">{{ (m.urgency or 'LOW')[:3] }}</span>
+              <span class="cs-dash-mover-state">{{ m.state }}</span>
+              <span class="cs-dash-mover-text">{{ m.prediction | truncate(60, true, '…') }}</span>
+            </div>
+            {% endfor %}
+            {% endif %}
+            <div class="cs-dash-footer">Updated {{ report.report_date }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
 
         <!-- Traffic-Light Status Matrix -->
         <div class="panel animate-in" style="margin-bottom:12px;">
@@ -4323,6 +4424,16 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
       filterHistoryModal();
     }
   };
+</script>
+<script>
+  function csDashTabShow(topic) {
+    document.querySelectorAll('.cs-dash-panel').forEach(function(el) { el.classList.remove('active'); });
+    document.querySelectorAll('.cs-dash-tab').forEach(function(el) { el.classList.remove('active'); });
+    var panel = document.querySelector('.cs-dash-panel[data-cs-panel="' + topic + '"]');
+    var tab = document.querySelector('.cs-dash-tab[data-cs-topic="' + topic + '"]');
+    if (panel) panel.classList.add('active');
+    if (tab) tab.classList.add('active');
+  }
 </script>
 
 </body>

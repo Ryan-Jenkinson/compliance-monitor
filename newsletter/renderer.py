@@ -451,6 +451,14 @@ class NewsletterRenderer:
         except Exception as _e:
             logger.warning(f"Failed to load historical data for dashboard: {_e}")
 
+        # Load cross-state reports for dashboard widget
+        cross_state_reports = []
+        try:
+            from ai.cross_state_agent import get_latest_cross_state_report
+            cross_state_reports = get_latest_cross_state_report()
+        except Exception as _e:
+            logger.warning(f"Failed to load cross-state reports: {_e}")
+
         template = self.env.get_template("dashboard.html")
         return template.render(
             date_display=now.strftime("%-d %b %Y"),
@@ -488,6 +496,7 @@ class NewsletterRenderer:
             bill_analyses=bill_analyses or {},
             deadline_analyses=deadline_analyses or {},
             daily_changes=daily_changes or [],
+            cross_state_reports=cross_state_reports,
             trend_data=trend_data,
             sparklines=sparklines,
             bill_funnel=bill_funnel,
@@ -540,6 +549,15 @@ class NewsletterRenderer:
                     dl["days_until"] = None
             normalized_deadlines.append(dl)
 
+        # Load cross-state reports once (all topics)
+        cross_state_by_topic: dict = {}
+        try:
+            from ai.cross_state_agent import get_latest_cross_state_report
+            for report in get_latest_cross_state_report():
+                cross_state_by_topic[report["topic"].upper()] = report
+        except Exception as _e:
+            logger.warning(f"Failed to load cross-state for topic pages: {_e}")
+
         template = self.env.get_template("topic_page.html")
         pages = {}
 
@@ -579,6 +597,8 @@ class NewsletterRenderer:
             if not topic_deadline_analyses and deadline_analyses:
                 topic_deadline_analyses = deadline_analyses
 
+            cross_state = cross_state_by_topic.get(topic_name.upper())
+
             html = template.render(
                 topic=topic,
                 date_display=now.strftime("%-d %b %Y"),
@@ -589,6 +609,7 @@ class NewsletterRenderer:
                 daily_trend=daily_trend,
                 bill_analyses=topic_bill_analyses,
                 deadline_analyses=topic_deadline_analyses,
+                cross_state=cross_state,
                 maps={
                     "pfas_map_url": f"{base_url}/pfas-map.html",
                     "epr_map_url": f"{base_url}/epr-map.html",
