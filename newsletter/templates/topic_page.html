@@ -296,6 +296,48 @@
     .badge-high { background: var(--red-bg); color: var(--red); }
     .badge-medium { background: var(--amber-bg); color: var(--amber); }
     .badge-low { background: var(--green-bg); color: var(--green); }
+    .badge-indirect { background: #FFF8E1; color: #F57F17; border: 1px solid #FFE082; }
+    .badge-monitor  { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+
+    /* MONITOR articles: visually muted */
+    .article-item[data-relevance="MONITOR"] { opacity: 0.45; }
+    .article-item[data-relevance="MONITOR"]:hover { opacity: 0.75; transition: opacity 0.15s; }
+    .article-item[data-relevance="MONITOR"] .badge-high,
+    .article-item[data-relevance="MONITOR"] .badge-medium,
+    .article-item[data-relevance="MONITOR"] .badge-low { display: none; }
+    /* INDIRECT articles: urgency de-emphasized */
+    .article-item[data-relevance="INDIRECT"] .badge-high,
+    .article-item[data-relevance="INDIRECT"] .badge-medium,
+    .article-item[data-relevance="INDIRECT"] .badge-low { opacity: 0.5; font-size: 8px; }
+    .relevance-reason { font-size: 11px; color: #F57F17; font-style: italic; margin-top: 3px; }
+    .article-item.hidden-by-relevance { display: none !important; }
+
+    /* Compact badge legend for sidebar header */
+    .sidebar-legend {
+      background: var(--bg);
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      font-size: 11px;
+    }
+    .sidebar-legend-title {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+    }
+    .sidebar-legend-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 3px;
+      color: var(--text-secondary);
+    }
+    .sidebar-legend-sep { border-top: 1px solid var(--border-light); margin: 5px 0; }
 
     /* ── MAIN CONTENT WIDGETS ───────────────────────────────────── */
 
@@ -1298,6 +1340,16 @@
         </select>
       </div>
       <div class="filter-count" id="tp-count">{{ articles | length }} articles</div>
+      <!-- Compact badge legend -->
+      <div class="sidebar-legend">
+        <div class="sidebar-legend-title">&#x25A6; Badge Guide</div>
+        <div class="sidebar-legend-row"><span class="badge badge-new" style="font-size:9px;padding:1px 4px;">New</span> First seen this week</div>
+        <div class="sidebar-legend-row"><span class="badge badge-high" style="font-size:9px;">HIGH</span> &lt;90 days · <span class="badge badge-medium" style="font-size:9px;">MED</span> 90–365d · <span class="badge badge-low" style="font-size:9px;">LOW</span> long-range</div>
+        <div class="sidebar-legend-sep"></div>
+        <div class="sidebar-legend-row"><span class="badge badge-indirect" style="font-size:9px;">Indirect</span> Signals trends for us (hover for why)</div>
+        <div class="sidebar-legend-row"><span class="badge badge-monitor" style="font-size:9px;">Monitor</span> General news — no direct impact</div>
+        <div class="sidebar-legend-row" style="opacity:0.5;">Faded row = older than 30 days</div>
+      </div>
     </div>
 
     <div class="article-list-scroll" id="tp-article-list">
@@ -1310,13 +1362,17 @@
         {%- set ns.last_month = month_key -%}
         <div class="month-divider" data-month-divider>{{ disp_date[:4] }}-{{ disp_date[5:7] }}</div>
       {%- endif -%}
+      {%- set art_relevance = article.relevance|default('DIRECT') -%}
       <div class="article-item{% if article.is_new %} is-new{% endif %}"
            data-headline="{{ (article.title or '') | lower }}"
            data-snippet="{{ (article.snippet or '') | lower }}"
            data-urgency="{{ (article.urgency or 'low') | lower }}"
-           data-date="{{ disp_date }}">
+           data-date="{{ disp_date }}"
+           data-relevance="{{ art_relevance }}">
         <div class="article-head">
           {% if article.is_new %}<span class="badge badge-new">New</span>{% endif %}
+          {% if art_relevance == 'INDIRECT' %}<span class="badge badge-indirect" title="{{ article.relevance_reason or 'Signals trends relevant to us' }}">Indirect</span>{% endif %}
+          {% if art_relevance == 'MONITOR' %}<span class="badge badge-monitor" title="General news — no direct company impact">Monitor</span>{% endif %}
           <span class="article-headline">
             <a href="{{ article.url }}" target="_blank">{{ article.title }}</a>
           </span>
@@ -1325,6 +1381,9 @@
           <span class="badge badge-impact {% if article.impact_score >= 7 %}hi{% elif article.impact_score >= 4 %}mid{% else %}lo{% endif %}" title="Company impact score">{{ article.impact_score }}</span>
           {% endif %}
         </div>
+        {% if art_relevance == 'INDIRECT' and article.relevance_reason %}
+        <div class="relevance-reason">&#x2197; {{ article.relevance_reason }}</div>
+        {% endif %}
         <div class="article-meta">
           <span>{{ article.source or '' }}</span>
           {% if disp_date %}

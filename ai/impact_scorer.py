@@ -48,11 +48,32 @@ Score each development on:
 
 impact_score = (direct_product×0.35) + (supply_chain×0.25) + (financial×0.20) + (timeline×0.20), round to 1dp.
 
+Also classify each development's company relevance:
+5. relevance: "DIRECT" | "INDIRECT" | "MONITOR"
+   DIRECT = directly impacts our products (fluoropolymer coatings, window/door materials),
+     supply chain (vinyl, aluminum, glass, motors, electronics, o-rings), or compliance obligations
+   INDIRECT = not directly about us, but signals regulatory trends that could later affect us
+     (new state entering PFAS regulation, precedent-setting enforcement, adjacent sector rules that may expand,
+     EU/federal activity signaling future US rules for our materials)
+   MONITOR = general regulatory news with no foreseeable company impact (cosmetics-only PFAS bans,
+     food contact only, textiles-only rules with no broader signal, sectors we have zero exposure to)
+6. relevance_reason: for INDIRECT only, one sentence explaining why this still matters to us.
+   null for DIRECT and MONITOR.
+
+Relevance rules:
+- Cosmetics/food/textiles-only rules → MONITOR unless they signal broader chemical restrictions
+- State PFAS legislation in states where we operate or sell → minimum INDIRECT
+- Anything mentioning fluoropolymers, building materials, coatings, manufacturing → DIRECT
+- EPA/TSCA rules affecting chemical reporting for manufacturers → DIRECT
+- EU REACH SVHC additions for substances in our supply chain → DIRECT
+- New state entering PFAS regulation for the first time → INDIRECT (signals legislative momentum)
+- Precedent-setting enforcement in adjacent manufacturing sector → INDIRECT
+
 Developments to score (topic: {topic}):
 {developments}
 
 Return a JSON array — one object per development in the same order:
-[{{"idx": 0, "direct_product": 4, "supply_chain": 6, "financial": 3, "timeline": 5, "impact_score": 4.6}}, ...]
+[{{"idx": 0, "direct_product": 4, "supply_chain": 6, "financial": 3, "timeline": 5, "impact_score": 4.6, "relevance": "DIRECT", "relevance_reason": null}}, ...]
 
 Rules:
 - Keep scores proportional: a 10 means company-stopping action needed NOW
@@ -129,6 +150,8 @@ def score_developments(
                 result[idx]["financial"] = s.get("financial", 5)
                 result[idx]["timeline"] = s.get("timeline", 5)
                 result[idx]["impact_score"] = s.get("impact_score", 5.0)
+                result[idx]["relevance"] = s.get("relevance", "DIRECT")
+                result[idx]["relevance_reason"] = s.get("relevance_reason")
 
         logger.info(
             f"Impact scored {len(scores)}/{len(developments)} {topic_name} developments"

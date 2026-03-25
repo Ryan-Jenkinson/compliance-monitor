@@ -295,6 +295,17 @@ def init_db() -> None:
         conn.commit()
     except Exception:
         pass
+    # Migration: add relevance columns to articles table
+    try:
+        conn.execute("ALTER TABLE articles ADD COLUMN relevance TEXT DEFAULT NULL")
+        conn.commit()
+    except Exception:
+        pass  # Column already exists
+    try:
+        conn.execute("ALTER TABLE articles ADD COLUMN relevance_reason TEXT DEFAULT NULL")
+        conn.commit()
+    except Exception:
+        pass  # Column already exists
     conn.close()
 
 
@@ -821,14 +832,16 @@ def get_bill_activity_feed(days_past: int = 60, limit: int = 200) -> list[dict]:
 
 def save_article(article_id: str, topic: str, title: str, url: str,
                  source: str | None, pub_date: str | None, snippet: str | None,
-                 week_start: str | None = None, is_new: bool = True) -> None:
+                 week_start: str | None = None, is_new: bool = True,
+                 relevance: str | None = None, relevance_reason: str | None = None) -> None:
     """Persist full article metadata. INSERT OR IGNORE so we never overwrite first_seen."""
     conn = get_connection()
     conn.execute(
         """INSERT OR IGNORE INTO articles
-               (id, topic, title, url, source, pub_date, snippet, week_start, is_new)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-        (article_id, topic, title, url, source, pub_date, snippet, week_start, 1 if is_new else 0),
+               (id, topic, title, url, source, pub_date, snippet, week_start, is_new, relevance, relevance_reason)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (article_id, topic, title, url, source, pub_date, snippet, week_start, 1 if is_new else 0,
+         relevance, relevance_reason),
     )
     conn.commit()
     conn.close()
@@ -908,6 +921,7 @@ def get_articles_for_display(topic: str | None = None, days: int = 180, limit: i
     """Return stored articles from the last `days` days, sorted by publish date newest first."""
     conn = get_connection()
     query = """SELECT id, topic, title, url, source, pub_date, snippet, first_seen, is_new,
+                      relevance, relevance_reason,
                       COALESCE(pub_date, date(first_seen)) AS display_date
                FROM articles
                WHERE first_seen > datetime('now', ?)"""

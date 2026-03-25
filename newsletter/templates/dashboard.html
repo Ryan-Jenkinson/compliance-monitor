@@ -751,7 +751,8 @@
     .article-item:hover { background: #FAFBFC; }
     .article-item.hidden-by-search,
     .article-item.hidden-by-urgency,
-    .article-item.hidden-by-new { display: none; }
+    .article-item.hidden-by-new,
+    .article-item.hidden-by-relevance { display: none; }
     .article-item.hidden-by-date { display: none; }
     .article-item.historical { opacity: 0.85; }
     .article-show-history {
@@ -890,6 +891,104 @@
     .badge-impact.hi  { background:#fee2e2; color:#991b1b; border-color:#fca5a5; }
     .badge-impact.mid { background:#fef9c3; color:#713f12; border-color:#fde047; }
     .badge-impact.lo  { background:#f0fdf4; color:#166534; border-color:#bbf7d0; }
+
+    /* Relevance badges */
+    .badge-indirect { background: #FFF8E1; color: #F57F17; border: 1px solid #FFE082; }
+    .badge-monitor  { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+
+    /* MONITOR articles: visually muted */
+    .article-item[data-relevance="MONITOR"] { opacity: 0.45; }
+    .article-item[data-relevance="MONITOR"]:hover { opacity: 0.75; transition: opacity 0.15s; }
+    .article-item[data-relevance="MONITOR"] .badge-high,
+    .article-item[data-relevance="MONITOR"] .badge-medium,
+    .article-item[data-relevance="MONITOR"] .badge-low { display: none; }
+
+    /* INDIRECT articles: urgency de-emphasized */
+    .article-item[data-relevance="INDIRECT"] .badge-high,
+    .article-item[data-relevance="INDIRECT"] .badge-medium,
+    .article-item[data-relevance="INDIRECT"] .badge-low { opacity: 0.5; font-size: 8px; }
+
+    /* Relevance reason */
+    .relevance-reason { font-size: 11px; color: var(--amber); font-style: italic; margin-top: 3px; }
+
+    /* Hidden by relevance filter — also handled in the main hidden-by-* rule above */
+
+    /* Badge legend */
+    .badge-legend {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      font-size: 12px;
+    }
+    .badge-legend-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .badge-legend-title {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+    }
+    .badge-legend-close {
+      font-size: 14px;
+      color: var(--text-muted);
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0 4px;
+      line-height: 1;
+    }
+    .badge-legend-close:hover { color: var(--text-primary); }
+    .badge-legend-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+    }
+    .badge-legend-section-title {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .badge-legend-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+      color: var(--text-secondary);
+    }
+    .badge-legend-row .badge { flex-shrink: 0; }
+    .legend-swatch {
+      display: inline-block;
+      width: 10px; height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .legend-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+      color: var(--text-secondary);
+    }
+    .legend-btn:hover { background: var(--bg); }
 
     .article-meta {
       font-family: var(--mono);
@@ -2026,6 +2125,9 @@
     <span style="font-family:var(--mono);font-weight:600;">{{ ok_count }}/{{ source_health|length }}</span>
   </div>
   {% endif %}
+  <button class="customize-btn" onclick="toggleLegend()" title="Badge guide" id="legend-btn" style="margin-right:4px;">
+    &#x3F; Guide
+  </button>
   <button class="customize-btn" onclick="openCustomize()" title="Customize panels">
     <span class="cog">&#9881;</span> Customize
   </button>
@@ -2209,6 +2311,41 @@
           </div>
         </div>
 
+        <!-- Badge Legend (dismissible) -->
+        <div class="badge-legend" id="badge-legend" style="display:none;">
+          <div class="badge-legend-header">
+            <span class="badge-legend-title">&#x25A6; Badge Guide</span>
+            <button class="badge-legend-close" onclick="dismissLegend()" title="Dismiss">&#x2715;</button>
+          </div>
+          <div class="badge-legend-grid">
+            <div>
+              <div class="badge-legend-section-title">Article Status</div>
+              <div class="badge-legend-row"><span class="badge badge-new" style="font-size:10px;">New</span> First seen this week</div>
+              <div class="badge-legend-row"><span class="legend-swatch" style="background:rgba(0,0,0,0.12);border:1px solid var(--border);"></span> Carried over from prior week</div>
+              <div class="badge-legend-row"><span class="legend-swatch" style="opacity:0.45;background:var(--text-muted);"></span> Faded row = older than 30 days</div>
+            </div>
+            <div>
+              <div class="badge-legend-section-title">Regulatory Urgency</div>
+              <div class="badge-legend-row"><span class="badge badge-high" style="font-size:10px;">High</span> Deadline &lt;90 days or active enforcement</div>
+              <div class="badge-legend-row"><span class="badge badge-medium" style="font-size:10px;">Medium</span> Proposed rule or 90–365 days out</div>
+              <div class="badge-legend-row"><span class="badge badge-low" style="font-size:10px;">Low</span> Long-range or informational</div>
+            </div>
+            <div>
+              <div class="badge-legend-section-title">Company Relevance</div>
+              <div class="badge-legend-row"><span style="font-size:11px;color:var(--text-muted);">(no badge)</span>&nbsp; Direct impact on our products/supply chain</div>
+              <div class="badge-legend-row"><span class="badge badge-indirect" style="font-size:10px;">Indirect</span> Worth knowing — signals trends for us (hover for why)</div>
+              <div class="badge-legend-row"><span class="badge badge-monitor" style="font-size:10px;">Monitor</span> General news — no foreseeable company impact</div>
+            </div>
+            <div>
+              <div class="badge-legend-section-title">Impact Score (1–10)</div>
+              <div class="badge-legend-row"><span class="badge badge-impact hi" style="font-size:10px;">7+</span> High company impact</div>
+              <div class="badge-legend-row"><span class="badge badge-impact mid" style="font-size:10px;">4–6</span> Moderate company impact</div>
+              <div class="badge-legend-row"><span class="badge badge-impact lo" style="font-size:10px;">1–3</span> Low company impact</div>
+              <div style="margin-top:6px;font-size:10px;color:var(--text-muted);">Score weights: product risk (35%), supply chain (25%), financial (20%), timeline (20%)</div>
+            </div>
+          </div>
+        </div>
+
         <!-- Filter / Sort bar -->
         <div class="filter-bar" id="filter-bar">
           <div class="filter-group">
@@ -2216,6 +2353,12 @@
             <button class="f-btn active" data-urgency="ALL"    onclick="setUrgencyFilter('ALL',this)">All</button>
             <button class="f-btn"        data-urgency="HIGH"   onclick="setUrgencyFilter('HIGH',this)">High</button>
             <button class="f-btn"        data-urgency="MEDIUM" onclick="setUrgencyFilter('MEDIUM',this)">High+Med</button>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">Relevance</span>
+            <button class="f-btn active" data-rel="relevant" onclick="setRelFilter('relevant',this)">Relevant</button>
+            <button class="f-btn"        data-rel="all"      onclick="setRelFilter('all',this)">All</button>
+            <button class="f-btn"        data-rel="direct"   onclick="setRelFilter('direct',this)">Direct only</button>
           </div>
           <div class="filter-group">
             <span class="filter-label">Show</span>
@@ -2306,6 +2449,7 @@
                   {% set thirty_days_ago = (now - timedelta_30).strftime('%Y-%m-%d') %}
                   {% for dev in topic.developments %}
                   {%- set is_recent = (dev.date or '') >= thirty_days_ago -%}
+                  {%- set dev_relevance = dev.relevance|default('DIRECT') -%}
                   <div class="article-item{% if not is_recent %} historical{% endif %}"
                        data-urgency="{{ dev.urgency }}" data-topic="{{ topic.topic|lower }}"
                        data-headline="{{ dev.headline|lower }}"
@@ -2313,15 +2457,21 @@
                        data-source="{{ dev.source|lower if dev.source else '' }}"
                        data-date="{{ dev.date or '' }}"
                        data-new="{{ 'true' if dev.is_new else 'false' }}"
-                       data-recent="{{ 'true' if is_recent else 'false' }}">
+                       data-recent="{{ 'true' if is_recent else 'false' }}"
+                       data-relevance="{{ dev_relevance }}">
                     <div class="article-head">
                       {% if dev.is_new %}<span class="badge badge-new">New</span>{% endif %}
+                      {% if dev_relevance == 'INDIRECT' %}<span class="badge badge-indirect" title="{{ dev.relevance_reason or 'Strategically relevant — signals trends that may affect us' }}">Indirect</span>{% endif %}
+                      {% if dev_relevance == 'MONITOR' %}<span class="badge badge-monitor" title="General regulatory news — no direct company impact">Monitor</span>{% endif %}
                       <span class="article-headline"><a href="{{ dev.url }}">{{ dev.headline }}</a></span>
                       <span class="badge badge-{{ dev.urgency|lower }}">{{ dev.urgency }}</span>
                       {% if dev.impact_score is defined %}
                       <span class="badge badge-impact {% if dev.impact_score >= 7 %}hi{% elif dev.impact_score >= 4 %}mid{% else %}lo{% endif %}" title="Company impact score">{{ dev.impact_score }}</span>
                       {% endif %}
                     </div>
+                    {% if dev_relevance == 'INDIRECT' and dev.relevance_reason %}
+                    <div class="relevance-reason">&#x2197; {{ dev.relevance_reason }}</div>
+                    {% endif %}
                     <div class="article-meta">
                       <span>{{ dev.source }}</span>
                       {% if dev.date %}
@@ -3146,6 +3296,7 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
     urgencyFilter: 'ALL',
     newFilter: 'ALL',
     sortOrder: 'date',
+    relFilter: 'relevant',
     allTopics: {{ topics|map(attribute='topic')|list|map('lower')|list|tojson }}
   };
 
@@ -3315,6 +3466,14 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
   window.setUrgencyFilter = function(level, btn) {
     state.urgencyFilter = level;
     document.querySelectorAll('.f-btn[data-urgency]').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    applyFilters();
+  };
+
+  /* ── Relevance filter ── */
+  window.setRelFilter = function(mode, btn) {
+    state.relFilter = mode;
+    document.querySelectorAll('.f-btn[data-rel]').forEach(function(b) { b.classList.remove('active'); });
     btn.classList.add('active');
     applyFilters();
   };
@@ -3895,23 +4054,54 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
 
       var passNew = state.newFilter !== 'NEW' || article.dataset.new === 'true';
 
+      var rel = article.dataset.relevance || 'DIRECT';
+      var passRel = state.relFilter === 'all'
+        || (state.relFilter === 'relevant' && rel !== 'MONITOR')
+        || (state.relFilter === 'direct' && rel === 'DIRECT');
+
       article.classList.toggle('hidden-by-urgency', !passUrgency);
       article.classList.toggle('hidden-by-new', !passNew);
-      if (!passUrgency || !passNew) { article.classList.remove('hidden-by-search'); }
+      article.classList.toggle('hidden-by-relevance', !passRel);
+      if (!passUrgency || !passNew || !passRel) { article.classList.remove('hidden-by-search'); }
 
       var passSearch = true;
       if (q) passSearch = headline.indexOf(q) !== -1 || summary.indexOf(q) !== -1 || source.indexOf(q) !== -1;
       article.classList.toggle('hidden-by-search', !passSearch);
 
-      if (passUrgency && passNew && passSearch && state.activeTopics.has(topic)) visibleCount++;
+      if (passUrgency && passNew && passRel && passSearch && state.activeTopics.has(topic)) visibleCount++;
     });
 
     highlightSearchMatches(q);
 
     var countEl = document.getElementById('search-count');
-    countEl.textContent = (q || state.urgencyFilter !== 'ALL' || state.newFilter !== 'ALL') ? visibleCount + ' / ' + totalCount : '';
+    countEl.textContent = (q || state.urgencyFilter !== 'ALL' || state.newFilter !== 'ALL' || state.relFilter !== 'all') ? visibleCount + ' / ' + totalCount : '';
     document.getElementById('stat-articles').textContent = visibleCount || totalCount;
   }
+
+  /* ── Badge legend ── */
+  window.toggleLegend = function() {
+    var legend = document.getElementById('badge-legend');
+    if (!legend) return;
+    var visible = legend.style.display !== 'none';
+    legend.style.display = visible ? 'none' : 'block';
+    if (!visible) {
+      try { localStorage.removeItem('legendDismissed'); } catch(e) {}
+    }
+  };
+  window.dismissLegend = function() {
+    var legend = document.getElementById('badge-legend');
+    if (legend) legend.style.display = 'none';
+    try { localStorage.setItem('legendDismissed', '1'); } catch(e) {}
+  };
+  // Show legend on first visit
+  (function() {
+    try {
+      if (!localStorage.getItem('legendDismissed')) {
+        var legend = document.getElementById('badge-legend');
+        if (legend) legend.style.display = 'block';
+      }
+    } catch(e) {}
+  })();
 
   function highlightSearchMatches(query) {
     document.querySelectorAll('.article-headline mark, .article-summary mark').forEach(function(m) {

@@ -350,6 +350,16 @@
       font-size: 10px; font-weight: 500; color: #B91C1C; letter-spacing: 0.2px;
       display: inline-block; margin-left: 10px;
     }
+    .relevance-badge {
+      display: inline-block; font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 8px; font-weight: 600; letter-spacing: 0.5px; padding: 2px 6px;
+      border-radius: 3px; text-transform: uppercase; margin-right: 4px;
+    }
+    .relevance-indirect { color: #F57F17; background: #3A2800; border: 1px solid #5A3E00; }
+    .relevance-monitor  { color: #666; background: #1A1A1A; border: 1px solid #333; }
+    .relevance-reason-email {
+      font-size: 10px; color: #C49A2A; font-style: italic; margin: 3px 0 5px 0;
+    }
 
     /* ── No-news state ────────────────────────────────────── */
     .no-news {
@@ -535,6 +545,11 @@
                 <a href="{{ exec_summary_url }}" class="exec-link" target="_blank">&rarr; Executive Summary</a>
               </div>
               {% endif %}
+
+              <!-- Badge key -->
+              <div style="font-family:'IBM Plex Mono','Courier New',monospace;font-size:9px;color:#555;padding:6px 0 12px;letter-spacing:0.3px;">
+                BADGE KEY &mdash; Urgency: HIGH = deadline &lt;90d &nbsp;|&nbsp; MEDIUM = 90&ndash;365d &nbsp;|&nbsp; LOW = long-range &nbsp;&nbsp;&mdash;&nbsp;&nbsp; Relevance: INDIRECT = signals trends for us &nbsp;|&nbsp; MONITOR = general news only
+              </div>
 
               {% for topic in topics %}
               {% include 'topic_section.html' %}
