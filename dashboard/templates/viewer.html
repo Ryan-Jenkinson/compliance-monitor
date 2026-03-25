@@ -209,6 +209,27 @@
     .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--text-muted); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    .key-prompt { padding: 18px; }
+    .key-prompt-msg { font-size: 13px; color: var(--text-secondary); margin-bottom: 10px; }
+    .key-prompt-err { font-size: 12px; color: var(--red); margin-bottom: 8px; }
+    .key-prompt-row { display: flex; gap: 8px; }
+    .key-input {
+      flex: 1; border: 1px solid var(--border); border-radius: 5px;
+      padding: 7px 11px; font-family: var(--mono); font-size: 12px; outline: none;
+      background: var(--bg); color: var(--text-primary);
+      transition: border-color 0.12s;
+    }
+    .key-input:focus { border-color: var(--amber); background: var(--surface); }
+    .key-btn {
+      background: var(--amber); color: #fff; border: none; border-radius: 5px;
+      padding: 7px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+      white-space: nowrap; transition: background 0.12s;
+    }
+    .key-btn:hover { background: #A8640A; }
+    .key-hint { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-top: 6px; }
+    .synthesis-reset { font-family: var(--mono); font-size: 9px; color: rgba(255,255,255,0.3); cursor: pointer; background: none; border: none; padding: 0; }
+    .synthesis-reset:hover { color: rgba(255,255,255,0.6); }
+
     mark { background: #FFF3A3; padding: 0 1px; border-radius: 2px; }
 
     @media (max-width: 700px) {
@@ -253,7 +274,10 @@
     <div class="synthesis-card" id="synthesis-card">
       <div class="synthesis-header">
         <span class="synthesis-header-title">&#9670; AI Analysis</span>
-        <span class="synthesis-header-meta" id="synthesis-meta">Powered by Claude Haiku</span>
+        <span style="display:flex;align-items:center;gap:10px;">
+          <span class="synthesis-header-meta" id="synthesis-meta">claude-haiku-4-5</span>
+          <button class="synthesis-reset" id="synthesis-reset-btn" onclick="resetApiKey()" style="display:none" title="Change API key">&#9998; key</button>
+        </span>
       </div>
       <div id="synthesis-body">
         <div class="synthesis-loading"><span class="spinner"></span>&nbsp; Generating analysis&hellip;</div>
@@ -311,29 +335,16 @@
   document.getElementById('topbar-meta').textContent =
     now.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
 
-  // Determine articles.json URL
   var isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   var jsonUrl = isLocal ? '/articles.json' : '../articles.json';
 
-  // Fetch articles and synthesis in parallel
-  var articlesPromise = fetch(jsonUrl)
-    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
-
-  var synthesisPromise = isLocal
-    ? fetch('http://localhost:5000/api/synthesis?q=' + encodeURIComponent(_q))
-        .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-    : Promise.resolve(null);
-
-  articlesPromise
+  fetch(jsonUrl)
+    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(function(data) { _articles = data || []; init(); })
     .catch(function() {
       document.getElementById('status-bar').innerHTML =
         '&#9888;&nbsp; Could not load article data. <a href="../dashboard.html">Return to dashboard</a>.';
     });
-
-  synthesisPromise
-    .then(function(data) { renderSynthesis(data); })
-    .catch(function() { renderSynthesis(null); });
 
   function init() {
     if (!_q) {
@@ -364,76 +375,170 @@
     buildTopicFilters();
     buildRelCounts();
     rerender();
+    fetchSynthesis();
   }
+
+  /* ── AI Synthesis via direct Anthropic API call ── */
+
+  function fetchSynthesis() {
+    var apiKey = '';
+    try { apiKey = localStorage.getItem('anthropic_api_key') || ''; } catch(e) {}
+    if (!apiKey) { showKeyPrompt(); return; }
+    document.getElementById('synthesis-body').innerHTML =
+      '<div class="synthesis-loading"><span class="spinner"></span>&nbsp; Generating analysis with Claude Haiku&hellip;</div>';
+    var resetBtn = document.getElementById('synthesis-reset-btn');
+    if (resetBtn) resetBtn.style.display = '';
+
+    var prompt = buildSynthesisPrompt(_q, _filtered);
+    fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1400,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(resp) {
+      if (resp.error) throw new Error(resp.error.message || resp.error.type);
+      var text = (resp.content[0].text || '').trim();
+      if (text.startsWith('```')) { text = text.split('\n').slice(1).join('\n').split('```')[0].trim(); }
+      var data = JSON.parse(text);
+      data.generated_at = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+      data.article_count = _filtered.length;
+      renderSynthesis(data);
+    })
+    .catch(function(err) {
+      var msg = err.message || String(err);
+      if (msg.toLowerCase().indexOf('auth') !== -1 || msg.toLowerCase().indexOf('invalid') !== -1 || msg.toLowerCase().indexOf('api_key') !== -1) {
+        try { localStorage.removeItem('anthropic_api_key'); } catch(e) {}
+        showKeyPrompt('Invalid API key — please re-enter.');
+      } else {
+        document.getElementById('synthesis-body').innerHTML =
+          '<div class="synthesis-offline"><div class="synthesis-offline-icon">&#9888;</div>' +
+          '<div><div class="synthesis-offline-title">Analysis failed</div>' +
+          '<div class="synthesis-offline-text">' + esc(msg) + '</div></div></div>';
+      }
+    });
+  }
+
+  function buildSynthesisPrompt(query, articles) {
+    var lines = [
+      'You are a regulatory intelligence analyst for a US windows/doors manufacturer (Andersen Corp).',
+      'Company context: makes windows/doors with fluoropolymer coatings; buys vinyl, aluminum, glass, hardware, o-rings, motors, electronics. Sells all 50 US states.',
+      '',
+      'The compliance team searched for: "' + query + '"',
+      ''
+    ];
+    if (articles.length) {
+      lines.push('RELEVANT ARTICLES (' + Math.min(articles.length, 20) + ' of ' + articles.length + '):');
+      articles.slice(0, 20).forEach(function(a) {
+        lines.push('  - [' + (a.topic||'') + '] ' + (a.title||'') + ' (' + (a.pub_date||'') + ')');
+        if (a.snippet) lines.push('    ' + a.snippet.slice(0, 200));
+      });
+      lines.push('');
+    } else {
+      lines.push('No articles found in the 6-month archive. Use your knowledge to analyse this topic.');
+      lines.push('');
+    }
+    lines.push('Return a JSON object with EXACTLY these keys (all required):');
+    lines.push('"overview": 2-3 sentence current regulatory landscape summary.');
+    lines.push('"history": 2-3 sentence regulatory/legislative history — key milestones and how we got here.');
+    lines.push('"science": 2-3 sentences on the science or substance — what it is, why it matters to health/environment.');
+    lines.push('"company_impact": 3-4 sentences on direct and indirect impact for this manufacturer.');
+    lines.push('"key_risks": 3-4 sentences on the highest-priority risks to monitor.');
+    lines.push('"things_to_consider": array of 4-6 specific strategic consideration strings.');
+    lines.push('"next_steps": 2-3 sentences of concrete, prioritized next steps for the compliance team.');
+    lines.push('Return ONLY valid JSON. No markdown fences, no preamble.');
+    return lines.join('\n');
+  }
+
+  function showKeyPrompt(errMsg) {
+    var body = document.getElementById('synthesis-body');
+    body.innerHTML =
+      '<div class="key-prompt">' +
+      '<div class="key-prompt-msg">Enter your Anthropic API key to generate an AI analysis of &ldquo;' + esc(_q) + '&rdquo;.</div>' +
+      (errMsg ? '<div class="key-prompt-err">' + esc(errMsg) + '</div>' : '') +
+      '<div class="key-prompt-row">' +
+      '<input class="key-input" type="password" id="api-key-input" placeholder="sk-ant-api03-..." ' +
+        'onkeydown="if(event.key===\'Enter\')saveApiKey()">' +
+      '<button class="key-btn" onclick="saveApiKey()">Generate Analysis</button>' +
+      '</div>' +
+      '<div class="key-hint">Stored in localStorage on this device only &middot; Uses claude-haiku-4-5 (~$0.001/query)</div>' +
+      '</div>';
+    setTimeout(function() {
+      var inp = document.getElementById('api-key-input');
+      if (inp) inp.focus();
+    }, 50);
+  }
+
+  window.saveApiKey = function() {
+    var inp = document.getElementById('api-key-input');
+    var key = inp ? inp.value.trim() : '';
+    if (!key) return;
+    try { localStorage.setItem('anthropic_api_key', key); } catch(e) {}
+    fetchSynthesis();
+  };
+
+  window.resetApiKey = function() {
+    try { localStorage.removeItem('anthropic_api_key'); } catch(e) {}
+    var resetBtn = document.getElementById('synthesis-reset-btn');
+    if (resetBtn) resetBtn.style.display = 'none';
+    showKeyPrompt();
+  };
 
   function renderSynthesis(data) {
     var body = document.getElementById('synthesis-body');
     var meta = document.getElementById('synthesis-meta');
     if (!body) return;
 
-    if (!isLocal && !data) {
-      // Static site — show offline prompt
-      body.innerHTML =
-        '<div class="synthesis-offline">' +
-        '<div class="synthesis-offline-icon">&#9670;</div>' +
-        '<div><div class="synthesis-offline-title">AI analysis available locally</div>' +
-        '<div class="synthesis-offline-text">Run <code>python3 server.py</code> locally and open this page ' +
-        'through the local server to get a full AI-generated analysis — overview, business impact, science, ' +
-        'key risks, strategic considerations, and next steps.</div></div></div>';
-      return;
-    }
-
     if (!data || data.error) {
       body.innerHTML =
-        '<div class="synthesis-offline">' +
-        '<div class="synthesis-offline-icon">&#9888;</div>' +
+        '<div class="synthesis-offline"><div class="synthesis-offline-icon">&#9888;</div>' +
         '<div><div class="synthesis-offline-title">Analysis unavailable</div>' +
-        '<div class="synthesis-offline-text">' + (data && data.error ? esc(data.error) : 'Could not generate analysis.') + '</div></div></div>';
+        '<div class="synthesis-offline-text">' + esc((data && data.error) || 'Could not generate analysis.') + '</div></div></div>';
       return;
     }
 
     if (meta) {
-      var genAt = data.generated_at || '';
-      var artCount = data.article_count != null ? data.article_count + ' articles analysed' : '';
-      meta.textContent = [genAt, artCount].filter(Boolean).join(' · ');
+      var parts = ['claude-haiku-4-5'];
+      if (data.generated_at) parts.push(data.generated_at);
+      if (data.article_count != null) parts.push(data.article_count + ' articles');
+      meta.textContent = parts.join(' · ');
     }
+    var resetBtn = document.getElementById('synthesis-reset-btn');
+    if (resetBtn) resetBtn.style.display = '';
 
     var sections = [
-      { key: 'overview', label: 'Overview' },
-      { key: 'history', label: 'Regulatory History' },
-      { key: 'science', label: 'Science & Background' },
-      { key: 'company_impact', label: 'Business Impact' },
-      { key: 'key_risks', label: 'Key Risks' },
+      {key:'overview', label:'Overview'},
+      {key:'history', label:'Regulatory History'},
+      {key:'science', label:'Science & Background'},
+      {key:'company_impact', label:'Business Impact'},
+      {key:'key_risks', label:'Key Risks'},
     ];
-
     var html = '<div class="synthesis-grid">';
     sections.forEach(function(s) {
-      var text = data[s.key] || '';
-      if (!text) return;
-      html += '<div class="synthesis-section">' +
-        '<div class="synthesis-section-label">' + esc(s.label) + '</div>' +
-        '<div class="synthesis-section-text">' + esc(text) + '</div>' +
-        '</div>';
+      if (!data[s.key]) return;
+      html += '<div class="synthesis-section"><div class="synthesis-section-label">' + s.label + '</div>' +
+        '<div class="synthesis-section-text">' + esc(data[s.key]) + '</div></div>';
     });
     html += '</div>';
-
-    var considerations = data.things_to_consider || [];
-    if (considerations.length) {
-      html += '<div class="synthesis-considerations">' +
-        '<div class="synthesis-section-label">Things to Consider</div>' +
-        '<ul class="considerations-list">' +
-        considerations.map(function(c) { return '<li>' + esc(c) + '</li>'; }).join('') +
-        '</ul></div>';
+    var items = data.things_to_consider || [];
+    if (items.length) {
+      html += '<div class="synthesis-considerations"><div class="synthesis-section-label">Things to Consider</div>' +
+        '<ul class="considerations-list">' + items.map(function(c){return '<li>'+esc(c)+'</li>';}).join('') + '</ul></div>';
     }
-
     if (data.next_steps) {
-      html += '<div class="synthesis-section">' +
-        '<div class="synthesis-section-label">Next Steps</div>' +
-        '<div class="synthesis-section-text">' + esc(data.next_steps) + '</div>' +
-        '</div>';
+      html += '<div class="synthesis-section"><div class="synthesis-section-label">Next Steps</div>' +
+        '<div class="synthesis-section-text">' + esc(data.next_steps) + '</div></div>';
     }
-
-    body.innerHTML = html || '<div class="synthesis-offline"><div class="synthesis-offline-text">No analysis generated.</div></div>';
+    body.innerHTML = html;
   }
 
   function buildTopicFilters() {
@@ -523,14 +628,16 @@
     if (!email) return;
     var res = document.getElementById('sub-result');
     if (isLocal) {
-      fetch('http://localhost:5000/subscribe', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({email: email, keyword: _q})
-      })
-      .then(function(r) { return r.json(); })
-      .then(function() {
-        res.className = 'sub-ok'; res.textContent = '✓ Subscribed — you\'ll get alerts for "' + _q + '"';
+      var fd = new FormData();
+      fd.append('email', email);
+      fd.append('keyword', _q);
+      fetch('http://localhost:5000/subscribe', { method: 'POST', body: fd })
+      .then(function(r) {
+        if (r.ok) {
+          res.className = 'sub-ok'; res.textContent = '✓ Subscribed — you\'ll get alerts for "' + _q + '"';
+        } else {
+          res.className = 'sub-err'; res.textContent = 'Server error (' + r.status + ')';
+        }
       })
       .catch(function() {
         res.className = 'sub-err'; res.textContent = 'Could not connect. Start the server: python3 server.py';
