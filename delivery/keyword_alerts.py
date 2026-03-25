@@ -56,6 +56,40 @@ def dispatch_keyword_alerts(base_url: str = "http://localhost:5000") -> int:
     return total_sent
 
 
+def _build_synthesis_html(synthesis: dict) -> str:
+    """Format AI synthesis dict as inline HTML for the alert email."""
+    if not synthesis:
+        return ""
+    sections = [
+        ("Overview", synthesis.get("overview", "")),
+        ("Business Impact", synthesis.get("company_impact", "")),
+        ("Key Risks", synthesis.get("key_risks", "")),
+        ("Next Steps", synthesis.get("next_steps", "")),
+    ]
+    html = '<div style="background:#1A1D23;border-radius:6px;margin-bottom:18px;overflow:hidden;">'
+    html += '<div style="padding:10px 14px;border-bottom:2px solid #CB7B0A;">'
+    html += '<span style="color:#CB7B0A;font-family:monospace;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;">&#9670; AI Analysis</span>'
+    html += '</div>'
+    html += '<div style="padding:14px;">'
+    for label, text in sections:
+        if not text:
+            continue
+        html += f'<div style="margin-bottom:12px;">'
+        html += f'<div style="font-family:monospace;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:rgba(255,255,255,0.4);margin-bottom:4px;">{label}</div>'
+        html += f'<div style="font-size:13px;color:rgba(255,255,255,0.85);line-height:1.6;">{text}</div>'
+        html += '</div>'
+    considerations = synthesis.get("things_to_consider", [])
+    if considerations:
+        html += '<div style="margin-bottom:12px;">'
+        html += '<div style="font-family:monospace;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:rgba(255,255,255,0.4);margin-bottom:6px;">Things to Consider</div>'
+        html += '<ul style="margin:0;padding-left:18px;">'
+        for item in considerations:
+            html += f'<li style="font-size:13px;color:rgba(255,255,255,0.85);line-height:1.6;margin-bottom:4px;">{item}</li>'
+        html += '</ul></div>'
+    html += '</div></div>'
+    return html
+
+
 def _send_keyword_alert(
     email: str,
     keyword: str,
@@ -65,6 +99,15 @@ def _send_keyword_alert(
 ) -> None:
     from delivery.gmail_sender import GmailSender
     from config.settings import Config
+
+    # Generate AI synthesis for the matching articles
+    synthesis = {}
+    try:
+        from deep_dive import generate_viewer_synthesis, search_content
+        _, deadlines, bills = search_content(keyword)
+        synthesis = generate_viewer_synthesis(keyword, articles, deadlines, bills)
+    except Exception as e:
+        logger.debug(f"Synthesis skipped for alert ({keyword!r}): {e}")
 
     count = len(articles)
     subject = f'[Compliance Alert] {count} new result{"s" if count != 1 else ""} for "{keyword}"'
@@ -112,16 +155,19 @@ def _send_keyword_alert(
           </div>
         </div>"""
 
+    synthesis_html = _build_synthesis_html(synthesis)
+
     html_body = f"""
     <div style="font-family:-apple-system,BlinkMacSystemFont,'Instrument Sans',sans-serif;
                 max-width:600px;margin:0 auto;color:#111318;">
-      <div style="background:#1A1D23;padding:16px 24px;border-bottom:3px solid #1565C0;">
+      <div style="background:#1A1D23;padding:16px 24px;border-bottom:3px solid #CB7B0A;">
         <span style="color:#fff;font-weight:700;font-size:15px;">Compliance Alert</span>
         <span style="color:rgba(255,255,255,0.55);font-size:12px;margin-left:12px;">
           {count} new result{"s" if count != 1 else ""} for &ldquo;{keyword}&rdquo;
         </span>
       </div>
       <div style="padding:20px 24px;background:#fff;">
+        {synthesis_html}
         {article_html}
         <div style="margin-top:20px;padding-top:16px;border-top:1px solid #E8EAED;">
           <a href="{deep_dive_url}"

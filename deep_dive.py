@@ -188,6 +188,92 @@ def generate_synthesis(
         }
 
 
+_VIEWER_SYNTHESIS_PROMPT = """You are a regulatory intelligence analyst for a US windows/doors manufacturer (Andersen Corp).
+The compliance team searched for: "{query}"
+
+Company context: manufactures windows/doors using fluoropolymer coatings, vinyl, aluminum, glass, hardware, o-rings,
+motors, electronics. Sells in all 50 US states. NOT a chemical manufacturer — risk is via product labeling,
+supplier disclosure, and supply chain.
+
+{content_block}
+
+Provide a thorough JSON analysis with EXACTLY these keys (all required):
+
+"overview": 2-3 sentence summary of the current regulatory landscape for this topic.
+"history": 2-3 sentence history — when did regulation start, key milestones, how has the landscape evolved.
+"science": 2-3 sentences on the underlying science/chemistry — what is this substance/topic, why does it matter to health/environment.
+"company_impact": 3-4 sentences on direct and indirect business impact for this manufacturer — which products, materials, or operations are affected.
+"key_risks": 3-4 sentences identifying the highest-priority risks to monitor.
+"things_to_consider": array of 4-6 strings, each a specific strategic consideration or action item for the compliance team.
+"next_steps": 2-3 sentences of concrete, prioritized next steps.
+
+Return ONLY valid JSON. No markdown fences, no preamble, no commentary."""
+
+
+def generate_viewer_synthesis(
+    query: str,
+    articles: list[dict],
+    deadlines: list[dict],
+    bills: list[dict],
+    client: "ClaudeClient | None" = None,
+) -> dict:
+    """
+    Richer synthesis for the client-side viewer page. Returns dict with:
+    overview, history, science, company_impact, key_risks, things_to_consider, next_steps.
+    """
+    if client is None:
+        client = ClaudeClient()
+
+    lines = []
+    if articles:
+        lines.append(f"ARTICLES ({len(articles)} found):")
+        for a in articles[:25]:
+            lines.append(f"  - [{a.get('topic','')}] {a.get('title','')} ({(a.get('pub_date') or '')[:10]})")
+            if a.get("snippet"):
+                lines.append(f"    {a['snippet'][:200]}")
+        lines.append("")
+    if deadlines:
+        lines.append(f"DEADLINES ({len(deadlines)} found):")
+        for d in deadlines[:10]:
+            lines.append(f"  - {d.get('deadline_date','')[:10]} [{d.get('urgency','')}] {d.get('title','')} ({d.get('jurisdiction','')})")
+        lines.append("")
+    if bills:
+        lines.append(f"LEGISLATION ({len(bills)} found):")
+        for b in bills[:10]:
+            lines.append(f"  - {b.get('state','')} {b.get('bill_number','')} ({b.get('stage','')}) {b.get('title','')}")
+        lines.append("")
+
+    content_block = "\n".join(lines) if lines else "No articles, deadlines, or bills found in the database for this query."
+
+    prompt = _VIEWER_SYNTHESIS_PROMPT.format(query=query, content_block=content_block)
+    cache_key = f"viewer_synthesis_{query.lower().replace(' ','_')}_{datetime.now().strftime('%Y%m%d')}"
+
+    try:
+        raw = client.complete_haiku(
+            prompt=prompt,
+            system=SYSTEM_COMPLIANCE_EXPERT,
+            cache_key=cache_key,
+        )
+        text = raw.strip()
+        if text.startswith("```"):
+            text = text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+        data = json.loads(text)
+        data["generated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+        return data
+    except Exception as e:
+        logger.warning(f"Viewer synthesis failed for {query!r}: {e}")
+        return {
+            "overview": f'Found {len(articles)} articles and {len(deadlines)} deadlines matching "{query}".',
+            "history": "",
+            "science": "",
+            "company_impact": "AI synthesis unavailable — review the articles below directly.",
+            "key_risks": "",
+            "things_to_consider": [],
+            "next_steps": "",
+            "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        }
+
+
 def render_deep_dive(
     query: str,
     articles: list[dict],

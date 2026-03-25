@@ -82,6 +82,59 @@
     .chip-count { font-family: var(--mono); font-size: 10px; color: var(--text-muted); font-weight: 400; }
     .topic-chip.active .chip-count { color: var(--blue); }
 
+    /* ── AI Synthesis card ── */
+    .synthesis-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; margin-bottom: 20px; overflow: hidden;
+    }
+    .synthesis-header {
+      background: #1A1D23; padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .synthesis-header-title {
+      font-family: var(--mono); font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.8px; color: var(--amber);
+    }
+    .synthesis-header-meta { font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,0.35); }
+    .synthesis-loading {
+      padding: 28px 20px; text-align: center;
+      color: var(--text-muted); font-size: 13px;
+    }
+    .synthesis-body { padding: 0; }
+    .synthesis-section {
+      padding: 14px 18px; border-bottom: 1px solid var(--border-light);
+    }
+    .synthesis-section:last-child { border-bottom: none; }
+    .synthesis-section-label {
+      font-family: var(--mono); font-size: 9px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .synthesis-section-text { font-size: 13px; line-height: 1.65; color: var(--text-secondary); }
+    .synthesis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+    .synthesis-grid .synthesis-section { border-right: 1px solid var(--border-light); }
+    .synthesis-grid .synthesis-section:nth-child(2n) { border-right: none; }
+    .synthesis-considerations { padding: 14px 18px; }
+    .synthesis-considerations .synthesis-section-label { margin-bottom: 8px; }
+    .considerations-list { list-style: none; }
+    .considerations-list li {
+      padding: 5px 0 5px 20px; position: relative;
+      font-size: 13px; line-height: 1.55; color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-light);
+    }
+    .considerations-list li:last-child { border-bottom: none; }
+    .considerations-list li::before {
+      content: "›"; position: absolute; left: 0;
+      color: var(--amber); font-weight: 700;
+    }
+    .synthesis-offline {
+      padding: 20px 18px; display: flex; align-items: flex-start; gap: 14px;
+    }
+    .synthesis-offline-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+    .synthesis-offline-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .synthesis-offline-text { font-size: 12px; color: var(--text-muted); line-height: 1.55; }
+    code { font-family: var(--mono); font-size: 11px; background: var(--bg); padding: 1px 5px; border-radius: 3px; }
+
     .main { min-width: 0; }
     .results-header {
       display: flex; justify-content: space-between; align-items: center;
@@ -196,6 +249,17 @@
   </aside>
 
   <main class="main">
+    <!-- AI Synthesis card -->
+    <div class="synthesis-card" id="synthesis-card">
+      <div class="synthesis-header">
+        <span class="synthesis-header-title">&#9670; AI Analysis</span>
+        <span class="synthesis-header-meta" id="synthesis-meta">Powered by Claude Haiku</span>
+      </div>
+      <div id="synthesis-body">
+        <div class="synthesis-loading"><span class="spinner"></span>&nbsp; Generating analysis&hellip;</div>
+      </div>
+    </div>
+
     <div class="results-header" id="results-header" style="display:none">
       <div>
         <div class="results-title" id="results-title"></div>
@@ -251,13 +315,25 @@
   var isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   var jsonUrl = isLocal ? '/articles.json' : '../articles.json';
 
-  fetch(jsonUrl)
-    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+  // Fetch articles and synthesis in parallel
+  var articlesPromise = fetch(jsonUrl)
+    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+
+  var synthesisPromise = isLocal
+    ? fetch('http://localhost:5000/api/synthesis?q=' + encodeURIComponent(_q))
+        .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    : Promise.resolve(null);
+
+  articlesPromise
     .then(function(data) { _articles = data || []; init(); })
-    .catch(function(err) {
+    .catch(function() {
       document.getElementById('status-bar').innerHTML =
         '&#9888;&nbsp; Could not load article data. <a href="../dashboard.html">Return to dashboard</a>.';
     });
+
+  synthesisPromise
+    .then(function(data) { renderSynthesis(data); })
+    .catch(function() { renderSynthesis(null); });
 
   function init() {
     if (!_q) {
@@ -288,6 +364,76 @@
     buildTopicFilters();
     buildRelCounts();
     rerender();
+  }
+
+  function renderSynthesis(data) {
+    var body = document.getElementById('synthesis-body');
+    var meta = document.getElementById('synthesis-meta');
+    if (!body) return;
+
+    if (!isLocal && !data) {
+      // Static site — show offline prompt
+      body.innerHTML =
+        '<div class="synthesis-offline">' +
+        '<div class="synthesis-offline-icon">&#9670;</div>' +
+        '<div><div class="synthesis-offline-title">AI analysis available locally</div>' +
+        '<div class="synthesis-offline-text">Run <code>python3 server.py</code> locally and open this page ' +
+        'through the local server to get a full AI-generated analysis — overview, business impact, science, ' +
+        'key risks, strategic considerations, and next steps.</div></div></div>';
+      return;
+    }
+
+    if (!data || data.error) {
+      body.innerHTML =
+        '<div class="synthesis-offline">' +
+        '<div class="synthesis-offline-icon">&#9888;</div>' +
+        '<div><div class="synthesis-offline-title">Analysis unavailable</div>' +
+        '<div class="synthesis-offline-text">' + (data && data.error ? esc(data.error) : 'Could not generate analysis.') + '</div></div></div>';
+      return;
+    }
+
+    if (meta) {
+      var genAt = data.generated_at || '';
+      var artCount = data.article_count != null ? data.article_count + ' articles analysed' : '';
+      meta.textContent = [genAt, artCount].filter(Boolean).join(' · ');
+    }
+
+    var sections = [
+      { key: 'overview', label: 'Overview' },
+      { key: 'history', label: 'Regulatory History' },
+      { key: 'science', label: 'Science & Background' },
+      { key: 'company_impact', label: 'Business Impact' },
+      { key: 'key_risks', label: 'Key Risks' },
+    ];
+
+    var html = '<div class="synthesis-grid">';
+    sections.forEach(function(s) {
+      var text = data[s.key] || '';
+      if (!text) return;
+      html += '<div class="synthesis-section">' +
+        '<div class="synthesis-section-label">' + esc(s.label) + '</div>' +
+        '<div class="synthesis-section-text">' + esc(text) + '</div>' +
+        '</div>';
+    });
+    html += '</div>';
+
+    var considerations = data.things_to_consider || [];
+    if (considerations.length) {
+      html += '<div class="synthesis-considerations">' +
+        '<div class="synthesis-section-label">Things to Consider</div>' +
+        '<ul class="considerations-list">' +
+        considerations.map(function(c) { return '<li>' + esc(c) + '</li>'; }).join('') +
+        '</ul></div>';
+    }
+
+    if (data.next_steps) {
+      html += '<div class="synthesis-section">' +
+        '<div class="synthesis-section-label">Next Steps</div>' +
+        '<div class="synthesis-section-text">' + esc(data.next_steps) + '</div>' +
+        '</div>';
+    }
+
+    body.innerHTML = html || '<div class="synthesis-offline"><div class="synthesis-offline-text">No analysis generated.</div></div>';
   }
 
   function buildTopicFilters() {

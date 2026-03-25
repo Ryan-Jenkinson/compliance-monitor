@@ -28,7 +28,7 @@ except ImportError:
     print("Flask is required for the server. Install it with:  pip install flask")
     sys.exit(1)
 
-from deep_dive import run_deep_dive, search_content, generate_synthesis, render_deep_dive, get_monthly_trend
+from deep_dive import run_deep_dive, search_content, generate_synthesis, generate_viewer_synthesis, render_deep_dive, get_monthly_trend
 from subscribers.db import (
     get_connection,
     init_db,
@@ -94,6 +94,27 @@ def deep_dive():
 
     _CACHE[cache_key] = html
     return html
+
+
+# ── Viewer synthesis API ──────────────────────────────────────────────────────
+
+@app.route("/api/synthesis")
+def api_synthesis():
+    """Return JSON synthesis for the client-side viewer page."""
+    from flask import jsonify
+    query = request.args.get("q", "").strip()
+    if not query:
+        return jsonify({"error": "Missing query parameter"}), 400
+    try:
+        articles, deadlines, bills = search_content(query)
+        synthesis = generate_viewer_synthesis(query, articles, deadlines, bills)
+        synthesis["article_count"] = len(articles)
+        synthesis["deadline_count"] = len(deadlines)
+        synthesis["bill_count"] = len(bills)
+        return jsonify(synthesis)
+    except Exception as e:
+        logger.error(f"api_synthesis error: {e}")
+        return jsonify({"error": str(e)}), 500
 
 
 # ── Subscription ──────────────────────────────────────────────────────────────
