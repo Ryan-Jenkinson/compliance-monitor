@@ -88,7 +88,51 @@
       color: var(--topic-color);
     }
     .topbar-label { color: rgba(255,255,255,0.70); font-size: 12px; font-family: var(--mono); }
-    .topbar-date { margin-left: auto; color: rgba(255,255,255,0.55); font-size: 11px; font-family: var(--mono); }
+    .topbar-spacer { flex: 1; }
+    .topbar-date { color: rgba(255,255,255,0.55); font-size: 11px; font-family: var(--mono); white-space: nowrap; }
+    .topbar-search-wrap {
+      flex: 1 0 180px;
+      max-width: 280px;
+      min-width: 160px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .topbar-search-input {
+      flex: 1;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.20);
+      border-radius: 4px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-family: var(--sans);
+      color: #fff;
+      outline: none;
+      transition: all 0.12s;
+      min-width: 0;
+    }
+    .topbar-search-input::placeholder { color: rgba(255,255,255,0.38); }
+    .topbar-search-input:focus {
+      background: rgba(255,255,255,0.16);
+      border-color: var(--topic-color);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.08);
+    }
+    .topbar-search-count-tp {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(255,255,255,0.45);
+      white-space: nowrap;
+    }
+    .search-highlight {
+      background: #FFF176;
+      color: #111318;
+      border-radius: 2px;
+      padding: 0 1px;
+    }
+    .search-highlight.search-current {
+      background: #FF8F00;
+      color: #fff;
+    }
 
     /* ── LAYOUT: main content + fixed right article sidebar ─────── */
     .layout {
@@ -898,6 +942,14 @@
   <div class="topbar-sep"></div>
   <span class="topbar-topic">{{ topic.topic }}</span>
   <span class="topbar-label">{{ topic.label }}</span>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-search-wrap">
+    <input type="text" id="topbar-search" class="topbar-search-input"
+           placeholder="Search page&#8230; ( / )" oninput="topbarSearch(this.value)"
+           autocomplete="off" spellcheck="false">
+    <span class="topbar-search-count-tp" id="topbar-search-count"></span>
+  </div>
+  <div class="topbar-sep"></div>
   <span class="topbar-date">{{ date_display }}</span>
 </div>
 
@@ -1483,6 +1535,113 @@
     document.getElementById('tp-count').textContent = visibleCount + ' articles';
     document.getElementById('tp-no-results').classList.toggle('visible', visibleCount === 0 && items.length > 0);
   }
+
+  /* ── Topbar search: drives sidebar filter + main content highlight ── */
+  var _currentHighlightIdx = -1;
+  var _highlights = [];
+
+  function clearHighlights() {
+    var marks = document.querySelectorAll('.main .search-highlight');
+    marks.forEach(function(m) {
+      m.parentNode.replaceChild(document.createTextNode(m.textContent), m);
+    });
+    var main = document.querySelector('.main');
+    if (main) main.normalize();
+    _highlights = [];
+    _currentHighlightIdx = -1;
+  }
+
+  function highlightMainContent(query) {
+    clearHighlights();
+    if (!query || query.length < 2) return 0;
+
+    var container = document.querySelector('.main');
+    if (!container) return 0;
+
+    var lq = query.toLowerCase();
+    var walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
+      acceptNode: function(n) {
+        var tag = n.parentNode.nodeName.toLowerCase();
+        if (tag === 'script' || tag === 'style' || tag === 'mark') return NodeFilter.FILTER_REJECT;
+        return n.textContent.toLowerCase().includes(lq) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+      }
+    });
+
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+
+    nodes.forEach(function(node) {
+      var text = node.textContent;
+      var lower = text.toLowerCase();
+      var frag = document.createDocumentFragment();
+      var last = 0, idx;
+      while ((idx = lower.indexOf(lq, last)) !== -1) {
+        if (idx > last) frag.appendChild(document.createTextNode(text.slice(last, idx)));
+        var mark = document.createElement('mark');
+        mark.className = 'search-highlight';
+        mark.textContent = text.slice(idx, idx + query.length);
+        frag.appendChild(mark);
+        _highlights.push(mark);
+        last = idx + query.length;
+      }
+      if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    });
+
+    return _highlights.length;
+  }
+
+  function jumpToHighlight(idx) {
+    if (!_highlights.length) return;
+    _highlights.forEach(function(m) { m.classList.remove('search-current'); });
+    _currentHighlightIdx = ((idx % _highlights.length) + _highlights.length) % _highlights.length;
+    var target = _highlights[_currentHighlightIdx];
+    target.classList.add('search-current');
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function topbarSearch(query) {
+    query = query.trim();
+    // Mirror to sidebar
+    var sidebarInput = document.getElementById('tp-search');
+    if (sidebarInput && sidebarInput.value !== query) {
+      sidebarInput.value = query;
+      filterArticles();
+    }
+    var countEl = document.getElementById('topbar-search-count');
+    if (!query) {
+      clearHighlights();
+      countEl.textContent = '';
+      return;
+    }
+    var n = highlightMainContent(query);
+    if (n > 0) {
+      jumpToHighlight(0);
+      countEl.textContent = n + ' match' + (n === 1 ? '' : 'es');
+    } else {
+      countEl.textContent = 'no matches';
+    }
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      document.getElementById('topbar-search').focus();
+    }
+    if (e.key === 'Escape') {
+      var inp = document.getElementById('topbar-search');
+      inp.value = '';
+      topbarSearch('');
+      inp.blur();
+    }
+    // Enter / Shift+Enter cycles through matches
+    if (e.key === 'Enter' && document.activeElement === document.getElementById('topbar-search')) {
+      e.preventDefault();
+      if (_highlights.length) {
+        jumpToHighlight(e.shiftKey ? _currentHighlightIdx - 1 : _currentHighlightIdx + 1);
+      }
+    }
+  });
 </script>
 
 <script>

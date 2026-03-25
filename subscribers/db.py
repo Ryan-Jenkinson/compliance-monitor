@@ -306,6 +306,20 @@ def init_db() -> None:
         conn.commit()
     except Exception:
         pass  # Column already exists
+    # Migration: keyword_subscriptions for ad-hoc topic alerts
+    try:
+        conn.execute("""CREATE TABLE IF NOT EXISTS keyword_subscriptions (
+            id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+            email               TEXT NOT NULL,
+            keyword             TEXT NOT NULL,
+            is_active           INTEGER NOT NULL DEFAULT 1,
+            unsubscribe_token   TEXT NOT NULL,
+            created_at          TEXT NOT NULL DEFAULT (datetime('now')),
+            UNIQUE(email, keyword)
+        )""")
+        conn.commit()
+    except Exception:
+        pass
     conn.close()
 
 
@@ -1091,6 +1105,36 @@ def get_all_topic_insights(period: str = "weekly") -> dict:
         except Exception:
             pass
     return result
+
+
+def get_active_keyword_subscriptions() -> list[dict]:
+    """Return all active keyword subscriptions."""
+    conn = get_connection()
+    rows = conn.execute(
+        """SELECT id, email, keyword, unsubscribe_token, created_at
+           FROM keyword_subscriptions
+           WHERE is_active = 1
+           ORDER BY keyword, email"""
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_new_articles_for_keyword(keyword: str, since_hours: int = 25) -> list[dict]:
+    """Return articles matching keyword that were first seen within `since_hours`."""
+    like = f"%{keyword}%"
+    conn = get_connection()
+    rows = conn.execute(
+        """SELECT id, topic, title, url, source, pub_date, snippet
+           FROM articles
+           WHERE (title LIKE ? OR snippet LIKE ?)
+             AND first_seen > datetime('now', ?)
+           ORDER BY first_seen DESC
+           LIMIT 20""",
+        (like, like, f"-{since_hours} hours"),
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
 
 
 def get_bills_by_topic(topic: str, limit: int = 30) -> list[dict]:

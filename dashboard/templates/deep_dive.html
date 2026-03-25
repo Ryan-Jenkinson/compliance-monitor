@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deep Dive: {{ query }} — Compliance Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F4F5F7;
+      --surface: #FFFFFF;
+      --surface-sunken: #EBEDF0;
+      --surface-dark: #1A1D23;
+      --border: #D8DBE0;
+      --border-light: #E8EAED;
+      --text-primary: #111318;
+      --text-secondary: #4A4F5C;
+      --text-muted: #7A8194;
+      --red: #D63031;
+      --red-bg: #FEF0F0;
+      --red-border: #FACACA;
+      --amber: #CB7B0A;
+      --amber-bg: #FEF6E8;
+      --amber-border: #F5DFA6;
+      --green: #0F7B3F;
+      --green-bg: #EEFAF3;
+      --green-border: #B2E0C7;
+      --blue: #1565C0;
+      --blue-bg: #EBF3FD;
+      --blue-border: #BBDEFB;
+      --teal: #0F766E;
+      --sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'IBM Plex Mono', 'Consolas', 'Monaco', monospace;
+      --topbar-h: 52px;
+      --radius: 6px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 2px 8px rgba(0,0,0,0.08);
+      --max-w: 860px;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { font-size: clamp(14px, 1.1vw, 16px); }
+    body {
+      background: var(--bg);
+      font-family: var(--sans);
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── TOPBAR ──────────────────────────────────────────────────── */
+    .topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--topbar-h);
+      background: var(--surface-dark);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 24px;
+      z-index: 200;
+      border-bottom: 3px solid var(--blue);
+    }
+    .topbar-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: rgba(255,255,255,0.85);
+      font-size: 12px;
+      font-family: var(--mono);
+      text-decoration: none;
+      border: 1px solid rgba(255,255,255,0.30);
+      border-radius: 4px;
+      padding: 4px 10px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .topbar-back:hover { color: #fff; border-color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.08); text-decoration: none; }
+    .topbar-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.18); flex-shrink: 0; }
+    .topbar-query {
+      font-weight: 700;
+      font-size: 15px;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 300px;
+    }
+    .topbar-query-label {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: rgba(255,255,255,0.45);
+      white-space: nowrap;
+    }
+    .topbar-spacer { flex: 1; }
+    .topbar-meta {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .topbar-pill {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(255,255,255,0.60);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 12px;
+      padding: 2px 10px;
+      white-space: nowrap;
+    }
+    .topbar-date {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(255,255,255,0.40);
+      white-space: nowrap;
+    }
+
+    /* ── LAYOUT ─────────────────────────────────────────────────── */
+    .main {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: calc(var(--topbar-h) + 28px) 24px 80px;
+    }
+
+    /* ── SECTION HEADERS ─────────────────────────────────────────── */
+    .section {
+      margin-bottom: 32px;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+    }
+    .section-count {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      background: var(--surface-sunken);
+      border-radius: 10px;
+      padding: 1px 8px;
+    }
+
+    /* ── SYNTHESIS CARD ──────────────────────────────────────────── */
+    .synthesis-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--blue);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow-sm);
+    }
+    .synthesis-label {
+      font-size: 10px;
+      font-weight: 700;
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--blue);
+      margin-bottom: 10px;
+    }
+    .synthesis-overview {
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--text-primary);
+      margin-bottom: 20px;
+    }
+    .synthesis-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 720px) { .synthesis-grid { grid-template-columns: 1fr; } }
+    .synthesis-block {
+      background: var(--bg);
+      border: 1px solid var(--border-light);
+      border-radius: 5px;
+      padding: 14px 16px;
+    }
+    .synthesis-block-title {
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .synthesis-block-title.impact { color: var(--amber); }
+    .synthesis-block-title.risks { color: var(--red); }
+    .synthesis-block-title.steps { color: var(--green); }
+    .synthesis-block p, .synthesis-block li {
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--text-secondary);
+    }
+    .synthesis-block ul { padding-left: 16px; }
+    .synthesis-block li { margin-bottom: 4px; }
+    .synthesis-stale {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-light);
+    }
+
+    /* ── ARTICLE CARDS ───────────────────────────────────────────── */
+    .article-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      transition: border-color 0.12s;
+    }
+    .article-card:hover { border-color: var(--blue); }
+    .article-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+    .article-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      flex: 1;
+      min-width: 0;
+    }
+    .article-title a { color: inherit; }
+    .article-title a:hover { color: var(--blue); text-decoration: none; }
+    .article-snippet {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .article-meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .meta-item {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: var(--mono);
+      border-radius: 3px;
+      padding: 1px 5px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .badge-high   { background: var(--red-bg);   color: var(--red);   border: 1px solid var(--red-border); }
+    .badge-medium { background: var(--amber-bg);  color: var(--amber); border: 1px solid var(--amber-border); }
+    .badge-low    { background: var(--green-bg);  color: var(--green); border: 1px solid var(--green-border); }
+    .badge-topic  { background: var(--blue-bg);   color: var(--blue);  border: 1px solid var(--blue-border); }
+    .badge-direct   { background: #EDE7F6; color: #512DA8; border: 1px solid #D1C4E9; }
+    .badge-indirect { background: #E3F2FD; color: #1565C0; border: 1px solid #BBDEFB; }
+    .badge-monitor  { background: var(--surface-sunken); color: var(--text-muted); border: 1px solid var(--border); }
+
+    /* ── DEADLINE CARDS ──────────────────────────────────────────── */
+    .deadline-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .deadline-date-block {
+      flex-shrink: 0;
+      text-align: center;
+      background: var(--surface-sunken);
+      border-radius: 5px;
+      padding: 8px 12px;
+      min-width: 72px;
+    }
+    .deadline-month {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+    }
+    .deadline-day {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+    .deadline-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    .deadline-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .deadline-meta {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+
+    /* ── BILL CARDS ──────────────────────────────────────────────── */
+    .bill-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-bottom: 8px;
+    }
+    .bill-head {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+    .bill-label {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    .bill-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      flex: 1;
+    }
+    .bill-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    /* ── SUBSCRIBE SECTION ───────────────────────────────────────── */
+    .subscribe-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin-top: 40px;
+    }
+    .subscribe-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .subscribe-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 18px;
+      line-height: 1.55;
+    }
+    .subscribe-form {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .subscribe-input {
+      flex: 1 0 220px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: var(--sans);
+      font-size: 14px;
+      color: var(--text-primary);
+      background: var(--surface);
+      outline: none;
+      transition: border-color 0.12s, box-shadow 0.12s;
+    }
+    .subscribe-input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 2px rgba(21,101,192,0.12);
+    }
+    .subscribe-btn {
+      padding: 8px 20px;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.12s;
+      white-space: nowrap;
+    }
+    .subscribe-btn:hover { background: #0d47a1; }
+    .subscribe-note {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 10px;
+      font-style: italic;
+    }
+
+    /* ── EMPTY STATE ─────────────────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--text-muted);
+      font-size: 13px;
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+    }
+
+    /* ── STATUS BADGE ────────────────────────────────────────────── */
+    .stage-badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-radius: 3px;
+      padding: 1px 6px;
+      background: var(--surface-sunken);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .stage-enacted { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
+    .stage-advanced { background: var(--amber-bg); color: var(--amber); border-color: var(--amber-border); }
+  </style>
+</head>
+<body>
+
+<!-- ═══ TOPBAR ═══ -->
+<div class="topbar">
+  <a class="topbar-back" href="{{ dashboard_url|default('dashboard.html') }}">&#8592; Dashboard</a>
+  <div class="topbar-sep"></div>
+  <span class="topbar-query-label">deep dive</span>
+  <span class="topbar-query">{{ query }}</span>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-meta">
+    {% if articles %}<span class="topbar-pill">{{ articles|length }} article{{ 's' if articles|length != 1 }}</span>{% endif %}
+    {% if deadlines %}<span class="topbar-pill">{{ deadlines|length }} deadline{{ 's' if deadlines|length != 1 }}</span>{% endif %}
+    {% if bills %}<span class="topbar-pill">{{ bills|length }} bill{{ 's' if bills|length != 1 }}</span>{% endif %}
+    <span class="topbar-date">{{ generated_date }}</span>
+  </div>
+</div>
+
+<!-- ═══ MAIN ═══ -->
+<main class="main">
+
+  <!-- AI Synthesis -->
+  {% if synthesis %}
+  <div class="synthesis-card">
+    <div class="synthesis-label">&#9670; AI Analysis — {{ query }}</div>
+    {% if synthesis.overview %}
+    <div class="synthesis-overview">{{ synthesis.overview }}</div>
+    {% endif %}
+    <div class="synthesis-grid">
+      {% if synthesis.company_impact %}
+      <div class="synthesis-block">
+        <div class="synthesis-block-title impact">Company Impact</div>
+        <p>{{ synthesis.company_impact }}</p>
+      </div>
+      {% endif %}
+      {% if synthesis.key_risks %}
+      <div class="synthesis-block">
+        <div class="synthesis-block-title risks">Key Risks</div>
+        <p>{{ synthesis.key_risks }}</p>
+      </div>
+      {% endif %}
+      {% if synthesis.next_steps %}
+      <div class="synthesis-block">
+        <div class="synthesis-block-title steps">Next Steps</div>
+        <p>{{ synthesis.next_steps }}</p>
+      </div>
+      {% endif %}
+    </div>
+    {% if synthesis.generated_at %}
+    <div class="synthesis-stale">Analysis generated {{ synthesis.generated_at }}{% if synthesis.cached %} &middot; cached{% endif %}</div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Articles -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Articles</span>
+      <span class="section-count">{{ articles|length }}</span>
+    </div>
+    {% if articles %}
+    {% for a in articles %}
+    {%- set rel = a.relevance|default('DIRECT') -%}
+    <div class="article-card">
+      <div class="article-head">
+        <div class="article-title"><a href="{{ a.url }}" target="_blank" rel="noopener">{{ a.title }}</a></div>
+        {% if rel == 'INDIRECT' %}<span class="badge badge-indirect">Indirect</span>
+        {% elif rel == 'MONITOR' %}<span class="badge badge-monitor">Monitor</span>
+        {% else %}<span class="badge badge-direct">Direct</span>{% endif %}
+      </div>
+      {% if a.snippet %}<div class="article-snippet">{{ a.snippet }}</div>{% endif %}
+      <div class="article-meta">
+        {% if a.topic %}<span class="badge badge-topic">{{ a.topic }}</span>{% endif %}
+        {% if a.source %}<span class="meta-item">{{ a.source }}</span>{% endif %}
+        {% if a.pub_date %}<span class="meta-item">{{ a.pub_date[:10] }}</span>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state">No articles found matching "{{ query }}"</div>
+    {% endif %}
+  </div>
+
+  <!-- Deadlines -->
+  {% if deadlines %}
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Related Deadlines</span>
+      <span class="section-count">{{ deadlines|length }}</span>
+    </div>
+    {% for d in deadlines %}
+    {%- set parts = (d.deadline_date or '')[:10].split('-') -%}
+    {%- set months = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] -%}
+    <div class="deadline-card">
+      <div class="deadline-date-block">
+        <div class="deadline-month">{% if parts|length == 3 %}{{ months[parts[1]|int] }}{% endif %}</div>
+        <div class="deadline-day">{% if parts|length == 3 %}{{ parts[2] }}{% endif %}</div>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div class="deadline-title">{{ d.title }}</div>
+        {% if d.description %}<div class="deadline-desc">{{ d.description }}</div>{% endif %}
+        <div class="deadline-meta">
+          {% if d.urgency %}<span class="badge badge-{{ d.urgency|lower }}">{{ d.urgency }}</span>{% endif %}
+          {% if d.jurisdiction %}<span class="meta-item">{{ d.jurisdiction }}</span>{% endif %}
+          {% if d.topic %}<span class="badge badge-topic">{{ d.topic }}</span>{% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Bills -->
+  {% if bills %}
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Related Legislation</span>
+      <span class="section-count">{{ bills|length }}</span>
+    </div>
+    {% for b in bills %}
+    <div class="bill-card">
+      <div class="bill-head">
+        <span class="bill-label">{{ b.state }} {{ b.bill_number }}</span>
+        <span class="bill-title">{{ b.title }}</span>
+      </div>
+      <div class="bill-meta">
+        {% if b.stage %}<span class="stage-badge {% if b.stage in ['enacted_watching','rulemaking'] %}stage-enacted{% elif b.stage in ['advanced','passed_one'] %}stage-advanced{% endif %}">{{ b.stage|replace('_',' ') }}</span>{% endif %}
+        {% if b.status %}<span class="meta-item">{{ b.status }}</span>{% endif %}
+        {% if b.last_action_date %}<span class="meta-item">Last: {{ b.last_action_date[:10] }}</span>{% endif %}
+        {% if b.topic %}<span class="badge badge-topic">{{ b.topic }}</span>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Subscribe -->
+  <div class="subscribe-card">
+    <div class="subscribe-title">Get alerts for "{{ query }}"</div>
+    <div class="subscribe-desc">
+      Receive an email whenever a new article, deadline, or bill matching this term is found by the pipeline.
+      Each alert includes a brief summary. You can unsubscribe at any time.
+    </div>
+    <form class="subscribe-form" action="/subscribe" method="POST" id="subscribe-form">
+      <input type="hidden" name="keyword" value="{{ query }}">
+      <input class="subscribe-input" type="email" name="email"
+             placeholder="your@email.com" required autocomplete="email">
+      <button class="subscribe-btn" type="submit">Subscribe to "{{ query }}"</button>
+    </form>
+    <div class="subscribe-note" id="subscribe-note">
+      {% if not server_mode %}
+      Note: subscription requires the local server to be running (<code>python server.py</code>).
+      {% endif %}
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // Handle subscribe form feedback
+  var form = document.getElementById('subscribe-form');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      {% if not server_mode %}
+      e.preventDefault();
+      var note = document.getElementById('subscribe-note');
+      note.textContent = 'To subscribe, start the local server: python server.py, then reload.';
+      note.style.color = '#CB7B0A';
+      {% endif %}
+    });
+  }
+</script>
+
+</body>
+</html>

@@ -128,6 +128,10 @@ def parse_args() -> argparse.Namespace:
                         help="Generate a visual quick-reference guide (picture-first, shorter text) + PDF")
     parser.add_argument("--manual-url", default=None,
                         help="URL or file path to screenshot for manual generation (default: latest preview)")
+    parser.add_argument("--deep-dive", metavar="QUERY",
+                        help="Generate an ad-hoc deep-dive page for a search term (e.g. 'TCE', 'PFOA Minnesota')")
+    parser.add_argument("--deep-dive-push", action="store_true",
+                        help="Push the deep-dive page to GitHub Pages after generating")
     return parser.parse_args()
 
 
@@ -1012,6 +1016,16 @@ def run_pipeline(args: argparse.Namespace) -> None:
         logger.info("Step 5: Syncing to NotebookLM…")
         _sync_notebooklm_weekly(weekly_briefing_url, get_archive_weeks())
 
+    # Step 6: Keyword subscription alerts (runs on every full pipeline run)
+    if not args.dry_run and not args.preview:
+        try:
+            from delivery.keyword_alerts import dispatch_keyword_alerts
+            n = dispatch_keyword_alerts()
+            if n:
+                logger.info(f"Step 6: Sent {n} keyword alert email(s)")
+        except Exception as e:
+            logger.warning(f"Keyword alerts failed (non-fatal): {e}")
+
     logger.info("=" * 60)
 
 
@@ -1029,6 +1043,15 @@ def main() -> None:
             logging.getLogger("reminder").info("Reminder sent.")
         except Exception as e:
             logging.getLogger("reminder").error(f"Reminder failed: {e}")
+        return
+
+    if args.deep_dive:
+        from deep_dive import run_deep_dive
+        run_deep_dive(
+            query=args.deep_dive,
+            open_browser=True,
+            push_to_pages=args.deep_dive_push,
+        )
         return
 
     if args.director_review:
