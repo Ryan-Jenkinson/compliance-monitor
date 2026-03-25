@@ -110,7 +110,7 @@ def _build_synthesis_prompt(
     if articles:
         lines.append(f"ARTICLES ({len(articles)} found):")
         for a in articles[:20]:  # cap to keep tokens low
-            lines.append(f"  - [{a.get('topic','')}] {a.get('title','')} ({a.get('pub_date','')[:10]})")
+            lines.append(f"  - [{a.get('topic','')}] {a.get('title','')} ({(a.get('pub_date') or '')[:10]})")
             if a.get("snippet"):
                 lines.append(f"    {a['snippet'][:200]}")
         lines.append("")

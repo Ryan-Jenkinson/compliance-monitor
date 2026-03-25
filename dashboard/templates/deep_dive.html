@@ -509,7 +509,7 @@
         <div class="trend-bar"
              style="height:{% if max_count > 0 %}{{ [(m.count / max_count * 52)|int, 2]|max }}px{% else %}2px{% endif %};"
              title="{{ m.label }}: {{ m.count }} article{{ 's' if m.count != 1 }}"></div>
-        <div class="trend-bar-label">{{ m.label[:3] }}</div>
+        <div class="trend-bar-label">{{ (m.label or '')[:3] }}</div>
       </div>
       {% endfor %}
     </div>
