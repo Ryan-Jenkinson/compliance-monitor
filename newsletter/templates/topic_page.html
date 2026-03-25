@@ -30,6 +30,9 @@
       --blue-bg: #EBF3FD;
       --sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       --mono: 'IBM Plex Mono', 'Consolas', 'Monaco', monospace;
+      --surface-sunken: #EBEDF0;
+      --text-tertiary: #7A8194;
+      --accent: var(--topic-color);
       --article-sidebar-w: 616px;
       --topbar-h: 52px;
       --radius: 6px;
@@ -660,6 +663,132 @@
       transform: translate(0, 0);
     }
 
+    /* ── Impact badge ───────────────────────────────────────────── */
+    .badge-impact { font-size: 9px; font-weight: 700; font-family: var(--mono);
+      letter-spacing: .03em; border-radius: 2px; padding: 1px 4px; }
+    .badge-impact.hi { background: var(--red-bg); color: var(--red); }
+    .badge-impact.mid { background: var(--amber-bg); color: var(--amber); }
+    .badge-impact.lo { background: var(--green-bg); color: var(--green); }
+
+    /* ── Deadline clickable ──────────────────────────────────────── */
+    .dl-item-clickable { cursor: pointer; transition: background .12s; }
+    .dl-item-clickable:hover { background: var(--surface-sunken, #EBEDF0); }
+    .dl-click-hint { font-size: 11px; color: var(--blue); font-family: var(--mono);
+      margin-top: 3px; font-weight: 600; opacity: 0; transition: opacity .15s; }
+    .dl-item-clickable:hover .dl-click-hint { opacity: 1; }
+
+    /* ── Bill row clickable ──────────────────────────────────────── */
+    .bill-row-clickable { cursor: pointer; transition: background .12s; }
+    .bill-row-clickable:hover { background: var(--surface-sunken, #EBEDF0); }
+
+    /* ── Bill Detail Modal ───────────────────────────────────────── */
+    .bd-overlay {
+      display: none; position: fixed; inset: 0; z-index: 2100;
+      background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
+      align-items: flex-start; justify-content: center;
+      padding: 32px 16px; overflow-y: auto;
+    }
+    .bd-overlay.open { display: flex; }
+    .bd-modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; box-shadow: 0 24px 80px rgba(0,0,0,.35);
+      width: min(820px, 96vw); max-height: none;
+      display: flex; flex-direction: column;
+    }
+    .bd-header {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 14px 18px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .bd-header-left { display: flex; align-items: center; gap: 8px; flex: 1; flex-wrap: wrap; }
+    .bd-bill-label { font-size: 14px; font-weight: 700; font-family: var(--mono);
+      color: var(--text-primary); letter-spacing: -.01em; }
+    .bd-topic-badge { font-size: 11px; font-weight: 700; font-family: var(--mono);
+      letter-spacing: .05em; padding: 2px 6px; border-radius: 3px;
+      background: var(--surface-sunken, #EBEDF0); color: var(--text-secondary); }
+    .bd-severity-badge { font-size: 11px; font-weight: 700; font-family: var(--mono);
+      letter-spacing: .05em; padding: 2px 6px; border-radius: 3px; }
+    .bd-close-btn {
+      background: none; border: 1px solid var(--border); border-radius: 4px;
+      padding: 4px 12px; font-size: 12px; font-weight: 600; font-family: var(--mono);
+      color: var(--text-secondary); cursor: pointer; letter-spacing: .04em;
+      transition: border-color .15s, color .15s;
+    }
+    .bd-close-btn:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+    .bd-body { padding: 0; overflow-y: visible; }
+    .bd-section { padding: 14px 18px; border-bottom: 1px solid var(--border-light); }
+    .bd-section:last-child { border-bottom: none; }
+    .bd-section-title { font-size: 10px; font-weight: 700; font-family: var(--mono);
+      letter-spacing: .08em; color: var(--text-tertiary, #7A8194);
+      text-transform: uppercase; margin-bottom: 6px; }
+    .bd-section-body { font-size: 13px; color: var(--text-primary); line-height: 1.55; }
+    .bd-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+    .bd-two-col .bd-section { border-right: 1px solid var(--border-light); }
+    .bd-two-col .bd-section:last-child { border-right: none; }
+    .bd-action-list { margin: 0; padding: 0 0 0 16px;
+      font-size: 13px; color: var(--text-primary); line-height: 1.6; }
+    .bd-action-list li { margin-bottom: 4px; }
+    .bd-follow-up-item { display: flex; align-items: flex-start; gap: 10px;
+      padding: 6px 0; border-bottom: 1px solid var(--border-light); }
+    .bd-follow-up-item:last-child { border-bottom: none; }
+    .bd-fu-date { min-width: 80px; font-size: 12px; font-family: var(--mono);
+      font-weight: 700; color: var(--text-secondary); }
+    .bd-fu-conf { font-size: 10px; font-family: var(--mono); font-weight: 600;
+      padding: 1px 4px; border-radius: 2px; white-space: nowrap; flex-shrink: 0; }
+    .bd-fu-conf.known { background:#d1fae5;color:#065f46; }
+    .bd-fu-conf.probable { background:#fef3c7;color:#92400e; }
+    .bd-fu-conf.possible { background:#f1f5f9;color:#64748b; }
+    .bd-ics-btn { display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 8px; padding: 6px 14px;
+      background: var(--topic-color); color: #fff;
+      border: none; border-radius: 5px; font-size: 12px;
+      font-weight: 700; font-family: var(--mono); cursor: pointer;
+      text-decoration: none; letter-spacing: .03em; }
+    .bd-ics-btn:hover { opacity: .9; }
+    .bd-pending { padding: 32px 18px; text-align: center;
+      color: var(--text-secondary); font-size: 13px; }
+    .bd-pending-title { font-size: 14px; font-weight: 700; color: var(--text-primary);
+      margin-bottom: 8px; font-family: var(--mono); }
+    .bd-source-link { font-size: 12px; font-family: var(--mono); color: var(--blue);
+      text-decoration: none; padding: 4px 0; }
+    .bd-source-link:hover { text-decoration: underline; }
+    @media (max-width: 600px) {
+      .bd-two-col { grid-template-columns: 1fr; }
+      .bd-two-col .bd-section { border-right: none; }
+    }
+
+    /* ── Deadline Detail Modal ───────────────────────────────────── */
+    .dd-overlay {
+      display: none; position: fixed; inset: 0; z-index: 2200;
+      background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
+      align-items: flex-start; justify-content: center;
+      padding: 32px 16px; overflow-y: auto;
+    }
+    .dd-overlay.open { display: flex; }
+    .dd-modal { background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; box-shadow: 0 24px 80px rgba(0,0,0,.35);
+      width: min(860px, 96vw); display: flex; flex-direction: column; }
+    .dd-header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 14px 18px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .dd-header-left { display: flex; align-items: center; gap: 8px; flex: 1; flex-wrap: wrap; }
+    .dd-title-label { font-size: 14px; font-weight: 700; color: var(--text-primary);
+      line-height: 1.3; flex: 1; }
+    .dd-countdown { font-size: 13px; font-family: var(--mono); font-weight: 700;
+      padding: 3px 8px; border-radius: 4px; white-space: nowrap; }
+    .dd-body { padding: 0; overflow-y: visible; }
+    .dd-prep-row { display: flex; gap: 0; overflow: hidden;
+      border-bottom: 1px solid var(--border-light); }
+    .dd-prep-step { flex: 1; padding: 10px 14px; border-right: 1px solid var(--border-light);
+      font-size: 12px; }
+    .dd-prep-step:last-child { border-right: none; }
+    .dd-prep-label { font-size: 10px; font-weight: 700; font-family: var(--mono);
+      letter-spacing: .07em; color: var(--text-tertiary, #7A8194);
+      text-transform: uppercase; margin-bottom: 4px; }
+    .dd-prep-past { opacity: .45; }
+    @media (max-width: 600px) {
+      .dd-prep-row { flex-direction: column; }
+      .dd-prep-step { border-right: none; border-bottom: 1px solid var(--border-light); }
+    }
+
     /* Two-column grid for panels */
     .panel-grid-2 {
       display: grid;
@@ -697,6 +826,37 @@
   <span class="topbar-topic">{{ topic.topic }}</span>
   <span class="topbar-label">{{ topic.label }}</span>
   <span class="topbar-date">{{ date_display }}</span>
+</div>
+
+<!-- ═══ BILL DETAIL MODAL ═══ -->
+<div class="bd-overlay" id="bd-overlay" onclick="closeBillDetail(event)">
+  <div class="bd-modal" onclick="event.stopPropagation()">
+    <div class="bd-header">
+      <div class="bd-header-left">
+        <span class="bd-bill-label" id="bd-bill-label">—</span>
+        <span class="bd-topic-badge" id="bd-topic-badge"></span>
+        <span class="bd-severity-badge" id="bd-severity-badge"></span>
+      </div>
+      <button class="bd-close-btn" onclick="closeBillDetail()">Close</button>
+    </div>
+    <div class="bd-body" id="bd-body"><!-- rendered by JS --></div>
+  </div>
+</div>
+
+<!-- ═══ DEADLINE DETAIL MODAL ═══ -->
+<div class="dd-overlay" id="dd-overlay" onclick="closeDeadlineDetail(event)">
+  <div class="dd-modal" onclick="event.stopPropagation()">
+    <div class="dd-header">
+      <div class="dd-header-left">
+        <span class="bd-topic-badge" id="dd-topic-badge"></span>
+        <span class="bd-severity-badge" id="dd-severity-badge"></span>
+        <span class="dd-title-label" id="dd-title-label">—</span>
+      </div>
+      <span class="dd-countdown" id="dd-countdown"></span>
+      <button class="bd-close-btn" onclick="closeDeadlineDetail()">Close</button>
+    </div>
+    <div class="dd-body" id="dd-body"><!-- rendered by JS --></div>
+  </div>
 </div>
 
 <div class="layout">
@@ -896,7 +1056,9 @@
         {% for dl in topic_deadlines %}
         {%- set days = dl.days_until -%}
         {%- set pipe_color = 'var(--red)' if (days is not none and days <= 14) else 'var(--amber)' if (days is not none and days <= 90) else 'var(--border)' -%}
-        <div class="dl-item">
+        {%- set has_analysis = dl.id is not none -%}
+        <div class="dl-item{% if has_analysis %} dl-item-clickable{% endif %}"
+             {% if has_analysis %}data-deadline-id="{{ dl.id }}" onclick="openDeadlineDetailFromEl(this)"{% endif %}>
           <div class="dl-days {% if days is not none and days <= 14 %}urgent{% elif days is not none and days <= 90 %}soon{% else %}normal{% endif %}">
             {% if days is not none %}
               {% if days < 0 %}OVERDUE{% elif days == 0 %}TODAY{% else %}{{ days }}d{% endif %}
@@ -908,8 +1070,9 @@
             <div class="dl-meta">
               {% if dl.jurisdiction %}{{ dl.jurisdiction }}{% endif %}
               {% if dl.deadline_date %} · {{ dl.deadline_date }}{% endif %}
-              {% if dl.urgency %} · {{ dl.urgency }}{% endif %}
+              {% if dl.urgency %} · <span style="font-weight:600;">{{ dl.urgency }}</span>{% endif %}
             </div>
+            {% if has_analysis %}<div class="dl-click-hint">Click for AI analysis →</div>{% endif %}
           </div>
         </div>
         {% endfor %}
@@ -928,7 +1091,11 @@
     <div class="panel">
       <div class="bill-grid">
         {% for bill in topic_bills %}
-        <div class="bill-row">
+        <div class="bill-row bill-row-clickable"
+             data-state="{{ bill.state }}"
+             data-bill="{{ bill.bill_number }}"
+             onclick="openBillDetailFromEl(this)"
+             title="Click for AI analysis">
           <div class="bill-id">{{ bill.state }} {{ bill.bill_number }}</div>
           <div class="bill-body">
             <div class="bill-title-text">{{ bill.title | truncate(100, true, '…') }}</div>
@@ -1053,6 +1220,9 @@
             <a href="{{ article.url }}" target="_blank">{{ article.title }}</a>
           </span>
           <span class="badge badge-{{ (article.urgency or 'low') | lower }}">{{ (article.urgency or 'low') | upper }}</span>
+          {% if article.impact_score is defined and article.impact_score %}
+          <span class="badge badge-impact {% if article.impact_score >= 7 %}hi{% elif article.impact_score >= 4 %}mid{% else %}lo{% endif %}" title="Company impact score">{{ article.impact_score }}</span>
+          {% endif %}
         </div>
         <div class="article-meta">
           <span>{{ article.source or '' }}</span>
@@ -1153,6 +1323,260 @@
     document.getElementById('tp-count').textContent = visibleCount + ' articles';
     document.getElementById('tp-no-results').classList.toggle('visible', visibleCount === 0 && items.length > 0);
   }
+</script>
+
+<script>
+var BILL_ANALYSES = {{ bill_analyses|tojson }};
+var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
+</script>
+
+<script>
+(function() {
+  'use strict';
+
+  var _SEVERITY_STYLES = {
+    HIGH:       { bg: '#fee2e2', color: '#991b1b' },
+    MEDIUM:     { bg: '#fef3c7', color: '#92400e' },
+    LOW:        { bg: '#d1fae5', color: '#065f46' },
+    MONITORING: { bg: '#f1f5f9', color: '#475569' },
+  };
+
+  function _escHtml(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function _buildIcsDataUrl(ev, billLabel) {
+    if (!ev || !ev.suggested_date) return null;
+    try {
+      var d = ev.suggested_date.replace(/-/g,'');
+      var uid = 'bill-' + billLabel.replace(/\s/g,'-') + '-' + d + '@compliance-monitor';
+      var desc = (ev.description || '').replace(/\n/g,'\\n');
+      var title = (ev.title || billLabel + ' — Review').slice(0, 60);
+      var reminderMin = ((ev.reminder_days_before || 3) * 24 * 60);
+      var ics = [
+        'BEGIN:VCALENDAR','VERSION:2.0',
+        'PRODID:-//Compliance Monitor//Bill Analyst//EN',
+        'BEGIN:VEVENT','UID:' + uid,
+        'DTSTART;VALUE=DATE:' + d,'DTEND;VALUE=DATE:' + d,
+        'SUMMARY:' + title,'DESCRIPTION:' + desc,
+        'BEGIN:VALARM','TRIGGER:-PT' + reminderMin + 'M',
+        'ACTION:DISPLAY','DESCRIPTION:Reminder: ' + title,
+        'END:VALARM','END:VEVENT','END:VCALENDAR',
+      ].join('\r\n');
+      return 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
+    } catch(e) { return null; }
+  }
+
+  function _renderAnalysis(a) {
+    var impact = a.company_impact || {};
+    var sev = (impact.severity || 'MONITORING').toUpperCase();
+    var sevStyle = _SEVERITY_STYLES[sev] || _SEVERITY_STYLES.MONITORING;
+    document.getElementById('bd-bill-label').textContent = (a.state || '') + ' ' + (a.bill_number || a.bill_title || '');
+    var topicBadge = document.getElementById('bd-topic-badge');
+    topicBadge.textContent = a.topic || '';
+    var sevBadge = document.getElementById('bd-severity-badge');
+    sevBadge.textContent = sev;
+    sevBadge.style.background = sevStyle.bg;
+    sevBadge.style.color = sevStyle.color;
+    var sections = '';
+    sections += '<div class="bd-section">';
+    if (a.bill_title) {
+      sections += '<div class="bd-section-title">Bill Title</div>';
+      sections += '<div class="bd-section-body" style="font-weight:600;margin-bottom:8px;">' + _escHtml(a.bill_title) + '</div>';
+    }
+    if (a.source_url) {
+      sections += '<a class="bd-source-link" href="' + _escHtml(a.source_url) + '" target="_blank">View on LegiScan / State Legislature &rarr;</a>';
+    }
+    sections += '</div>';
+    if (a.synopsis) {
+      sections += '<div class="bd-section"><div class="bd-section-title">Synopsis</div><div class="bd-section-body">' + _escHtml(a.synopsis) + '</div></div>';
+    }
+    sections += '<div class="bd-two-col">';
+    if (a.stage_meaning) {
+      sections += '<div class="bd-section"><div class="bd-section-title">Current Stage — ' + _escHtml((a.stage||'').replace(/_/g,' ')) + '</div><div class="bd-section-body">' + _escHtml(a.stage_meaning) + '</div></div>';
+    }
+    if (a.recent_action_analysis) {
+      sections += '<div class="bd-section"><div class="bd-section-title">Recent Action Analysis</div>';
+      if (a.last_action_date || a.last_action) {
+        sections += '<div style="font-size:11px;font-family:var(--mono);color:var(--text-tertiary);margin-bottom:4px;">' + _escHtml(a.last_action_date || '') + (a.last_action ? ' — ' + _escHtml(a.last_action) : '') + '</div>';
+      }
+      sections += '<div class="bd-section-body">' + _escHtml(a.recent_action_analysis) + '</div></div>';
+    }
+    sections += '</div>';
+    if (impact.direct || impact.supply_chain) {
+      sections += '<div class="bd-section" style="background:' + sevStyle.bg + '10;"><div class="bd-section-title" style="color:' + sevStyle.color + ';">Company Impact — ' + sev + '</div>';
+      if (impact.direct) sections += '<div style="margin-bottom:6px;"><span style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--text-tertiary);display:block;margin-bottom:2px;">DIRECT PRODUCTS</span><div class="bd-section-body">' + _escHtml(impact.direct) + '</div></div>';
+      if (impact.supply_chain) sections += '<div><span style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--text-tertiary);display:block;margin-bottom:2px;">SUPPLY CHAIN</span><div class="bd-section-body">' + _escHtml(impact.supply_chain) + '</div></div>';
+      sections += '</div>';
+    }
+    if (a.long_term_trajectory) {
+      sections += '<div class="bd-section"><div class="bd-section-title">Long-Term Trajectory</div><div class="bd-section-body">' + _escHtml(a.long_term_trajectory) + '</div></div>';
+    }
+    if (a.recommended_actions && a.recommended_actions.length) {
+      sections += '<div class="bd-section"><div class="bd-section-title">Recommended Actions</div><ul class="bd-action-list">';
+      a.recommended_actions.forEach(function(act) { sections += '<li>' + _escHtml(act) + '</li>'; });
+      sections += '</ul></div>';
+    }
+    var hasDates = a.follow_up_dates && a.follow_up_dates.length;
+    var hasOutlook = a.outlook_event && a.outlook_event.suggested_date;
+    if (hasDates || hasOutlook) {
+      sections += '<div class="bd-section"><div class="bd-section-title">Follow-Up Dates</div>';
+      if (hasDates) {
+        a.follow_up_dates.forEach(function(fu) {
+          var conf = (fu.confidence || 'possible').toLowerCase();
+          sections += '<div class="bd-follow-up-item"><div class="bd-fu-date">' + _escHtml(fu.date || 'TBD') + '</div><span class="bd-fu-conf ' + conf + '">' + conf + '</span><div style="font-size:12px;color:var(--text-primary);flex:1;">' + _escHtml(fu.event || '') + '</div></div>';
+        });
+      }
+      if (hasOutlook) {
+        var icsUrl = _buildIcsDataUrl(a.outlook_event, (a.state || '') + ' ' + (a.bill_number || ''));
+        if (icsUrl) {
+          sections += '<a class="bd-ics-btn" href="' + icsUrl + '" download="' + _escHtml((a.outlook_event.title || 'Bill Review').replace(/[^\w\s-]/g,'')) + '.ics">&#128197; Add to Outlook / Calendar</a>';
+        }
+      }
+      sections += '</div>';
+    }
+    document.getElementById('bd-body').innerHTML = sections;
+  }
+
+  window.openBillDetailFromEl = function(el) {
+    openBillDetail(el.dataset.state || '', el.dataset.bill || '');
+  };
+
+  window.openBillDetail = function(stateCode, billNumber) {
+    var key = stateCode + '_' + billNumber.replace(/\s+/g, '_');
+    var overlay = document.getElementById('bd-overlay');
+    var body = document.getElementById('bd-body');
+    var analysis = (typeof BILL_ANALYSES !== 'undefined') ? BILL_ANALYSES[key] : null;
+    if (analysis && analysis.synopsis) {
+      _renderAnalysis(analysis);
+    } else {
+      document.getElementById('bd-bill-label').textContent = stateCode + ' ' + billNumber.replace(/_/g,' ');
+      document.getElementById('bd-topic-badge').textContent = '';
+      var sevBadge = document.getElementById('bd-severity-badge');
+      sevBadge.textContent = 'PENDING'; sevBadge.style.background = '#f1f5f9'; sevBadge.style.color = '#64748b';
+      body.innerHTML = '<div class="bd-pending"><div class="bd-pending-title">' + stateCode + ' ' + billNumber.replace(/_/g,' ') + '</div><p>Deep analysis not yet generated for this bill.</p><p style="font-size:12px;color:var(--text-tertiary);">Analysis runs automatically for active bills during each pipeline run.</p></div>';
+    }
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeBillDetail = function(e) {
+    if (e && e.target !== document.getElementById('bd-overlay')) return;
+    document.getElementById('bd-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  window.openDeadlineDetailFromEl = function(el) {
+    openDeadlineDetail(el.dataset.deadlineId || '');
+  };
+
+  window.openDeadlineDetail = function(deadlineId) {
+    var overlay = document.getElementById('dd-overlay');
+    var body = document.getElementById('dd-body');
+    var key = String(deadlineId);
+    var analysis = (typeof DEADLINE_ANALYSES !== 'undefined') ? DEADLINE_ANALYSES[key] : null;
+    if (analysis && analysis.what_is_required) {
+      _renderDeadlineAnalysis(analysis);
+    } else {
+      document.getElementById('dd-title-label').textContent = 'Deadline #' + deadlineId;
+      document.getElementById('dd-topic-badge').textContent = '';
+      var sevBadge = document.getElementById('dd-severity-badge');
+      sevBadge.textContent = 'PENDING'; sevBadge.style.background = '#f1f5f9'; sevBadge.style.color = '#64748b';
+      document.getElementById('dd-countdown').textContent = '';
+      body.innerHTML = '<div class="bd-pending"><div class="bd-pending-title">Analysis Pending</div><p>Deep analysis has not yet been generated for this deadline.</p><p style="font-size:12px;color:var(--text-tertiary);">Analysis runs automatically for HIGH/MEDIUM deadlines during each pipeline run.</p></div>';
+    }
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeDeadlineDetail = function(e) {
+    if (e && e.target !== document.getElementById('dd-overlay')) return;
+    document.getElementById('dd-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  function _renderDeadlineAnalysis(a) {
+    var impact = a.company_impact || {};
+    var sev = (impact.severity || 'MONITORING').toUpperCase();
+    var sevStyle = _SEVERITY_STYLES[sev] || _SEVERITY_STYLES.MONITORING;
+    var today = new Date();
+    document.getElementById('dd-title-label').textContent = a.title || 'Deadline';
+    document.getElementById('dd-topic-badge').textContent = a.topic || '';
+    var sevBadge = document.getElementById('dd-severity-badge');
+    sevBadge.textContent = sev; sevBadge.style.background = sevStyle.bg; sevBadge.style.color = sevStyle.color;
+    var cdEl = document.getElementById('dd-countdown');
+    if (a.deadline_date) {
+      var ddDate = new Date(a.deadline_date);
+      var diffDays = Math.ceil((ddDate - today) / (1000 * 60 * 60 * 24));
+      if (diffDays < 0) { cdEl.textContent = Math.abs(diffDays) + 'd overdue'; cdEl.style.background = 'var(--red-bg)'; cdEl.style.color = 'var(--red)'; }
+      else if (diffDays === 0) { cdEl.textContent = 'TODAY'; cdEl.style.background = 'var(--red-bg)'; cdEl.style.color = 'var(--red)'; }
+      else if (diffDays <= 14) { cdEl.textContent = diffDays + ' days'; cdEl.style.background = 'var(--red-bg)'; cdEl.style.color = 'var(--red)'; }
+      else if (diffDays <= 90) { cdEl.textContent = diffDays + ' days'; cdEl.style.background = 'var(--amber-bg)'; cdEl.style.color = 'var(--amber)'; }
+      else { cdEl.textContent = a.deadline_date; cdEl.style.background = 'var(--surface-sunken)'; cdEl.style.color = 'var(--text-secondary)'; }
+    } else { cdEl.textContent = ''; }
+    var sections = '';
+    sections += '<div class="bd-two-col">';
+    if (a.what_is_required) {
+      sections += '<div class="bd-section"><div class="bd-section-title">What Is Required</div><div class="bd-section-body">' + _escHtml(a.what_is_required) + '</div>';
+      if (a.jurisdiction) sections += '<div style="font-size:11px;font-family:var(--mono);color:var(--text-tertiary);margin-top:6px;">' + _escHtml(a.jurisdiction) + (a.urgency ? ' · ' + a.urgency : '') + '</div>';
+      if (a.source_url) sections += '<a class="bd-source-link" href="' + _escHtml(a.source_url) + '" target="_blank" style="display:block;margin-top:6px;">View Source &rarr;</a>';
+      sections += '</div>';
+    }
+    if (a.who_must_comply) {
+      sections += '<div class="bd-section"><div class="bd-section-title">Who Must Comply</div><div class="bd-section-body">' + _escHtml(a.who_must_comply) + '</div></div>';
+    }
+    sections += '</div>';
+    if (a.what_we_must_do) {
+      sections += '<div class="bd-section" style="background:' + sevStyle.bg + '10;"><div class="bd-section-title" style="color:' + sevStyle.color + ';">What We Must Do</div><div class="bd-section-body">' + _escHtml(a.what_we_must_do) + '</div></div>';
+    }
+    if (impact.direct || impact.supply_chain) {
+      sections += '<div class="bd-section" style="background:' + sevStyle.bg + '10;"><div class="bd-section-title" style="color:' + sevStyle.color + ';">Company Impact — ' + sev + '</div><div class="bd-two-col" style="margin: 0 -18px;">';
+      if (impact.direct) sections += '<div style="padding: 8px 18px; border-right: 1px solid var(--border-light);"><span style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--text-tertiary);display:block;margin-bottom:2px;">DIRECT PRODUCTS</span><div class="bd-section-body">' + _escHtml(impact.direct) + '</div></div>';
+      if (impact.supply_chain) sections += '<div style="padding: 8px 18px;"><span style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--text-tertiary);display:block;margin-bottom:2px;">SUPPLY CHAIN</span><div class="bd-section-body">' + _escHtml(impact.supply_chain) + '</div></div>';
+      sections += '</div></div>';
+    }
+    if (a.penalties) {
+      sections += '<div class="bd-section"><div class="bd-section-title">Penalties for Non-Compliance</div><div class="bd-section-body">' + _escHtml(a.penalties) + '</div></div>';
+    }
+    if (a.preparation_timeline && a.preparation_timeline.length) {
+      sections += '<div class="bd-section"><div class="bd-section-title">Preparation Timeline</div><div class="dd-prep-row">';
+      a.preparation_timeline.forEach(function(step) {
+        var daysLabel = step.days_before === 0 ? 'Deadline Day' : step.days_before + ' days before';
+        var isPast = false;
+        if (a.deadline_date) { var sd = new Date(a.deadline_date); sd.setDate(sd.getDate() - step.days_before); isPast = sd < today; }
+        sections += '<div class="dd-prep-step' + (isPast ? ' dd-prep-past' : '') + '"><div class="dd-prep-label">' + _escHtml(daysLabel) + (isPast ? ' (past)' : '') + '</div><div style="font-size:12px;color:var(--text-primary);line-height:1.45;">' + _escHtml(step.action) + '</div></div>';
+      });
+      sections += '</div></div>';
+    }
+    if (a.related_context) {
+      sections += '<div class="bd-section"><div class="bd-section-title">Related Context</div><div class="bd-section-body">' + _escHtml(a.related_context) + '</div></div>';
+    }
+    if (a.recommended_actions && a.recommended_actions.length) {
+      sections += '<div class="bd-section"><div class="bd-section-title">Recommended Actions Now</div><ul class="bd-action-list">';
+      a.recommended_actions.forEach(function(act) { sections += '<li>' + _escHtml(act) + '</li>'; });
+      sections += '</ul></div>';
+    }
+    if (a.outlook_event && a.outlook_event.suggested_date) {
+      var icsUrl = _buildIcsDataUrl(a.outlook_event, a.title || 'Deadline');
+      if (icsUrl) {
+        sections += '<div class="bd-section"><div class="bd-section-title">Calendar Reminder</div>';
+        if (a.outlook_event.description) sections += '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;line-height:1.5;">' + _escHtml(a.outlook_event.description) + '</div>';
+        sections += '<a class="bd-ics-btn" href="' + icsUrl + '" download="' + _escHtml((a.outlook_event.title || 'Deadline').replace(/[^\w\s-]/g,'')) + '.ics">&#128197; Add to Outlook / Calendar</a></div>';
+      }
+    }
+    document.getElementById('dd-body').innerHTML = sections;
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.getElementById('bd-overlay').classList.remove('open');
+      document.getElementById('dd-overlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  });
+})();
 </script>
 </body>
 </html>

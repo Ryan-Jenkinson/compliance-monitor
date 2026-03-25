@@ -1,9 +1,12 @@
 """SQLite setup and migrations."""
 from __future__ import annotations
+import logging
 import sqlite3
 from pathlib import Path
 
 from config.settings import Config
+
+logger = logging.getLogger(__name__)
 
 _SCHEMA = """
 -- Phase 1: Subscriber management
@@ -829,6 +832,76 @@ def save_article(article_id: str, topic: str, title: str, url: str,
     )
     conn.commit()
     conn.close()
+
+
+def deduplicate_articles_db(days: int = 180, similarity_threshold: float = 0.70) -> int:
+    """
+    Remove near-duplicate articles from the DB.
+
+    Strategy: within each topic, for articles within the same 7-day window,
+    if two titles share >= similarity_threshold of tokens, keep the one with
+    the longer snippet (more informative) and delete the other.
+
+    Returns count of rows removed.
+    """
+    import re as _re
+
+    def _tok(text: str) -> frozenset:
+        t = text.lower()
+        t = _re.sub(r"[^\w\s]", "", t)
+        t = _re.sub(r"\s+", " ", t).strip()
+        return frozenset(t.split())
+
+    conn = get_connection()
+    rows = conn.execute(
+        """SELECT id, topic, title, snippet, first_seen
+           FROM articles
+           WHERE first_seen > datetime('now', ?)
+           ORDER BY topic, first_seen""",
+        (f"-{days} days",),
+    ).fetchall()
+
+    # Group by topic + ISO week so we only compare nearby articles
+    from datetime import datetime as _dt
+    groups: dict = {}
+    for r in rows:
+        topic = r["topic"] or ""
+        try:
+            week = _dt.fromisoformat(r["first_seen"][:10]).isocalendar()[:2]  # (year, week)
+        except Exception:
+            week = ("?", "?")
+        key = (topic, week)
+        groups.setdefault(key, []).append(dict(r))
+
+    to_delete: set = set()
+    for group in groups.values():
+        # Compare all pairs within the group
+        for i in range(len(group)):
+            if group[i]["id"] in to_delete:
+                continue
+            tok_i = _tok(group[i]["title"])
+            if not tok_i:
+                continue
+            for j in range(i + 1, len(group)):
+                if group[j]["id"] in to_delete:
+                    continue
+                tok_j = _tok(group[j]["title"])
+                if not tok_j:
+                    continue
+                overlap = len(tok_i & tok_j) / len(tok_i | tok_j)
+                if overlap >= similarity_threshold:
+                    # Keep the one with longer snippet; on tie keep i (first seen)
+                    len_i = len(group[i].get("snippet") or "")
+                    len_j = len(group[j].get("snippet") or "")
+                    to_delete.add(group[j]["id"] if len_i >= len_j else group[i]["id"])
+
+    if to_delete:
+        placeholders = ",".join("?" for _ in to_delete)
+        conn.execute(f"DELETE FROM articles WHERE id IN ({placeholders})", list(to_delete))
+        conn.commit()
+        logger.info(f"Article dedup: removed {len(to_delete)} near-duplicate rows")
+    conn.close()
+    return len(to_delete)
 
 
 def get_articles_for_display(topic: str | None = None, days: int = 180, limit: int = 2000) -> list[dict]:

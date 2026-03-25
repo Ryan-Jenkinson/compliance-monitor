@@ -586,6 +586,15 @@ def run_pipeline(args: argparse.Namespace) -> None:
     except Exception as e:
         logger.warning(f"Regulation registry seed failed (non-fatal): {e}")
 
+    # Article deduplication (remove near-duplicate titles from the archive)
+    try:
+        from subscribers.db import deduplicate_articles_db
+        removed_arts = deduplicate_articles_db(days=180)
+        if removed_arts:
+            logger.info(f"Article dedup: removed {removed_arts} near-duplicate articles from DB")
+    except Exception as e:
+        logger.warning(f"Article dedup failed (non-fatal): {e}")
+
     # Deadline watchdog (deduplicate DB + compute threshold status)
     try:
         from processors.deadline_watchdog import run_watchdog
@@ -804,6 +813,8 @@ def run_pipeline(args: argparse.Namespace) -> None:
             topic_pages_prev = renderer.render_topic_pages(
                 pipeline_output, week_context=week_context,
                 deadlines=deadlines_preview, bill_activity=bill_activity_prev,
+                bill_analyses=bill_analyses_prev,
+                deadline_analyses=deadline_analyses_prev,
             )
             for topic_name, t_html in topic_pages_prev.items():
                 tp = dashboard_path.parent / f"{topic_name.lower()}.html"
@@ -902,6 +913,8 @@ def run_pipeline(args: argparse.Namespace) -> None:
         topic_pages = renderer.render_topic_pages(
             pipeline_output, week_context=week_context,
             deadlines=deadlines_dash, bill_activity=bill_activity,
+            bill_analyses=bill_analyses,
+            deadline_analyses=get_all_deadline_analyses(),
         )
         _push_dashboard(dashboard_html, _GITHUB_REPO_DIR, topic_pages=topic_pages)
         _push_auxiliary_pages(_GITHUB_REPO_DIR)

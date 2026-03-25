@@ -508,6 +508,8 @@ class NewsletterRenderer:
         week_context: Optional[dict] = None,
         deadlines: Optional[List[dict]] = None,
         bill_activity: Optional[List[dict]] = None,
+        bill_analyses: Optional[dict] = None,
+        deadline_analyses: Optional[dict] = None,
     ) -> dict[str, str]:
         """Render one HTML page per topic. Returns {topic_name: html_string}."""
         now = datetime.now()
@@ -565,6 +567,18 @@ class NewsletterRenderer:
             except Exception:
                 topic_bills = []
 
+            # Filter analyses to this topic only
+            topic_bill_analyses = {k: v for k, v in (bill_analyses or {}).items()
+                                   if str(v.get("topic", "")).upper() == topic_name.upper()} if bill_analyses else {}
+            topic_deadline_analyses = {k: v for k, v in (deadline_analyses or {}).items()
+                                       if str(v.get("topic", "")).upper() == topic_name.upper()} if deadline_analyses else {}
+            # Also include analyses where topic doesn't match but bill state is in the data
+            # Fall back to passing all if no topic match (analyses may not have topic set)
+            if not topic_bill_analyses and bill_analyses:
+                topic_bill_analyses = bill_analyses
+            if not topic_deadline_analyses and deadline_analyses:
+                topic_deadline_analyses = deadline_analyses
+
             html = template.render(
                 topic=topic,
                 date_display=now.strftime("%-d %b %Y"),
@@ -573,6 +587,8 @@ class NewsletterRenderer:
                 topic_deadlines=topic_deadlines,
                 topic_bills=topic_bills,
                 daily_trend=daily_trend,
+                bill_analyses=topic_bill_analyses,
+                deadline_analyses=topic_deadline_analyses,
                 maps={
                     "pfas_map_url": f"{base_url}/pfas-map.html",
                     "epr_map_url": f"{base_url}/epr-map.html",

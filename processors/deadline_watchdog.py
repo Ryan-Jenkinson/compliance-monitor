@@ -80,14 +80,32 @@ def enrich_deadlines(deadlines: list[dict], as_of: Optional[date] = None) -> lis
     return enriched
 
 
-def deduplicate_db() -> int:
+def _normalize_title(text: str) -> frozenset:
+    """Lowercase, strip punctuation, return token frozenset."""
+    import re as _re
+    t = (text or "").lower()
+    t = _re.sub(r"[^\w\s]", "", t)
+    t = _re.sub(r"\s+", " ", t).strip()
+    return frozenset(t.split())
+
+
+def deduplicate_db(fuzzy_threshold: float = 0.65) -> int:
     """
-    Remove duplicate rows from regulatory_deadlines, keeping the latest entry
-    per (topic, title, deadline_date). Returns count of rows removed.
+    Remove duplicate rows from regulatory_deadlines.
+
+    Pass 1 — exact match: keep MAX(id) per (topic, title, deadline_date).
+    Pass 2 — fuzzy match: for each (topic, deadline_date) group, if two
+    remaining titles share >= fuzzy_threshold token overlap, keep the one
+    with the more complete description (longest description text) and delete
+    the other. This catches titles like "EPA PFAS NPDWR Deadline" vs
+    "PFAS Drinking Water Rule Compliance Deadline" for the same date.
+
+    Returns total count of rows removed.
     """
     conn = sqlite3.connect(str(_DB_PATH))
     conn.row_factory = sqlite3.Row
-    # Find all groups with duplicates, keep MAX(id)
+
+    # Pass 1: exact duplicate removal
     conn.execute("""
         DELETE FROM regulatory_deadlines
         WHERE id NOT IN (
@@ -96,12 +114,61 @@ def deduplicate_db() -> int:
             GROUP BY topic, title, deadline_date
         )
     """)
-    removed = conn.total_changes
+    removed_exact = conn.total_changes
     conn.commit()
+
+    # Pass 2: fuzzy title match within same (topic, deadline_date) group
+    rows = conn.execute(
+        "SELECT id, topic, title, deadline_date, description FROM regulatory_deadlines ORDER BY topic, deadline_date"
+    ).fetchall()
+
+    # Group by (topic, deadline_date)
+    groups: dict = {}
+    for r in rows:
+        key = (r["topic"] or "", r["deadline_date"] or "")
+        groups.setdefault(key, []).append(dict(r))
+
+    to_delete: set = set()
+    for group in groups.values():
+        if len(group) < 2:
+            continue
+        for i in range(len(group)):
+            if group[i]["id"] in to_delete:
+                continue
+            tok_i = _normalize_title(group[i]["title"])
+            if not tok_i:
+                continue
+            for j in range(i + 1, len(group)):
+                if group[j]["id"] in to_delete:
+                    continue
+                tok_j = _normalize_title(group[j]["title"])
+                if not tok_j:
+                    continue
+                overlap = len(tok_i & tok_j) / len(tok_i | tok_j)
+                if overlap >= fuzzy_threshold:
+                    # Keep the one with the longer description; on tie keep i (higher id = more recent)
+                    desc_i = len(group[i].get("description") or "")
+                    desc_j = len(group[j].get("description") or "")
+                    if desc_i >= desc_j:
+                        to_delete.add(group[j]["id"])
+                    else:
+                        to_delete.add(group[i]["id"])
+
+    removed_fuzzy = 0
+    if to_delete:
+        placeholders = ",".join("?" for _ in to_delete)
+        conn.execute(
+            f"DELETE FROM regulatory_deadlines WHERE id IN ({placeholders})",
+            list(to_delete),
+        )
+        removed_fuzzy = conn.total_changes
+        conn.commit()
+
     conn.close()
-    if removed:
-        logger.info(f"Deadline dedup: removed {removed} duplicate rows")
-    return removed
+    total = removed_exact + removed_fuzzy
+    if total:
+        logger.info(f"Deadline dedup: removed {removed_exact} exact + {removed_fuzzy} fuzzy duplicate rows")
+    return total
 
 
 def get_watchdog_summary(as_of: Optional[date] = None) -> dict:
