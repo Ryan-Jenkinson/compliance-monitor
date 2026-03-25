@@ -2229,137 +2229,35 @@
               <span class="topic-card-chevron">&#9660;</span>
             </div>
 
-            <!-- Expanded body -->
+            <!-- Expanded body — articles only; full details on topic page -->
             <div class="topic-expanded-body" onclick="event.stopPropagation();">
-              {% if topic.summary %}
-              <div class="topic-summary-text">{{ topic.summary }}</div>
-              {% endif %}
 
-              <!-- Company Impact -->
-              {% set impact = topic.company_impact %}
-              {% if impact and (impact.direct_products or impact.supply_chain or impact.direct_actions or impact.supplier_actions) %}
-              <div class="topic-meta-section">
-                <div class="topic-meta-label">Company Impact</div>
-                {% if impact.direct_products %}
-                <div class="impact-row">
-                  <span class="impact-label">Products</span>
-                  <span class="impact-text">{{ impact.direct_products }}</span>
-                </div>
-                {% endif %}
-                {% if impact.supply_chain %}
-                <div class="impact-row">
-                  <span class="impact-label supplier">Supply Chain</span>
-                  <span class="impact-text">{{ impact.supply_chain }}</span>
-                </div>
-                {% endif %}
-                {% if impact.direct_actions %}
-                <div class="impact-row">
-                  <span class="impact-label">Actions</span>
-                  <div><ul class="action-list">{% for item in impact.direct_actions %}<li>{{ item }}</li>{% endfor %}</ul></div>
-                </div>
-                {% endif %}
-                {% if impact.supplier_actions %}
-                <div class="impact-row">
-                  <span class="impact-label supplier">Supplier</span>
-                  <div><ul class="action-list supplier">{% for item in impact.supplier_actions %}<li>{{ item }}</li>{% endfor %}</ul></div>
-                </div>
+              <!-- Launch topic dashboard button -->
+              <div style="padding:10px 0 8px;display:flex;align-items:center;gap:10px;">
+                <a href="{{ topic.topic|lower }}.html"
+                   onclick="event.stopPropagation();"
+                   style="display:inline-flex;align-items:center;gap:6px;
+                          background:{{ topic.color }};color:#fff;
+                          font-size:12px;font-weight:700;font-family:var(--mono);
+                          letter-spacing:.04em;text-decoration:none;
+                          padding:6px 14px;border-radius:4px;
+                          transition:opacity 0.15s;"
+                   onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+                  Open {{ topic.topic }} Dashboard &#x2197;
+                </a>
+                {%- set hist_count = (historical_by_topic.get(topic.topic) or []) | length -%}
+                {% if hist_count %}
+                <button class="article-show-history"
+                        onclick="event.stopPropagation();openHistoryModal('{{ topic.topic }}', '{{ topic.label }}')"
+                        title="View full 6-month article archive"
+                        style="margin:0;">
+                  Full archive ({{ hist_count }}) &#x2197;
+                </button>
                 {% endif %}
               </div>
-              {% endif %}
 
-              {% set strategy = topic.company_strategy or topic.strategy_note %}
-              {% if strategy %}
-              <div class="topic-meta-section">
-                <div class="topic-meta-label">Strategy Note</div>
-                <div class="strategy-text">{{ strategy }}</div>
-              </div>
-              {% endif %}
-
-              <!-- Articles — 30-day default, full history in popout -->
-              {%- set cutoff_30 = now.strftime('%Y-%m-%d') if false else '' -%}
+              <!-- Articles — current week's pipeline output -->
               <div class="article-feed" id="feed-{{ topic.topic|lower }}">
-                {%- set topic_insights_data = topic_insights.get(topic.topic) if topic_insights else none -%}
-
-                {# Historical insights panel if available #}
-                {% if topic_insights_data %}
-                <div class="insight-panel">
-                  <div class="insight-panel-title">6-Month Intelligence — {{ topic.topic }}</div>
-                  {% if topic_insights_data.six_month_trend %}
-                  <div class="insight-trend">{{ topic_insights_data.six_month_trend }}</div>
-                  {% endif %}
-                  {% if topic_insights_data.last_30_days %}
-                  <div class="insight-trend" style="color:var(--text-secondary);font-size:12px;">
-                    <strong style="color:var(--text-primary);">Last 30 days:</strong> {{ topic_insights_data.last_30_days }}
-                  </div>
-                  {% endif %}
-                  {% if topic_insights_data.breaking_news %}
-                  <div class="insight-trend" style="color:var(--text-secondary);font-size:12px;margin-top:4px;">
-                    <strong style="color:var(--red);">Breaking:</strong> {{ topic_insights_data.breaking_news }}
-                  </div>
-                  {% endif %}
-                  {% if topic_insights_data.strategic_priorities %}
-                  <ul class="insight-bullets">
-                    {% for p in topic_insights_data.strategic_priorities %}
-                    <li>{{ p }}</li>
-                    {% endfor %}
-                  </ul>
-                  {% endif %}
-                  {% if topic_insights_data.company_impact %}
-                  <div class="insight-badges">
-                    {%- set sev = topic_insights_data.company_impact.severity | default('LOW') -%}
-                    <span class="insight-badge {% if sev == 'HIGH' %}hi{% elif sev == 'MEDIUM' %}med{% elif sev == 'LOW' %}lo{% endif %}">
-                      {{ sev }} IMPACT
-                    </span>
-                    {% if topic_insights_data.article_count %}<span class="insight-badge">{{ topic_insights_data.article_count }} articles / 6mo</span>{% endif %}
-                  </div>
-                  {% endif %}
-                </div>
-                {% endif %}
-
-                {# Mini line chart: daily article volume for this topic over last 30 days #}
-                {%- if daily_trend and daily_trend.days -%}
-                {%- set topic_daily = daily_trend.by_topic.get(topic.topic, []) -%}
-                {%- set topic_daily_sum = topic_daily | sum -%}
-                {%- if topic_daily_sum > 0 -%}
-                {%- set mini_max = topic_daily | max | default(1) -%}
-                {%- set mini_h = 28 -%}
-                {%- set mini_days = topic_daily | length -%}
-                {%- set mini_step = 200.0 / (mini_days - 1) if mini_days > 1 else 1 -%}
-                <div class="topic-mini-chart">
-                  <div class="topic-mini-chart-label">
-                    <span>30-day article volume (by pub date)</span>
-                    <span>{{ topic_daily_sum }} articles</span>
-                  </div>
-                  <svg width="100%" height="{{ mini_h + 4 }}" viewBox="0 0 200 {{ mini_h + 4 }}"
-                       preserveAspectRatio="none" style="overflow:visible;">
-                    <defs>
-                      <linearGradient id="mini-fill-{{ topic.topic|lower }}" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="{{ topic.color }}" stop-opacity="0.3"/>
-                        <stop offset="100%" stop-color="{{ topic.color }}" stop-opacity="0.02"/>
-                      </linearGradient>
-                    </defs>
-                    {%- set mns = namespace(fill='', line='', prev_cy=mini_h) -%}
-                    {% for j in range(mini_days) %}
-                    {%- set cx = (j * mini_step) | round(1) -%}
-                    {%- set cnt = topic_daily[j] | default(0) -%}
-                    {%- set cy = (mini_h - ((cnt / mini_max) * mini_h)) | round(1) if mini_max > 0 else mini_h -%}
-                    {%- if j == 0 -%}
-                      {%- set mns.line = cx|string + "," + cy|string + " " -%}
-                      {%- set mns.fill = cx|string + "," + mini_h|string + " " + cx|string + "," + cy|string + " " -%}
-                    {%- else -%}
-                      {%- set mns.line = mns.line + cx|string + "," + mns.prev_cy|string + " " + cx|string + "," + cy|string + " " -%}
-                      {%- set mns.fill = mns.fill + cx|string + "," + mns.prev_cy|string + " " + cx|string + "," + cy|string + " " -%}
-                    {%- endif -%}
-                    {%- set mns.prev_cy = cy -%}
-                    {% endfor %}
-                    {%- set mns.fill = mns.fill + (mini_days - 1) * mini_step | round(1) | string + "," + mini_h|string -%}
-                    <polygon points="{{ mns.fill }}" fill="url(#mini-fill-{{ topic.topic|lower }})"/>
-                    <polyline points="{{ mns.line }}" fill="none" stroke="{{ topic.color }}" stroke-width="1.5" stroke-linejoin="round"/>
-                  </svg>
-                </div>
-                {%- endif -%}
-                {%- endif -%}
-
                 {% if topic.developments %}
                   {% set thirty_days_ago = (now - timedelta_30).strftime('%Y-%m-%d') %}
                   {% for dev in topic.developments %}
@@ -2395,23 +2293,8 @@
                     {% endif %}
                   </div>
                   {% endfor %}
-                  {%- set old_count = topic.developments | selectattr('date') | list | length -%}
-                  {%- set hist_count = (historical_by_topic.get(topic.topic) or []) | length -%}
-                  <button class="article-show-history"
-                          onclick="event.stopPropagation();openHistoryModal('{{ topic.topic }}', '{{ topic.label }}')"
-                          title="View full 6-month article archive">
-                    View full history — {{ hist_count }} articles (6 months) &#x2197;
-                  </button>
                 {% else %}
                   <div class="no-articles">No developments in current window.</div>
-                  {%- set hist_count = (historical_by_topic.get(topic.topic) or []) | length -%}
-                  {% if hist_count %}
-                  <button class="article-show-history"
-                          onclick="event.stopPropagation();openHistoryModal('{{ topic.topic }}', '{{ topic.label }}')"
-                          title="View full 6-month article archive">
-                    View {{ hist_count }} historical articles (6 months) &#x2197;
-                  </button>
-                  {% endif %}
                 {% endif %}
               </div>
             </div>

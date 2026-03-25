@@ -1004,3 +1004,18 @@ def get_all_topic_insights(period: str = "weekly") -> dict:
         except Exception:
             pass
     return result
+
+
+def get_bills_by_topic(topic: str, limit: int = 30) -> list[dict]:
+    """Return active bills for a given topic, sorted by last action date descending."""
+    conn = get_connection()
+    rows = conn.execute(
+        """SELECT state, bill_number, title, stage, last_action, last_action_date,
+                  url, state_link
+           FROM legiscan_bills
+           WHERE topic = ? AND is_active = 1 AND stage != 'none'
+           ORDER BY last_action_date DESC LIMIT ?""",
+        (topic, limit)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]

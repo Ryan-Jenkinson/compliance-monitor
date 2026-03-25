@@ -502,6 +502,99 @@ class NewsletterRenderer:
             timedelta_30=timedelta(days=30),
         )
 
+    def render_topic_pages(
+        self,
+        pipeline_output: dict,
+        week_context: Optional[dict] = None,
+        deadlines: Optional[List[dict]] = None,
+        bill_activity: Optional[List[dict]] = None,
+    ) -> dict[str, str]:
+        """Render one HTML page per topic. Returns {topic_name: html_string}."""
+        now = datetime.now()
+        enriched_topics = self._enrich_topics(pipeline_output)
+        base_url = "https://ryan-jenkinson.github.io/compliance-maps"
+
+        # Load article history and insights once (all topics)
+        try:
+            from subscribers.db import (get_articles_for_display, get_daily_article_counts,
+                                        get_all_topic_insights, get_bills_by_topic)
+            all_insights = get_all_topic_insights(period="weekly")
+            daily_trend = get_daily_article_counts(days=30)
+        except Exception:
+            all_insights = {}
+            daily_trend = {}
+
+        # Pre-filter deadlines by topic (lowercase comparison)
+        from datetime import date as _date
+        _today = _date.today()
+        normalized_deadlines = []
+        for dl in (deadlines or []):
+            dl = dict(dl)
+            dl["topic"] = (dl.get("topic") or "").lower()
+            if "days_until" not in dl or dl["days_until"] is None:
+                try:
+                    dl["days_until"] = (_date.fromisoformat(dl["deadline_date"]) - _today).days
+                except Exception:
+                    dl["days_until"] = None
+            normalized_deadlines.append(dl)
+
+        template = self.env.get_template("topic_page.html")
+        pages = {}
+
+        for topic in enriched_topics:
+            topic_name = topic["topic"]
+            topic_lc = topic_name.lower()
+
+            # Articles for this topic (6 months)
+            try:
+                articles = get_articles_for_display(topic=topic_name, days=180)
+            except Exception:
+                articles = []
+
+            # Insights for this topic
+            insights = all_insights.get(topic_name)
+
+            # Deadlines for this topic
+            topic_deadlines = [dl for dl in normalized_deadlines
+                               if dl.get("topic", "").lower() == topic_lc]
+            topic_deadlines.sort(key=lambda d: d.get("days_until") if d.get("days_until") is not None else 9999)
+
+            # Bills for this topic
+            try:
+                topic_bills = get_bills_by_topic(topic_name, limit=30)
+            except Exception:
+                topic_bills = []
+
+            html = template.render(
+                topic=topic,
+                date_display=now.strftime("%-d %b %Y"),
+                insights=insights,
+                articles=articles,
+                topic_deadlines=topic_deadlines,
+                topic_bills=topic_bills,
+                daily_trend=daily_trend,
+                maps={
+                    "pfas_map_url": f"{base_url}/pfas-map.html",
+                    "epr_map_url": f"{base_url}/epr-map.html",
+                    "reach_map_url": f"{base_url}/reach-map.html",
+                    "pfas_intel_url": f"{base_url}/pfas-legislative-intel.html",
+                },
+                timelines={
+                    "pfas": f"{base_url}/pfas-timeline.html",
+                    "epr": f"{base_url}/epr-timeline.html",
+                    "reach": f"{base_url}/reach-timeline.html",
+                    "tsca": f"{base_url}/tsca-timeline.html",
+                },
+                downloads={
+                    "pfas_xlsx": f"{base_url}/pfas-tracker.xlsx",
+                    "epr_xlsx": f"{base_url}/epr-tracker.xlsx",
+                    "reach_xlsx": f"{base_url}/reach-tracker.xlsx",
+                },
+            )
+            pages[topic_name] = html
+
+        return pages
+
     # Keep old name as alias for any callers
     def render_exec_summary(self, pipeline_output: dict, newsletter_url: Optional[str] = None,
                              week_context: Optional[dict] = None) -> str:

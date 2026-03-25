@@ -521,8 +521,9 @@ def _run_legiscan_if_due(today: date) -> None:
 
 # ── Dashboard ───────────────────────────────────────────────────────────────
 
-def _push_dashboard(dashboard_html: str, repo_dir: Path) -> Optional[str]:
-    """Push dashboard.html to GitHub Pages and set it as index. Returns URL."""
+def _push_dashboard(dashboard_html: str, repo_dir: Path,
+                     topic_pages: Optional[dict] = None) -> Optional[str]:
+    """Push dashboard.html (and per-topic pages) to GitHub Pages. Returns URL."""
     logger = logging.getLogger("github_dashboard")
     try:
         dest = repo_dir / "dashboard.html"
@@ -539,6 +540,12 @@ def _push_dashboard(dashboard_html: str, repo_dir: Path) -> Optional[str]:
         files_to_push = ["dashboard.html", "index.html"]
         if (repo_dir / "deadlines.ics").exists():
             files_to_push.append("deadlines.ics")
+        # Push per-topic pages if provided
+        if topic_pages:
+            for topic_name, html in topic_pages.items():
+                fname = f"{topic_name.lower()}.html"
+                (repo_dir / fname).write_text(html, encoding="utf-8")
+                files_to_push.append(fname)
         _git_push(repo_dir, files_to_push, f"Update dashboard {date_str}")
         url = f"{_PAGES_BASE}/dashboard.html"
         logger.info(f"Dashboard pushed: {url}")
@@ -792,6 +799,17 @@ def run_pipeline(args: argparse.Namespace) -> None:
             deadline_analyses=deadline_analyses_prev,
         )
         dashboard_path.write_text(dashboard_html, encoding="utf-8")
+        # Write per-topic pages alongside dashboard in preview
+        try:
+            topic_pages_prev = renderer.render_topic_pages(
+                pipeline_output, week_context=week_context,
+                deadlines=deadlines_preview, bill_activity=bill_activity_prev,
+            )
+            for topic_name, t_html in topic_pages_prev.items():
+                tp = dashboard_path.parent / f"{topic_name.lower()}.html"
+                tp.write_text(t_html, encoding="utf-8")
+        except Exception as _e:
+            logger.warning(f"Topic page render failed in preview: {_e}")
 
         webbrowser.open(f"file://{dashboard_path.resolve()}")
         print(f"Dashboard:       {dashboard_path}")
@@ -879,9 +897,13 @@ def run_pipeline(args: argparse.Namespace) -> None:
             archive_weeks=archive_weeks, deadlines=deadlines_dash,
             calendar_url=calendar_url, daily_changes=daily_changes,
             bill_activity=bill_activity, bill_analyses=bill_analyses,
-        deadline_analyses=get_all_deadline_analyses(),
+            deadline_analyses=get_all_deadline_analyses(),
         )
-        _push_dashboard(dashboard_html, _GITHUB_REPO_DIR)
+        topic_pages = renderer.render_topic_pages(
+            pipeline_output, week_context=week_context,
+            deadlines=deadlines_dash, bill_activity=bill_activity,
+        )
+        _push_dashboard(dashboard_html, _GITHUB_REPO_DIR, topic_pages=topic_pages)
         _push_auxiliary_pages(_GITHUB_REPO_DIR)
     except Exception as e:
         logger.warning(f"Dashboard render/push failed (non-fatal): {e}")
