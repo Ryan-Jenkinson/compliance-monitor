@@ -380,35 +380,57 @@
 
   /* ── AI Synthesis via direct Anthropic API call ── */
 
+  // Cloudflare Worker proxy URL — set after deploying cloudflare/worker.js
+  // Keeps the API key server-side so all team members can use AI analysis without setup.
+  var _PROXY_URL = 'https://compliance-ai-proxy.ryanjenkinson.workers.dev';
+
   function fetchSynthesis() {
-    var apiKey = '';
-    // Check multiple storage keys: dashboard settings key takes priority
-    try {
-      apiKey = localStorage.getItem('compliance_anthropic_key')
-            || localStorage.getItem('anthropic_api_key')
-            || '';
-    } catch(e) {}
-    if (!apiKey) { showKeyPrompt(); return; }
     document.getElementById('synthesis-body').innerHTML =
       '<div class="synthesis-loading"><span class="spinner"></span>&nbsp; Generating analysis with Claude Haiku&hellip;</div>';
     var resetBtn = document.getElementById('synthesis-reset-btn');
-    if (resetBtn) resetBtn.style.display = '';
+    if (resetBtn) resetBtn.style.display = 'none';
 
     var prompt = buildSynthesisPrompt(_q, _filtered);
-    fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1400,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    })
+    var payload = {
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1400,
+      messages: [{ role: 'user', content: prompt }]
+    };
+
+    // Use proxy when on static site; direct API call (with stored key) on localhost
+    var useProxy = !isLocal && _PROXY_URL;
+    var fetchUrl, fetchOpts;
+
+    if (useProxy) {
+      fetchUrl = _PROXY_URL;
+      fetchOpts = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      };
+    } else {
+      // Localhost fallback: use locally-stored key
+      var apiKey = '';
+      try {
+        apiKey = localStorage.getItem('compliance_anthropic_key')
+              || localStorage.getItem('anthropic_api_key') || '';
+      } catch(e) {}
+      if (!apiKey) { showKeyPrompt(); return; }
+      if (resetBtn) resetBtn.style.display = '';
+      fetchUrl = 'https://api.anthropic.com/v1/messages';
+      fetchOpts = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify(payload)
+      };
+    }
+
+    fetch(fetchUrl, fetchOpts)
     .then(function(r) { return r.json(); })
     .then(function(resp) {
       if (resp.error) throw new Error(resp.error.message || resp.error.type);
