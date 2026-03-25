@@ -852,7 +852,7 @@
 
 <!-- TOPBAR -->
 <div class="topbar">
-  <a class="topbar-back" href="dashboard.html">&#8592; Dashboard</a>
+  <a class="topbar-back" href="{{ dashboard_url|default('dashboard.html') }}">&#8592; Dashboard</a>
   <div class="topbar-sep"></div>
   <span class="topbar-topic">{{ topic.topic }}</span>
   <span class="topbar-label">{{ topic.label }}</span>

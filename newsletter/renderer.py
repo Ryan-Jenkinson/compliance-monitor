@@ -519,6 +519,7 @@ class NewsletterRenderer:
         bill_activity: Optional[List[dict]] = None,
         bill_analyses: Optional[dict] = None,
         deadline_analyses: Optional[dict] = None,
+        dashboard_url: str = "dashboard.html",
     ) -> dict[str, str]:
         """Render one HTML page per topic. Returns {topic_name: html_string}."""
         now = datetime.now()
@@ -610,6 +611,7 @@ class NewsletterRenderer:
                 bill_analyses=topic_bill_analyses,
                 deadline_analyses=topic_deadline_analyses,
                 cross_state=cross_state,
+                dashboard_url=dashboard_url,
                 maps={
                     "pfas_map_url": f"{base_url}/pfas-map.html",
                     "epr_map_url": f"{base_url}/epr-map.html",

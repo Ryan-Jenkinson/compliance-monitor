@@ -815,6 +815,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
                 deadlines=deadlines_preview, bill_activity=bill_activity_prev,
                 bill_analyses=bill_analyses_prev,
                 deadline_analyses=deadline_analyses_prev,
+                dashboard_url="preview_dashboard.html",
             )
             for topic_name, t_html in topic_pages_prev.items():
                 tp = dashboard_path.parent / f"{topic_name.lower()}.html"
