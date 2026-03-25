@@ -382,7 +382,12 @@
 
   function fetchSynthesis() {
     var apiKey = '';
-    try { apiKey = localStorage.getItem('anthropic_api_key') || ''; } catch(e) {}
+    // Check multiple storage keys: dashboard settings key takes priority
+    try {
+      apiKey = localStorage.getItem('compliance_anthropic_key')
+            || localStorage.getItem('anthropic_api_key')
+            || '';
+    } catch(e) {}
     if (!apiKey) { showKeyPrompt(); return; }
     document.getElementById('synthesis-body').innerHTML =
       '<div class="synthesis-loading"><span class="spinner"></span>&nbsp; Generating analysis with Claude Haiku&hellip;</div>';
@@ -417,7 +422,7 @@
     .catch(function(err) {
       var msg = err.message || String(err);
       if (msg.toLowerCase().indexOf('auth') !== -1 || msg.toLowerCase().indexOf('invalid') !== -1 || msg.toLowerCase().indexOf('api_key') !== -1) {
-        try { localStorage.removeItem('anthropic_api_key'); } catch(e) {}
+        try { localStorage.removeItem('compliance_anthropic_key'); localStorage.removeItem('anthropic_api_key'); } catch(e) {}
         showKeyPrompt('Invalid API key — please re-enter.');
       } else {
         document.getElementById('synthesis-body').innerHTML =
@@ -482,12 +487,18 @@
     var inp = document.getElementById('api-key-input');
     var key = inp ? inp.value.trim() : '';
     if (!key) return;
-    try { localStorage.setItem('anthropic_api_key', key); } catch(e) {}
+    try {
+      localStorage.setItem('compliance_anthropic_key', key);
+      localStorage.setItem('anthropic_api_key', key); // backwards compat
+    } catch(e) {}
     fetchSynthesis();
   };
 
   window.resetApiKey = function() {
-    try { localStorage.removeItem('anthropic_api_key'); } catch(e) {}
+    try {
+      localStorage.removeItem('compliance_anthropic_key');
+      localStorage.removeItem('anthropic_api_key');
+    } catch(e) {}
     var resetBtn = document.getElementById('synthesis-reset-btn');
     if (resetBtn) resetBtn.style.display = 'none';
     showKeyPrompt();
