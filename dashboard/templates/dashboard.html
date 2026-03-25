@@ -254,6 +254,38 @@
       color: var(--text-tertiary);
       white-space: nowrap;
     }
+    .search-suggestions {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      z-index: 2000;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+    .search-sugg-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .search-sugg-item:last-child { border-bottom: none; }
+    .search-sugg-item:hover, .search-sugg-item.active { background: var(--bg); }
+    .search-sugg-type { font-family: 'IBM Plex Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 5px; border-radius: 3px; flex-shrink: 0; }
+    .search-sugg-type.topic { color: #1565C0; background: #EBF3FD; }
+    .search-sugg-type.source { color: #0F7B3F; background: #EEFAF3; }
+    .search-sugg-type.article { color: var(--text-muted); background: var(--bg); }
+    .search-sugg-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .search-sugg-count { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
     .topbar-actions {
       display: flex;
       gap: 4px;
@@ -2117,8 +2149,12 @@
   <span class="topbar-title">Compliance Intelligence</span>
   <span class="topbar-date">{{ date_long }}{% if week_label %} / {{ week_label }}{% endif %}</span>
 
-  <div class="topbar-search">
-    <input type="text" id="search-input" placeholder="Search articles... ( / )" oninput="handleSearch(this.value)">
+  <div class="topbar-search" style="position:relative">
+    <input type="text" id="search-input" placeholder="Search articles... ( / )"
+           oninput="handleSearch(this.value)"
+           onkeydown="handleSearchKeydown(event)"
+           autocomplete="off">
+    <div class="search-suggestions" id="search-suggestions"></div>
   </div>
   <span class="topbar-search-count" id="search-count"></span>
   <a class="deep-dive-btn" id="deep-dive-btn" href="#" title="Generate a full analysis page for this search term">&#9670; Deep Dive</a>
@@ -3446,8 +3482,108 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
     }, 30);
   };
 
+  /* ── Autocomplete ── */
+  var _suggIdx = -1;
+
+  window.handleSearchKeydown = function(e) {
+    var box = document.getElementById('search-suggestions');
+    var items = box ? box.querySelectorAll('.search-sugg-item') : [];
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      _suggIdx = Math.min(_suggIdx + 1, items.length - 1);
+      items.forEach(function(el, i) { el.classList.toggle('active', i === _suggIdx); });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      _suggIdx = Math.max(_suggIdx - 1, -1);
+      items.forEach(function(el, i) { el.classList.toggle('active', i === _suggIdx); });
+    } else if (e.key === 'Enter' && _suggIdx >= 0 && items[_suggIdx]) {
+      e.preventDefault();
+      items[_suggIdx].click();
+    } else if (e.key === 'Escape') {
+      closeSuggestions();
+      document.getElementById('search-input').blur();
+    }
+  };
+
+  function closeSuggestions() {
+    var box = document.getElementById('search-suggestions');
+    if (box) { box.style.display = 'none'; box.innerHTML = ''; }
+    _suggIdx = -1;
+  }
+
+  function buildSuggestions(q) {
+    if (!q || q.length < 1) { closeSuggestions(); return; }
+    var ql = q.toLowerCase();
+    var suggestions = [];
+
+    // 1. Topic name matches
+    var topicCounts = {};
+    _allArticles.forEach(function(a) { topicCounts[a.topic] = (topicCounts[a.topic] || 0) + 1; });
+    Object.keys(topicCounts).forEach(function(t) {
+      if (t.toLowerCase().indexOf(ql) !== -1) {
+        suggestions.push({ type: 'topic', label: t, count: topicCounts[t] });
+      }
+    });
+
+    // 2. Source matches (unique sources containing query)
+    var sourceCounts = {};
+    _allArticles.forEach(function(a) {
+      if (a.source && a.source.toLowerCase().indexOf(ql) !== -1) {
+        sourceCounts[a.source] = (sourceCounts[a.source] || 0) + 1;
+      }
+    });
+    Object.keys(sourceCounts).slice(0, 3).forEach(function(s) {
+      suggestions.push({ type: 'source', label: s, count: sourceCounts[s] });
+    });
+
+    // 3. Article title matches (up to 5)
+    var titleMatches = _allArticles.filter(function(a) {
+      return (a.title || '').toLowerCase().indexOf(ql) !== -1;
+    }).slice(0, 5);
+    titleMatches.forEach(function(a) {
+      suggestions.push({ type: 'article', label: a.title, url: a.url });
+    });
+
+    // Render
+    var box = document.getElementById('search-suggestions');
+    if (!box || suggestions.length === 0) { closeSuggestions(); return; }
+    box.innerHTML = suggestions.map(function(s, i) {
+      var typeLabel = s.type;
+      var countHtml = s.count ? '<span class="search-sugg-count">' + s.count + '</span>' : '';
+      return '<div class="search-sugg-item" data-idx="' + i + '" data-type="' + s.type + '" data-label="' + s.label.replace(/"/g,'&quot;') + '" data-url="' + (s.url||'') + '">' +
+        '<span class="search-sugg-type ' + s.type + '">' + typeLabel + '</span>' +
+        '<span class="search-sugg-text">' + s.label + '</span>' +
+        countHtml + '</div>';
+    }).join('');
+    box.style.display = 'block';
+    _suggIdx = -1;
+
+    box.querySelectorAll('.search-sugg-item').forEach(function(el) {
+      el.addEventListener('click', function() {
+        var type = el.dataset.type;
+        var label = el.dataset.label;
+        if (type === 'article' && el.dataset.url) {
+          window.open(el.dataset.url, '_blank');
+          closeSuggestions();
+          return;
+        }
+        document.getElementById('search-input').value = label;
+        handleSearch(label);
+        closeSuggestions();
+      });
+    });
+  }
+
+  // Close suggestions when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('#search-suggestions') && !e.target.closest('#search-input')) {
+      closeSuggestions();
+    }
+  });
+
   /* ── Search ── */
   window.handleSearch = function(query) {
+    buildSuggestions(query);
     var trimmed = query.trim();
     state.searchQuery = trimmed.toLowerCase();
     applyFilters();
@@ -3456,13 +3592,11 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
     var countEl = document.getElementById('search-count');
 
     if (trimmed.length >= 2) {
-      // Build deep-dive URL — prefer pre-generated static page if available for known slugs,
-      // otherwise route through the Flask server
       var slug = trimmed.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
       var _knownSlugs = {{ topic_slugs | tojson }};
       var href = (_knownSlugs.indexOf(slug) !== -1)
         ? ('deep-dives/' + slug + '.html')
-        : ('/deep-dive?q=' + encodeURIComponent(trimmed));
+        : ('deep-dives/viewer.html?q=' + encodeURIComponent(trimmed));
       btn.href = href;
       btn.innerHTML = '&#9670; Deep Dive: ' + trimmed;
       btn.classList.add('visible');

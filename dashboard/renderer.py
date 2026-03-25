@@ -443,7 +443,8 @@ class DashboardRenderer:
                      "pub_date": a.get("pub_date") or a.get("first_seen","")[:10],
                      "snippet": (a.get("snippet") or "")[:200],
                      "first_seen": a.get("first_seen","")[:10],
-                     "is_new": bool(a.get("is_new"))} for a in all_historical]
+                     "is_new": bool(a.get("is_new")),
+                     "relevance": a.get("relevance") or "DIRECT"} for a in all_historical]
             all_articles_json = _json.dumps(slim)
             monthly_trend = get_monthly_article_counts(months=6)
             daily_trend = get_daily_article_counts(days=30)
