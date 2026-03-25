@@ -1945,13 +1945,9 @@
       <span class="rail-dot" style="background:var(--blue);"></span>
       <span class="rail-label">Maps & Data</span>
     </a>
-    <a class="rail-link" href="newsletter/archive.html">
-      <span class="rail-dot" style="background:var(--text-tertiary);"></span>
-      <span class="rail-label">All Articles</span>
-    </a>
     <a class="rail-link" href="glossary.html">
       <span class="rail-dot" style="background:var(--blue);"></span>
-      <span class="rail-label">Definitions</span>
+      <span class="rail-label">Glossary</span>
     </a>
     <a class="rail-link" data-target="section-deadlines" onclick="scrollToSection('section-deadlines')">
       <span class="rail-dot" style="background:var(--amber);"></span>
@@ -1976,11 +1972,7 @@
 
     {% if timelines %}
     <div class="rail-divider"></div>
-    {% if timelines.all %}<a class="rail-link" href="{{ timelines.all }}"><span class="rail-dot" style="background:var(--text-inverse-dim);"></span><span class="rail-label">All Timelines</span></a>{% endif %}
-    {% if timelines.pfas %}<a class="rail-link" href="{{ timelines.pfas }}"><span class="rail-dot" style="background:var(--text-inverse-dim);"></span><span class="rail-label">PFAS Timeline</span></a>{% endif %}
-    {% if timelines.epr %}<a class="rail-link" href="{{ timelines.epr }}"><span class="rail-dot" style="background:var(--text-inverse-dim);"></span><span class="rail-label">EPR Timeline</span></a>{% endif %}
-    {% if timelines.reach %}<a class="rail-link" href="{{ timelines.reach }}"><span class="rail-dot" style="background:var(--text-inverse-dim);"></span><span class="rail-label">REACH Timeline</span></a>{% endif %}
-    {% if timelines.tsca %}<a class="rail-link" href="{{ timelines.tsca }}"><span class="rail-dot" style="background:var(--text-inverse-dim);"></span><span class="rail-label">TSCA Timeline</span></a>{% endif %}
+    {% if timelines.all %}<a class="rail-link" href="{{ timelines.all }}" title="All regulatory deadline timelines"><span class="rail-dot" style="background:var(--text-inverse-dim);"></span><span class="rail-label">All Timelines</span></a>{% endif %}
     {% endif %}
   </div>
 
@@ -2019,7 +2011,7 @@
     {% if maps %}
     <a class="topbar-action-btn" href="{{ maps.pfas_url }}" title="PFAS state regulation map">PFAS Map</a>
     {% endif %}
-    <a class="topbar-action-btn" href="newsletter/archive.html" title="Weekly briefing archive">Archive</a>
+    <a class="topbar-action-btn" onclick="scrollToSection('section-archive')" style="cursor:pointer;" title="Weekly briefing archive">Archive</a>
   </div>
   <!-- Source health indicator in topbar -->
   {% if source_health %}

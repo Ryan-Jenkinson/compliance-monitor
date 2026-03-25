@@ -361,19 +361,19 @@ a:hover { text-decoration: underline; }
 }
 .cs-topbar-back {
   display: inline-flex; align-items: center; gap: 5px;
-  font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,0.5);
-  border: 1px solid rgba(255,255,255,0.12); border-radius: 4px;
-  padding: 4px 10px; text-decoration: none; transition: color 0.15s, border-color 0.15s;
+  font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,0.85);
+  border: 1px solid rgba(255,255,255,0.30); border-radius: 4px;
+  padding: 4px 10px; text-decoration: none; transition: color 0.15s, border-color 0.15s, background 0.15s;
   white-space: nowrap;
 }
-.cs-topbar-back:hover { color: #fff; border-color: rgba(255,255,255,0.3); text-decoration: none; }
-.cs-topbar-sep { width: 1px; height: 18px; background: rgba(255,255,255,0.12); flex-shrink: 0; }
+.cs-topbar-back:hover { color: #fff; border-color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.08); text-decoration: none; }
+.cs-topbar-sep { width: 1px; height: 18px; background: rgba(255,255,255,0.20); flex-shrink: 0; }
 .cs-topbar-title { font-weight: 700; font-size: 14px; color: #fff; letter-spacing: -0.01em; }
 .cs-topbar-confidential {
   margin-left: auto; font-family: var(--mono); font-size: 10px;
-  color: rgba(255,255,255,0.25); letter-spacing: .08em; text-transform: uppercase;
+  color: rgba(255,255,255,0.55); letter-spacing: .08em; text-transform: uppercase;
 }
-.cs-topbar-date { font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,0.35); }
+.cs-topbar-date { font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,0.60); }
 
 /* ── Stats bar ── */
 .cs-statsbar {
@@ -389,7 +389,7 @@ a:hover { text-decoration: underline; }
 .cs-stat:first-child { padding-left: 0; }
 .cs-stat:last-child { border-right: none; }
 .cs-stat-val { font-family: var(--mono); font-size: 13px; font-weight: 700; color: #e0e2e8; }
-.cs-stat-label { font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,0.3);
+.cs-stat-label { font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,0.55);
                  letter-spacing: .05em; text-transform: uppercase; }
 .cs-stat-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 
