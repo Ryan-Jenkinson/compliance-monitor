@@ -2770,11 +2770,11 @@
               {%- set t_color = topic_obj.color if topic_obj else '#718096' -%}
               {% if is_milestone %}
               {# Milestone row — links to source, no AI modal #}
-              <div class="dl-item{% if dl.source_url %} dl-item-clickable{% endif %}"
+              <div class="dl-item{% if dl.source_url %} dl-item-clickable{% endif %}" data-topic="{{ dl.topic|lower if dl.topic else '' }}"
                    {% if dl.source_url %}onclick="window.open('{{ dl.source_url }}','_blank')"{% endif %}>
               {% else %}
               {# Deadline row — AI modal click-through #}
-              <div class="dl-item dl-item-clickable" data-deadline-id="{{ dl.id }}" onclick="openDeadlineDetailFromEl(this)">
+              <div class="dl-item dl-item-clickable" data-deadline-id="{{ dl.id }}" data-topic="{{ dl.topic|lower if dl.topic else '' }}" onclick="openDeadlineDetailFromEl(this)">
               {% endif %}
                 <div style="text-align:right;min-width:56px;">
                   {% if days is not none %}
@@ -3559,6 +3559,14 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
   window.scrollToSection = function(id) {
     var anchor = document.getElementById('anchor-' + id) || document.getElementById(id);
     if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  /* ── Filter deadline list to a topic (called from sidebar Deadlines sub-links) ── */
+  window.filterDeadlinesByTopic = function(topicName) {
+    document.querySelectorAll('.dl-item[data-topic]').forEach(function(card) {
+      var t = (card.dataset.topic || '').toLowerCase();
+      card.style.display = (!topicName || t === topicName) ? '' : 'none';
+    });
   };
 
   /* ── Accordion: default open groups ── */
@@ -4732,7 +4740,11 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
       dls.forEach(function(dl) {
         var color = dotColor(dl);
         var titleHtml = dl.title;
-        html += '<div class="cal-detail-item">' +
+        var isClickable = dl.id && dl._source !== 'milestone';
+        var itemAttrs = isClickable
+          ? ' style="cursor:pointer;" onclick="openDeadlineDetail(' + dl.id + ')"'
+          : '';
+        html += '<div class="cal-detail-item"' + itemAttrs + '>' +
           '<span class="cal-detail-dot" style="background:' + color + ';"></span>' +
           '<div class="cal-detail-body">' +
             '<div class="cal-detail-title">' + titleHtml + '</div>' +
@@ -4740,6 +4752,7 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
               (dl.jurisdiction ? dl.jurisdiction + ' &middot; ' : '') +
               (dl.topic || '') +
               (dl.days_until !== undefined && dl.days_until !== null ? ' &middot; <strong>' + dl.days_until + 'd</strong>' : '') +
+              (isClickable ? ' &middot; <span style="color:var(--teal);font-size:11px;">AI analysis &rarr;</span>' : '') +
             '</div>' +
           '</div></div>';
       });
