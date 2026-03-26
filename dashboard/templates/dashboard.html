@@ -3001,14 +3001,14 @@
           </div>
           <div class="cs-dash-tabs">
             {% for report in cross_state_reports %}
-            <button class="cs-dash-tab{% if loop.first %} active{% endif %}"
+            <button class="cs-dash-tab{% if report.topic == 'PFAS' or (loop.first and not cross_state_reports|selectattr('topic','equalto','PFAS')|list) %} active{% endif %}"
                     data-cs-topic="{{ report.topic }}"
                     onclick="csDashTabShow('{{ report.topic }}')">{{ report.topic }}</button>
             {% endfor %}
           </div>
           {% for report in cross_state_reports %}
           {%- set a = report.analysis -%}
-          <div class="cs-dash-panel{% if loop.first %} active{% endif %}" data-cs-panel="{{ report.topic }}">
+          <div class="cs-dash-panel{% if report.topic == 'PFAS' or (loop.first and not cross_state_reports|selectattr('topic','equalto','PFAS')|list) %} active{% endif %}" data-cs-panel="{{ report.topic }}">
             {% if a.summary %}
             <div class="cs-dash-summary">{{ a.summary | truncate(220, true, '…') }}</div>
             {% endif %}
