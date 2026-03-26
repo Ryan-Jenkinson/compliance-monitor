@@ -1428,7 +1428,7 @@
           <span class="article-headline">
             <a href="{{ article.url }}" target="_blank">{{ article.title }}</a>
           </span>
-          <span class="badge badge-{{ (article.urgency or 'low') | lower }}">{{ (article.urgency or 'low') | upper }}</span>
+          {% if article.urgency %}<span class="badge badge-{{ article.urgency | lower }}">{{ article.urgency | upper }}</span>{% endif %}
           {% if article.impact_score is defined and article.impact_score %}
           <span class="badge badge-impact {% if article.impact_score >= 7 %}hi{% elif article.impact_score >= 4 %}mid{% else %}lo{% endif %}" title="Company impact score">{{ article.impact_score }}</span>
           {% endif %}
