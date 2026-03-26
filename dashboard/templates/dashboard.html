@@ -2191,59 +2191,130 @@
   </div>
 
   <div class="rail-nav">
-    <a class="rail-link active" data-target="section-dashboard" onclick="scrollToSection('section-dashboard')">
-      <span class="rail-dot" style="background:var(--teal);"></span>
-      <span class="rail-label">Overview</span>
-    </a>
 
-    {% for topic in topics %}
-    <a class="rail-link" data-target="section-{{ topic.topic|lower }}" onclick="scrollToSection('section-{{ topic.topic|lower }}')">
-      <span class="rail-dot" style="background:{{ topic.color }};"></span>
-      <span class="rail-label">{{ topic.topic }}</span>
-    </a>
-    {% endfor %}
+    <!-- ── Always-visible flat links ── -->
+    <div style="padding:6px 0 4px;">
+      <a class="rail-link active" id="rail-overview" data-target="section-dashboard" onclick="scrollToSection('section-dashboard')">
+        <i data-lucide="layout-dashboard" style="width:16px;height:16px;color:#0F766E;flex-shrink:0;"></i>
+        <span class="rail-label">Overview</span>
+      </a>
+      <a class="rail-link" id="rail-calendar-pin" data-target="section-calendar" onclick="scrollToSection('section-calendar')">
+        <i data-lucide="calendar" style="width:16px;height:16px;color:#D97706;flex-shrink:0;"></i>
+        <span class="rail-label">Reg. Calendar</span>
+      </a>
+    </div>
 
     <div class="rail-divider"></div>
 
-    {% if daily_changes %}
-    <a class="rail-link" data-target="section-changes" onclick="scrollToSection('section-changes')">
-      <span class="rail-dot" style="background:var(--red);"></span>
-      <span class="rail-label">Changes</span>
-    </a>
-    {% endif %}
-    <a class="rail-link" data-target="section-maps" onclick="scrollToSection('section-maps')">
-      <span class="rail-dot" style="background:var(--blue);"></span>
-      <span class="rail-label">Maps & Data</span>
-    </a>
-    <a class="rail-link" href="glossary.html">
-      <span class="rail-dot" style="background:var(--blue);"></span>
+    <!-- ── 1. Dashboards ── -->
+    <div class="rail-group-header" id="rail-grp-dashboards" data-group="dashboards" onclick="toggleRailGroup('dashboards', event)">
+      <i data-lucide="layers" style="width:16px;height:16px;color:#0D9488;flex-shrink:0;"></i>
+      <span class="rail-group-label">Dashboards</span>
+      <span class="rail-group-chevron">&#9654;</span>
+    </div>
+    <div class="rail-group-sub" id="rail-sub-dashboards">
+      {% for topic in topics %}
+      <a class="rail-sub-link" href="{{ topic.topic|lower|replace(' ','_')|replace('/','_') }}.html" target="_blank" rel="noopener">
+        <span class="rail-sub-dot" style="background:{{ topic.color }};"></span>{{ topic.topic }}
+      </a>
+      {% endfor %}
+    </div>
+
+    <!-- ── 2. News & Articles ── -->
+    <div class="rail-group-header" id="rail-grp-news" data-group="news" onclick="toggleRailGroup('news', event)">
+      <i data-lucide="newspaper" style="width:16px;height:16px;color:#60A5FA;flex-shrink:0;"></i>
+      <span class="rail-group-label">News &amp; Articles</span>
+      <span class="rail-group-chevron">&#9654;</span>
+    </div>
+    <div class="rail-group-sub" id="rail-sub-news">
+      {% for topic in topics %}
+      <a class="rail-sub-link" onclick="expandTopic('{{ topic.topic|lower }}')">
+        <span class="rail-sub-dot" style="background:{{ topic.color }};"></span>{{ topic.topic }}
+      </a>
+      {% endfor %}
+    </div>
+
+    <!-- ── 3. Deadlines ── -->
+    <div class="rail-group-header" id="rail-grp-deadlines" data-group="deadlines" data-sections="section-deadlines,section-calendar" onclick="toggleRailGroup('deadlines', event)">
+      <i data-lucide="triangle-alert" style="width:16px;height:16px;color:#D97706;flex-shrink:0;"></i>
+      <span class="rail-group-label">Deadlines</span>
+      <span class="rail-group-chevron">&#9654;</span>
+    </div>
+    <div class="rail-group-sub" id="rail-sub-deadlines">
+      <a class="rail-sub-link" onclick="scrollToSection('section-deadlines')">All Deadlines</a>
+      {% for topic in topics %}
+      <a class="rail-sub-link" onclick="scrollToSection('section-deadlines');filterDeadlinesByTopic('{{ topic.topic|lower }}')">
+        <span class="rail-sub-dot" style="background:{{ topic.color }};"></span>{{ topic.topic }}
+      </a>
+      {% endfor %}
+      <a class="rail-sub-link" onclick="scrollToSection('section-calendar')">Reg. Calendar</a>
+    </div>
+
+    <!-- ── 4. Maps ── -->
+    <div class="rail-group-header" id="rail-grp-maps" data-group="maps" onclick="toggleRailGroup('maps', event)">
+      <i data-lucide="globe" style="width:16px;height:16px;color:#7C3AED;flex-shrink:0;"></i>
+      <span class="rail-group-label">Maps</span>
+      <span class="rail-group-chevron">&#9654;</span>
+    </div>
+    <div class="rail-group-sub" id="rail-sub-maps">
+      {% if maps.pfas_map_url %}<a class="rail-sub-link" href="{{ maps.pfas_map_url }}" target="_blank" rel="noopener">PFAS State Map</a>{% endif %}
+      {% if maps.pfas_intel_url %}<a class="rail-sub-link" href="{{ maps.pfas_intel_url }}" target="_blank" rel="noopener">PFAS Intel Map</a>{% endif %}
+      {% if maps.epr_map_url %}<a class="rail-sub-link" href="{{ maps.epr_map_url }}" target="_blank" rel="noopener">EPR Map</a>{% endif %}
+      {% if maps.reach_map_url %}<a class="rail-sub-link" href="{{ maps.reach_map_url }}" target="_blank" rel="noopener">REACH Map</a>{% endif %}
+    </div>
+
+    <!-- ── 5. Timelines ── -->
+    <div class="rail-group-header" id="rail-grp-timelines" data-group="timelines" onclick="toggleRailGroup('timelines', event)">
+      <i data-lucide="gantt-chart" style="width:16px;height:16px;color:#0369A1;flex-shrink:0;"></i>
+      <span class="rail-group-label">Timelines</span>
+      <span class="rail-group-chevron">&#9654;</span>
+    </div>
+    <div class="rail-group-sub" id="rail-sub-timelines">
+      {% if timelines.all %}<a class="rail-sub-link" href="{{ timelines.all }}" target="_blank" rel="noopener">All Topics</a>{% endif %}
+      {% if timelines.pfas %}<a class="rail-sub-link" href="{{ timelines.pfas }}" target="_blank" rel="noopener">PFAS</a>{% endif %}
+      {% if timelines.epr %}<a class="rail-sub-link" href="{{ timelines.epr }}" target="_blank" rel="noopener">EPR</a>{% endif %}
+      {% if timelines.reach %}<a class="rail-sub-link" href="{{ timelines.reach }}" target="_blank" rel="noopener">REACH</a>{% endif %}
+      {% if timelines.tsca %}<a class="rail-sub-link" href="{{ timelines.tsca }}" target="_blank" rel="noopener">TSCA</a>{% endif %}
+    </div>
+
+    <!-- ── 6. Legislative ── -->
+    <div class="rail-group-header" id="rail-grp-legislative" data-group="legislative" data-sections="section-leg-activity,section-cross-state,section-changes" onclick="toggleRailGroup('legislative', event)">
+      <i data-lucide="landmark" style="width:16px;height:16px;color:#BE185D;flex-shrink:0;"></i>
+      <span class="rail-group-label">Legislative</span>
+      <span class="rail-group-chevron">&#9654;</span>
+    </div>
+    <div class="rail-group-sub" id="rail-sub-legislative">
+      {% if bill_activity %}<a class="rail-sub-link" onclick="scrollToSection('section-leg-activity')">Bill Activity</a>{% endif %}
+      {% if cross_state_reports %}<a class="rail-sub-link" onclick="scrollToSection('section-cross-state')">Cross-State Intel</a>{% endif %}
+      {% if daily_changes %}<a class="rail-sub-link" onclick="scrollToSection('section-changes')">Changes Today</a>{% endif %}
+    </div>
+
+    <!-- ── 7. Downloads & Archive ── -->
+    <div class="rail-group-header" id="rail-grp-downloads" data-group="downloads" data-sections="section-archive" onclick="toggleRailGroup('downloads', event)">
+      <i data-lucide="archive" style="width:16px;height:16px;color:#4B5563;flex-shrink:0;"></i>
+      <span class="rail-group-label">Downloads &amp; Archive</span>
+      <span class="rail-group-chevron">&#9654;</span>
+    </div>
+    <div class="rail-group-sub" id="rail-sub-downloads">
+      {% if downloads.pfas_xlsx %}<a class="rail-sub-link" href="{{ downloads.pfas_xlsx }}" target="_blank" rel="noopener">PFAS Tracker (.xlsx)</a>{% endif %}
+      {% if downloads.epr_xlsx %}<a class="rail-sub-link" href="{{ downloads.epr_xlsx }}" target="_blank" rel="noopener">EPR Tracker (.xlsx)</a>{% endif %}
+      {% if downloads.reach_xlsx %}<a class="rail-sub-link" href="{{ downloads.reach_xlsx }}" target="_blank" rel="noopener">REACH Tracker (.xlsx)</a>{% endif %}
+      {% if calendar_url %}<a class="rail-sub-link" href="{{ calendar_url }}">Calendar (.ics)</a>{% endif %}
+      <a class="rail-sub-link" onclick="scrollToSection('section-archive')">Archive</a>
+    </div>
+
+    <div class="rail-divider"></div>
+
+    <!-- ── Special pinned items ── -->
+    <a class="rail-link-amber" href="glossary.html" target="_blank" rel="noopener">
+      <i data-lucide="book-open" style="width:16px;height:16px;flex-shrink:0;"></i>
       <span class="rail-label">Glossary</span>
     </a>
-    <a class="rail-link" data-target="section-deadlines" onclick="scrollToSection('section-deadlines')">
-      <span class="rail-dot" style="background:var(--amber);"></span>
-      <span class="rail-label">Deadlines</span>
-    </a>
-    {% if bill_activity %}
-    <a class="rail-link" data-target="section-leg-activity" onclick="scrollToSection('section-leg-activity')">
-      <span class="rail-dot" style="background:var(--blue);"></span>
-      <span class="rail-label">Leg. Activity</span>
-    </a>
-    {% endif %}
-    {% if deadlines %}
-    <a class="rail-link" data-target="section-calendar" onclick="scrollToSection('section-calendar')">
-      <span class="rail-dot" style="background:var(--teal);"></span>
-      <span class="rail-label">Calendar</span>
-    </a>
-    {% endif %}
-    <a class="rail-link" data-target="section-archive" onclick="scrollToSection('section-archive')">
-      <span class="rail-dot" style="background:var(--text-tertiary);"></span>
-      <span class="rail-label">Archive</span>
+    <a class="rail-link-purple" href="director_review.html" target="_blank" rel="noopener">
+      <i data-lucide="eye" style="width:16px;height:16px;flex-shrink:0;"></i>
+      <span class="rail-label">Director Review</span>
     </a>
 
-    {% if timelines %}
-    <div class="rail-divider"></div>
-    {% if timelines.all %}<a class="rail-link" href="{{ timelines.all }}" title="All regulatory deadline timelines"><span class="rail-dot" style="background:var(--text-inverse-dim);"></span><span class="rail-label">All Timelines</span></a>{% endif %}
-    {% endif %}
   </div>
 
   <div class="rail-footer">
