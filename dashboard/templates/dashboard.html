@@ -40,7 +40,7 @@
       --mono: 'IBM Plex Mono', 'Consolas', 'Monaco', monospace;
       --rail-w: 200px;
       --rail-w-collapsed: 56px;
-      --topbar-h: 44px;
+      --topbar-h: 56px;
       --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
       --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
       --shadow-md: 0 2px 8px rgba(0,0,0,0.08);
@@ -215,20 +215,22 @@
     }
     .topbar-date {
       font-family: var(--mono);
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 500;
       color: var(--text-tertiary);
-      letter-spacing: 0.3px;
+      letter-spacing: 0.2px;
       white-space: nowrap;
-      padding: 2px 8px;
-      background: var(--surface-sunken);
-      border-radius: 3px;
+      line-height: 1;
     }
     .topbar-search {
       flex: 1 0 200px;
-      max-width: 320px;
+      max-width: 400px;
       min-width: 200px;
       position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      justify-content: center;
     }
     .topbar-search input {
       width: 100%;
@@ -257,16 +259,18 @@
     .search-suggestions {
       display: none;
       position: absolute;
-      top: 100%;
+      top: calc(100% + 2px);
       left: 0;
-      right: 0;
+      right: auto;
+      min-width: 100%;
+      width: 440px;
+      max-width: 90vw;
       background: #fff;
       border: 1px solid var(--border);
-      border-top: none;
-      border-radius: 0 0 6px 6px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      border-radius: 6px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
       z-index: 2000;
-      max-height: 320px;
+      max-height: 360px;
       overflow-y: auto;
     }
     .search-sugg-item {
@@ -286,6 +290,14 @@
     .search-sugg-type.article { color: var(--text-muted); background: var(--bg); }
     .search-sugg-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .search-sugg-count { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+    .search-sugg-item.deep-analysis {
+      background: var(--amber-bg); border-top: 1px solid var(--amber-border);
+      border-bottom: none; margin-top: 2px;
+    }
+    .search-sugg-item.deep-analysis:hover, .search-sugg-item.deep-analysis.active { background: #FEF0D0; }
+    .search-sugg-type.deep { color: var(--amber); background: #FFF0C8; border: 1px solid var(--amber-border); }
+    .search-sugg-item.deep-analysis .search-sugg-text { color: var(--amber); font-weight: 600; }
+    .search-sugg-item.deep-analysis .deep-sugg-hint { font-size: 10px; color: #9A6000; font-family: var(--mono); }
     .topbar-actions {
       display: flex;
       gap: 4px;
@@ -320,7 +332,7 @@
     }
     .director-dot { background: var(--teal); }
     .deep-dive-btn {
-      display: none;
+      display: none !important;
       align-items: center;
       gap: 5px;
       font-family: var(--mono);
@@ -972,16 +984,25 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 16px 20px;
       margin-bottom: 20px;
       font-size: 12px;
+      overflow: hidden;
     }
     .badge-legend-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 12px;
+      padding: 9px 14px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.12s;
     }
+    .badge-legend-header:hover { background: var(--surface-hover); }
+    .badge-legend-body {
+      padding: 0 20px 16px;
+      display: none;
+    }
+    .badge-legend.open .badge-legend-body { display: block; }
     .badge-legend-title {
       font-family: var(--mono);
       font-size: 11px;
@@ -990,16 +1011,21 @@
       letter-spacing: 0.08em;
       color: var(--text-secondary);
     }
-    .badge-legend-close {
-      font-size: 14px;
+    .badge-legend-hint {
+      font-size: 11px;
       color: var(--text-muted);
-      cursor: pointer;
-      background: none;
-      border: none;
-      padding: 0 4px;
-      line-height: 1;
+      margin-left: 10px;
+      font-style: italic;
+      font-family: inherit;
     }
-    .badge-legend-close:hover { color: var(--text-primary); }
+    .badge-legend-chevron {
+      font-size: 9px;
+      color: var(--text-muted);
+      transition: transform 0.15s;
+      flex-shrink: 0;
+    }
+    .badge-legend.open .badge-legend-chevron { transform: rotate(90deg); }
+    .badge-legend.open .badge-legend-hint { display: none; }
     .badge-legend-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -1390,18 +1416,19 @@
       font-size: 12px;
     }
     .status-matrix th {
-      padding: 6px 8px;
+      padding: 5px 10px;
       text-align: center;
       font-weight: 700;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
       color: var(--text-tertiary);
       border-bottom: 2px solid var(--border);
-      font-size: 13px;
+      font-size: 10px;
+      white-space: nowrap;
     }
-    .status-matrix th:first-child { text-align: left; }
+    .status-matrix th:first-child { text-align: left; width: 40%; }
     .status-matrix td {
-      padding: 6px 8px;
+      padding: 5px 10px;
       text-align: center;
       border-bottom: 1px solid var(--border-light);
     }
@@ -1409,6 +1436,7 @@
       text-align: left;
       font-weight: 600;
       color: var(--text-secondary);
+      font-size: 11px;
     }
     .status-dot {
       width: 12px; height: 12px;
@@ -2147,13 +2175,13 @@
 <!-- ═══ TOP BAR ═══ -->
 <div class="topbar">
   <span class="topbar-title">Compliance Intelligence</span>
-  <span class="topbar-date">{{ date_long }}{% if week_label %} / {{ week_label }}{% endif %}</span>
 
-  <div class="topbar-search" style="position:relative">
+  <div class="topbar-search">
     <input type="text" id="search-input" placeholder="Search articles... ( / )"
            oninput="handleSearch(this.value)"
            onkeydown="handleSearchKeydown(event)"
            autocomplete="off">
+    <span class="topbar-date">{{ date_long }}{% if week_label %} &middot; {{ week_label }}{% endif %}</span>
     <div class="search-suggestions" id="search-suggestions"></div>
   </div>
   <span class="topbar-search-count" id="search-count"></span>
@@ -2370,12 +2398,14 @@
           </div>
         </div>
 
-        <!-- Badge Legend (dismissible) -->
-        <div class="badge-legend" id="badge-legend" style="display:none;">
-          <div class="badge-legend-header">
+        <!-- Badge Legend (collapsible) -->
+        <div class="badge-legend" id="badge-legend">
+          <div class="badge-legend-header" onclick="toggleLegend()">
             <span class="badge-legend-title">&#x25A6; Badge Guide</span>
-            <button class="badge-legend-close" onclick="dismissLegend()" title="Dismiss">&#x2715;</button>
+            <span class="badge-legend-hint">expand for an overview of what article badges mean</span>
+            <span class="badge-legend-chevron">&#9654;</span>
           </div>
+          <div class="badge-legend-body">
           <div class="badge-legend-grid">
             <div>
               <div class="badge-legend-section-title">Article Status</div>
@@ -2402,6 +2432,7 @@
               <div class="badge-legend-row"><span class="badge badge-impact lo" style="font-size:10px;">1–3</span> Low company impact</div>
               <div style="margin-top:6px;font-size:10px;color:var(--text-muted);">Score weights: product risk (35%), supply chain (25%), financial (20%), timeline (20%)</div>
             </div>
+          </div>
           </div>
         </div>
 
@@ -2860,36 +2891,26 @@
             <table class="status-matrix">
               <thead>
                 <tr>
-                  <th></th>
-                  {% for t in topics %}
-                  <th style="color:{{ t.color }};">{{ t.topic }}</th>
-                  {% endfor %}
+                  <th>Topic</th>
+                  <th>Activity</th>
+                  <th>High&nbsp;Urgency</th>
+                  <th>Deadlines</th>
                 </tr>
               </thead>
               <tbody>
+                {% for t in topics %}
+                {%- set dev_count = t.developments|default([])|length -%}
+                {%- set ns_h = namespace(c=0) -%}
+                {%- for d in t.developments|default([]) -%}{%- if d.urgency == 'HIGH' -%}{%- set ns_h.c = ns_h.c + 1 -%}{%- endif -%}{%- endfor -%}
+                {%- set ns_dl = namespace(c=0) -%}
+                {%- for dl in deadlines -%}{%- if dl.topic == t.topic|lower -%}{%- set ns_dl.c = ns_dl.c + 1 -%}{%- endif -%}{%- endfor -%}
                 <tr>
-                  <td>Activity</td>
-                  {% for t in topics %}
-                  {% set dev_count = t.developments|default([])|length %}
+                  <td style="color:{{ t.color }};">{{ t.label or t.topic }}</td>
                   <td><span class="status-dot {% if dev_count >= 5 %}s-red{% elif dev_count >= 2 %}s-amber{% elif dev_count >= 1 %}s-green{% else %}s-gray{% endif %}"></span></td>
-                  {% endfor %}
-                </tr>
-                <tr>
-                  <td>High Urgency</td>
-                  {% for t in topics %}
-                  {%- set ns_h = namespace(c=0) -%}
-                  {%- for d in t.developments|default([]) -%}{%- if d.urgency == 'HIGH' -%}{%- set ns_h.c = ns_h.c + 1 -%}{%- endif -%}{%- endfor -%}
                   <td><span class="status-dot {% if ns_h.c >= 3 %}s-red{% elif ns_h.c >= 1 %}s-amber{% else %}s-green{% endif %}"></span></td>
-                  {% endfor %}
-                </tr>
-                <tr>
-                  <td>Deadlines</td>
-                  {% for t in topics %}
-                  {%- set ns_dl = namespace(c=0) -%}
-                  {%- for dl in deadlines -%}{%- if dl.topic == t.topic|lower -%}{%- set ns_dl.c = ns_dl.c + 1 -%}{%- endif -%}{%- endfor -%}
                   <td><span class="status-dot {% if ns_dl.c >= 1 %}s-amber{% else %}s-none{% endif %}"></span></td>
-                  {% endfor %}
                 </tr>
+                {% endfor %}
               </tbody>
             </table>
           </div>
@@ -3197,12 +3218,10 @@
 
             {% for topic_name, stages in bill_funnel.by_topic.items() %}
             {%- set topic_color = topics|selectattr('topic','eq',topic_name)|map(attribute='color')|first or '#718096' -%}
-            <div style="margin-bottom:10px;">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
-                <span style="font-size: 12px;font-weight:700;color:{{ topic_color }};letter-spacing:.04em;">{{ topic_name }}</span>
-                <span style="font-size: 12px;color:var(--text-tertiary);font-family:var(--mono);">{{ stages.total }}</span>
-              </div>
-              <div style="display:flex;height:10px;border-radius:3px;overflow:hidden;background:var(--surface-sunken);">
+            {%- set topic_label = topics|selectattr('topic','eq',topic_name)|map(attribute='label')|first or topic_name -%}
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+              <span style="flex-shrink:0;width:88px;font-size:11px;font-weight:700;color:{{ topic_color }};letter-spacing:.03em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ topic_name }}">{{ topic_label }}</span>
+              <div style="flex:1;display:flex;height:10px;border-radius:3px;overflow:hidden;background:var(--surface-sunken);">
                 {% for stage in bill_funnel.stage_order %}
                 {%- set cnt = stages[stage] or 0 -%}
                 {% if cnt > 0 %}
@@ -3210,6 +3229,7 @@
                 {% endif %}
                 {% endfor %}
               </div>
+              <span style="flex-shrink:0;width:20px;text-align:right;font-size:11px;color:var(--text-tertiary);font-family:var(--mono);">{{ stages.total }}</span>
             </div>
             {% endfor %}
 
@@ -3546,8 +3566,26 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
 
     // Render
     var box = document.getElementById('search-suggestions');
-    if (!box || suggestions.length === 0) { closeSuggestions(); return; }
-    box.innerHTML = suggestions.map(function(s, i) {
+    if (!box) { return; }
+
+    // Always append deep analysis option when query is long enough
+    var deepItem = q.length >= 2 ? [{ type: 'deep', label: q }] : [];
+    var allItems = suggestions.concat(deepItem);
+
+    if (allItems.length === 0) { closeSuggestions(); return; }
+
+    box.innerHTML = allItems.map(function(s, i) {
+      if (s.type === 'deep') {
+        var slug = s.label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+        var _knownSlugs = {{ topic_slugs | tojson }};
+        var href = (_knownSlugs.indexOf(slug) !== -1)
+          ? ('deep-dives/' + slug + '.html')
+          : ('deep-dives/viewer.html?q=' + encodeURIComponent(s.label));
+        return '<div class="search-sugg-item deep-analysis" data-idx="' + i + '" data-type="deep" data-url="' + href + '">' +
+          '<span class="search-sugg-type deep">AI</span>' +
+          '<span class="search-sugg-text">Deep Analysis: ' + s.label + '</span>' +
+          '<span class="deep-sugg-hint">full report &rarr;</span></div>';
+      }
       var typeLabel = s.type;
       var countHtml = s.count ? '<span class="search-sugg-count">' + s.count + '</span>' : '';
       return '<div class="search-sugg-item" data-idx="' + i + '" data-type="' + s.type + '" data-label="' + s.label.replace(/"/g,'&quot;') + '" data-url="' + (s.url||'') + '">' +
@@ -3562,8 +3600,8 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
       el.addEventListener('click', function() {
         var type = el.dataset.type;
         var label = el.dataset.label;
-        if (type === 'article' && el.dataset.url) {
-          window.open(el.dataset.url, '_blank');
+        if (type === 'deep' || (type === 'article' && el.dataset.url)) {
+          window.location.href = el.dataset.url;
           closeSuggestions();
           return;
         }
@@ -4260,24 +4298,13 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
   /* ── Badge legend ── */
   window.toggleLegend = function() {
     var legend = document.getElementById('badge-legend');
-    if (!legend) return;
-    var visible = legend.style.display !== 'none';
-    legend.style.display = visible ? 'none' : 'block';
-    if (!visible) {
-      try { localStorage.removeItem('legendDismissed'); } catch(e) {}
-    }
+    if (legend) legend.classList.toggle('open');
   };
-  window.dismissLegend = function() {
-    var legend = document.getElementById('badge-legend');
-    if (legend) legend.style.display = 'none';
-    try { localStorage.setItem('legendDismissed', '1'); } catch(e) {}
-  };
-  // Show legend on first visit
+  window.dismissLegend = window.toggleLegend;
+  // Badge legend always starts collapsed
   (function() {
     try {
-      if (!localStorage.getItem('legendDismissed')) {
-        var legend = document.getElementById('badge-legend');
-        if (legend) legend.style.display = 'block';
+      if (false) { // placeholder — legend defaults closed, no auto-show
       }
     } catch(e) {}
   })();

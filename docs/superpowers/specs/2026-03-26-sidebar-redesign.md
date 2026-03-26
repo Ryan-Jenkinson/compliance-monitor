@@ -14,9 +14,14 @@ Replace the current flat nav rail with a collapsible accordion sidebar. Function
 
 ### Always-visible (no accordion)
 
+These two items sit above all accordion groups and are never hidden.
+
 | Item | Icon | Color | Action |
 |------|------|-------|--------|
 | Overview | `layout-dashboard` | `#0F766E` teal | Scroll to `section-dashboard` |
+| Regulatory Calendar | `calendar` | `#D97706` amber | Scroll to `section-calendar` |
+
+"Regulatory Calendar" also remains as a sub-item inside the Deadlines accordion for discoverability, but the always-visible entry is the primary access point.
 
 ---
 
@@ -128,3 +133,14 @@ The existing `updateActiveRailLink()` scroll watcher is extended:
 - Mobile hamburger menu behavior (unchanged)
 - Right-side panel collapse (`toggleSidebarPanel`) (unchanged)
 - Any change to section content or layout outside the rail nav
+
+---
+
+## Related — Calendar spec (separate)
+
+The following two features are out of scope for this spec but are planned together:
+
+1. **Future dates extraction** — scan article text for future dates, surface them in `section-calendar` alongside legally-tracked deadlines
+2. **Calendar item click-through** — clicking any calendar item opens the same AI summary panel already wired to deadline list cards. No new AI calls needed — the summaries exist; the calendar items just need to trigger the same panel lookup by deadline ID.
+
+See `docs/superpowers/specs/2026-03-26-calendar-future-dates.md` (to be written).

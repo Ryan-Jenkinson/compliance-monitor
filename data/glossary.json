@@ -520,5 +520,17 @@
     "full": "de minimis quantities",
     "category": "Regulatory Process",
     "description": "Threshold concept in EPA's proposed narrowed TSCA Section 8(a)(7) PFAS reporting rule that may exempt very small quantities of PFAS from reporting obligations."
+  },
+  {
+    "abbr": "CUUs",
+    "full": "Critical and Useful Uses",
+    "category": "Regulatory Process",
+    "description": "Designations under PFAS regulations that identify specific applications where PFAS use is deemed critical or useful, potentially qualifying for exemptions or extended compliance timelines in state reporting programs like Minnesota's PRISM system."
+  },
+  {
+    "abbr": "TSCA Section 8(a)(7)",
+    "full": "Toxic Substances Control Act Section 8(a)(7)",
+    "category": "US Federal",
+    "description": "Federal EPA reporting requirement for PFAS in chemical substances and articles; recent EPA proposal seeks to narrow scope by potentially exempting de minimis amounts and imported articles from reporting obligations."
   }
 ]
