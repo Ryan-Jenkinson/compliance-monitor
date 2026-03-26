@@ -3539,42 +3539,122 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
     allTopics: {{ topics|map(attribute='topic')|list|map('lower')|list|tojson }}
   };
 
+  /* ── Mobile sidebar toggle ── */
   window.toggleSidebar = function() {
     document.getElementById('sidebar').classList.toggle('open');
   };
 
+  /* ── Right-panel hide/show ── */
   window.toggleSidebarPanel = function() {
     var gridMain = document.querySelector('.grid-main');
     if (!gridMain) return;
     var hidden = gridMain.classList.toggle('sidebar-hidden');
     var btn = document.getElementById('sidebar-collapse-btn');
-    if (btn) {
-      btn.style.cssText = hidden ? 'display:none' : '';
-    }
+    if (btn) btn.style.cssText = hidden ? 'display:none' : '';
     var showBtn = document.getElementById('sidebar-show-btn');
     if (showBtn) showBtn.style.display = hidden ? 'block' : 'none';
   };
 
+  /* ── Smooth scroll to section ── */
   window.scrollToSection = function(id) {
     var anchor = document.getElementById('anchor-' + id) || document.getElementById(id);
     if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  /* ── Sidebar active tracking ── */
-  function updateActiveRailLink() {
-    var links = document.querySelectorAll('.rail-link[data-target]');
-    var sections = [];
-    links.forEach(function(link) {
-      var target = document.getElementById(link.dataset.target);
-      if (target) sections.push({ link: link, el: target });
+  /* ── Accordion: default open groups ── */
+  var ACCORDION_DEFAULTS = { dashboards: true, news: true };
+
+  function loadAccordionState() {
+    try {
+      var saved = JSON.parse(localStorage.getItem('sidebarAccordion') || '{}');
+      return Object.assign({}, ACCORDION_DEFAULTS, saved);
+    } catch(e) { return Object.assign({}, ACCORDION_DEFAULTS); }
+  }
+
+  function saveAccordionState(state) {
+    try { localStorage.setItem('sidebarAccordion', JSON.stringify(state)); } catch(e) {}
+  }
+
+  function applyAccordionState(state) {
+    Object.keys(state).forEach(function(groupId) {
+      var hdr = document.getElementById('rail-grp-' + groupId);
+      var sub = document.getElementById('rail-sub-' + groupId);
+      if (!hdr || !sub) return;
+      if (state[groupId]) {
+        hdr.classList.add('open');
+        sub.classList.add('open');
+      } else {
+        hdr.classList.remove('open');
+        sub.classList.remove('open');
+      }
     });
-    var active = sections[0];
-    var scrollY = window.scrollY + 80;
-    for (var i = sections.length - 1; i >= 0; i--) {
-      if (sections[i].el.offsetTop <= scrollY) { active = sections[i]; break; }
+  }
+
+  window.toggleRailGroup = function(groupId, e) {
+    /* If rail is collapsed, expand it first then open the group */
+    if (document.body.classList.contains('sidebar-collapsed')) {
+      document.body.classList.remove('sidebar-collapsed');
+      localStorage.setItem('sidebarCollapsed', '0');
     }
-    links.forEach(function(l) { l.classList.remove('active'); });
-    if (active) active.link.classList.add('active');
+    var hdr = document.getElementById('rail-grp-' + groupId);
+    var sub = document.getElementById('rail-sub-' + groupId);
+    if (!hdr || !sub) return;
+    var nowOpen = hdr.classList.toggle('open');
+    sub.classList.toggle('open', nowOpen);
+    var state = loadAccordionState();
+    state[groupId] = nowOpen;
+    saveAccordionState(state);
+  };
+
+  /* Restore accordion state on load */
+  (function() {
+    applyAccordionState(loadAccordionState());
+  })();
+
+  /* ── Active group tracking on scroll ── */
+  /* Maps group IDs to the section IDs they track (external-only groups omitted) */
+  var RAIL_GROUP_SECTIONS = {
+    'news':        {{ topics|map(attribute='topic')|map('lower')|list|tojson }}.map(function(t){ return 'section-' + t; }),
+    'deadlines':   ['section-deadlines'],
+    'legislative': ['section-leg-activity', 'section-cross-state', 'section-changes'],
+    'downloads':   ['section-archive']
+  };
+
+  function updateActiveRailLink() {
+    var scrollY = window.scrollY + 80;
+
+    /* Collect all trackable section positions */
+    var candidates = [];
+
+    /* Flat links */
+    document.querySelectorAll('.rail-link[data-target]').forEach(function(link) {
+      var el = document.getElementById(link.dataset.target);
+      if (el) candidates.push({ type: 'link', el: el, node: link, top: el.offsetTop });
+    });
+
+    /* Group headers */
+    Object.keys(RAIL_GROUP_SECTIONS).forEach(function(groupId) {
+      RAIL_GROUP_SECTIONS[groupId].forEach(function(sectionId) {
+        var el = document.getElementById(sectionId);
+        if (el) candidates.push({ type: 'group', el: el, node: document.getElementById('rail-grp-' + groupId), top: el.offsetTop });
+      });
+    });
+
+    /* Sort by top position */
+    candidates.sort(function(a, b) { return a.top - b.top; });
+
+    /* Find active candidate */
+    var active = candidates[0];
+    for (var i = candidates.length - 1; i >= 0; i--) {
+      if (candidates[i].top <= scrollY) { active = candidates[i]; break; }
+    }
+
+    /* Clear all active states */
+    document.querySelectorAll('.rail-link.active').forEach(function(l) { l.classList.remove('active'); });
+    document.querySelectorAll('.rail-group-header.active').forEach(function(h) { h.classList.remove('active'); });
+
+    /* Apply active to winning candidate */
+    if (active && active.node) active.node.classList.add('active');
   }
 
   var scrollTick = false;
@@ -3584,13 +3664,13 @@ var DEADLINE_ANALYSES = {{ deadline_analyses|tojson }};
       scrollTick = true;
     }
   });
+  updateActiveRailLink();
 
-  /* ── Sidebar toggle (persisted) ── */
+  /* ── Rail width collapse (persisted) ── */
   window.toggleSidebarPersist = function() {
     document.body.classList.toggle('sidebar-collapsed');
     localStorage.setItem('sidebarCollapsed', document.body.classList.contains('sidebar-collapsed') ? '1' : '0');
   };
-  // Restore sidebar state on load
   (function() {
     if (localStorage.getItem('sidebarCollapsed') === '1') {
       document.body.classList.add('sidebar-collapsed');
