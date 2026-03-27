@@ -9,11 +9,15 @@
  * Secret:  wrangler secret put ANTHROPIC_API_KEY
  */
 
-const ALLOWED_ORIGIN = "https://ryan-jenkinson.github.io";
+const ALLOWED_ORIGINS = [
+  "https://ryan-jenkinson.github.io",
+  "https://tunvara.vercel.app",
+];
 
 function corsHeaders(origin) {
+  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
   return {
-    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+    "Access-Control-Allow-Origin": allowed,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Max-Age": "86400",
@@ -30,8 +34,8 @@ export default {
       return new Response(null, { status: 204, headers: hdrs });
     }
 
-    // Restrict to allowed origin
-    if (origin !== ALLOWED_ORIGIN) {
+    // Restrict to allowed origins
+    if (!ALLOWED_ORIGINS.includes(origin)) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
         headers: { ...hdrs, "Content-Type": "application/json" },
