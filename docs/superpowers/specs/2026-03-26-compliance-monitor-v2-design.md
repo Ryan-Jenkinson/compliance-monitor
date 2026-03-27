@@ -2,7 +2,7 @@
 
 ## Goal
 
-Create a new copy of the compliance monitor project with a login wall, user collaboration features (favorites, article sharing, comment threads, direct messages, notifications), and a clean modular code foundation. The existing production project is untouched throughout development.
+Create a new copy of the compliance monitor project with a login wall, user collaboration features (favorites, article sharing, comment threads, direct messages, notifications, user submissions), and a clean modular code foundation. The existing production project is untouched throughout development.
 
 ## Architecture
 
@@ -275,6 +275,21 @@ Extends Supabase Auth. Created automatically when a user account is created.
 | is_read | boolean | Default false |
 | created_at | timestamp | |
 
+### `user_submissions`
+
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid | Primary key |
+| submitted_by | uuid | → profiles.id |
+| type | text | `url` \| `document` |
+| topic | text | PFAS, EPR, REACH, TSCA, Prop65, ConflictMinerals, ForcedLabor |
+| url | text | For URL submissions; null for documents |
+| storage_path | text | For documents; Supabase Storage path; null for URLs |
+| title | text | Scraped or user-provided title |
+| snippet | text | Scraped excerpt or null |
+| context_note | text | Optional submitter note |
+| submitted_at | timestamp | |
+
 ### Row-level security rules (all tables)
 - `profiles` — users can read all profiles (needed for @mentions, DM recipient picker), can only update their own row
 - `access_requests` — readable and writable by admins only; insert by anyone (unauthenticated) for the request form
@@ -283,6 +298,49 @@ Extends Supabase Auth. Created automatically when a user account is created.
 - `comments` — readable by all authenticated users; writable by author only (edits/deletes)
 - `messages` — visible to sender and recipient only
 - `notifications` — users see only their own rows
+- `user_submissions` — readable by all authenticated users; writable by submitter only (edits/deletes)
+
+---
+
+---
+
+## Step 7 — User Submissions
+
+Team members can submit content they find outside the automated pipeline: external URLs and PDF documents. This ensures things the scrapers miss can still enter the system and participate in the full collaboration layer.
+
+### URL submissions
+
+A "Submit Article" button appears in the topbar and on each topic page. Clicking opens a small form:
+- URL (required)
+- Topic (dropdown: PFAS, EPR, REACH, TSCA, Prop65, ConflictMinerals, ForcedLabor)
+- Context note (optional — "Found this on the EPA site, relevant to our MN suppliers")
+- Submit button
+
+On submit, the system attempts to scrape the page title and a short snippet from the URL (via a Supabase Edge Function). If scraping fails, the user's own title field is used as a fallback. The submission is stored in `user_submissions` and immediately visible to the team.
+
+**Where it appears:**
+- On the relevant topic page: in the main article feed, mixed with pipeline articles, with a "Submitted by [name]" badge to distinguish it from pipeline-scraped content
+- On a dedicated `/submissions.html` page showing all team submissions across topics
+
+### Document submissions (PDFs)
+
+For documents (PDFs, occasional Word files), a "Submit Document" option on the same form allows file upload. Files are stored in Supabase Storage. Documents do not appear in the main pipeline article feed — they appear only in the Team Submissions section on the relevant topic page and on `/submissions.html`.
+
+### Collaboration on submissions
+
+Both URL submissions and documents support the full collaboration layer:
+- Save to favorites
+- Share to a colleague with a note (creates `article_tags` row using the submission's URL/path as `article_url`)
+- Comment threads (uses `comments` table with `target_type = 'submission'`)
+
+### Project linking (forward-compatible)
+
+Every piece of content in the system — pipeline articles, user-submitted URLs, documents, deadlines, bills — displays two action buttons that are implemented as stubs in this phase:
+
+- **"Start Project"** — creates a new compliance project with this item pre-attached (implemented in the project management spec)
+- **"Add to Project"** — opens a picker to attach this item to an existing project (implemented in the project management spec)
+
+In this phase, both buttons are visible but display a "Coming soon" tooltip when clicked. The buttons are built now so the UI pattern is consistent everywhere before the project management system exists. This means no awkward retrofit when project management is built.
 
 ---
 
